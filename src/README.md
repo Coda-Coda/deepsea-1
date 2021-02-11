@@ -9,3 +9,5 @@ opam install .
 make edsger
 mv _build/default/Edsger/edsger.bc dsc
 ```
+
+For an alternative method using the Nix package manager instead of opam see [README-Nix.md](README-Nix.md)
