@@ -7,18 +7,18 @@ let
 in 
 let dependencies = (with pkgs; [
     coq_8_9
-    ocamlPackages.core
-    ocamlPackages.dune_2
-    ocamlPackages.ocaml
-    ocamlPackages.findlib
-    ocamlPackages.utop
-    ocamlPackages.cryptokit
-    ocamlPackages.ocamlbuild
-    ocamlPackages.cppo
-    ocamlPackages.ocaml_extlib
-    ocamlPackages.yojson
-    ocamlPackages.menhir
-    ocamlPackages.zarith
+    ocaml-ng.ocamlPackages_4_09.core
+    ocaml-ng.ocamlPackages_4_09.dune_2
+    ocaml-ng.ocamlPackages_4_09.ocaml
+    ocaml-ng.ocamlPackages_4_09.findlib
+    ocaml-ng.ocamlPackages_4_09.utop
+    ocaml-ng.ocamlPackages_4_09.cryptokit
+    ocaml-ng.ocamlPackages_4_09.ocamlbuild
+    ocaml-ng.ocamlPackages_4_09.cppo
+    ocaml-ng.ocamlPackages_4_09.ocaml_extlib
+    ocaml-ng.ocamlPackages_4_09.yojson
+    ocaml-ng.ocamlPackages_4_09.menhir
+    ocaml-ng.ocamlPackages_4_09.zarith
     ncurses
     ]);
 in
