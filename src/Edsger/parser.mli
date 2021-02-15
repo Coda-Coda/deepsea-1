@@ -40,7 +40,6 @@ type token =
   | INDEXED
   | IN
   | IF
-  | IDENTITY
   | IDENT of (Astcommon.ident)
   | GREATEREQ
   | GREATER
@@ -81,6 +80,7 @@ type token =
   | ASSERT
   | ARROW
   | ARRAY
+  | ADDRESS
 
 (* This exception is raised by the monolithic API functions. *)
 
