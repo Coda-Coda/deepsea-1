@@ -5,6 +5,10 @@ pkgs.stdenv.mkDerivation {
 
   src = ./.;
 
+  postPatch = ''
+    patchShebangs .
+  '';
+
   buildPhase = ''
     make
     make edsger
