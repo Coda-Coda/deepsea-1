@@ -10,7 +10,7 @@ pkgs.stdenv.mkDerivation {
   '';
 
   buildPhase = ''
-    make
+    make --always-make Edsger/parser.ml
     make edsger
   '';
 
