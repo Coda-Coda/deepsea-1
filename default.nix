@@ -24,5 +24,7 @@ pkgs.stdenv.mkDerivation {
     mkdir -p $out/bin
     cp src/_build/default/Edsger/edsger.bc $out/bin/dsc
     chmod +x $out/bin/dsc
+
+    cp dependencies.nix $out/dependencies.nix
   '';
 }
