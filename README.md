@@ -1,3 +1,7 @@
+Please note: this is an **unofficial** fork of https://github.com/certikfoundation/deepsea/
+
+----------
+
 # The DeepSEA Language
 
 You can download a zip file from the [releases

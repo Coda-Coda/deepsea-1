@@ -1,7 +1,3 @@
-Please note: this is an **unofficial** fork of https://github.com/certikfoundation/deepsea/
-
-----------
-
 This source directory contains the OCaml parts of the DeepSEA compiler. For the
 time being, we do not include the sources for the parts that are written in
 Coq, but we ship the Ocaml files which were compiled from them.
