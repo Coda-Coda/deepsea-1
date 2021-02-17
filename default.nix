@@ -1,6 +1,6 @@
 { pkgs ? import <nixpkgs> {} } :
 pkgs.stdenv.mkDerivation {
-  name = "dsc";
+  name = "dsc-and-deepsea-coq-built";
   buildInputs = (import ./dependencies.nix);
 
   src = ./.;
