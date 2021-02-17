@@ -18,13 +18,17 @@ pkgs.stdenv.mkDerivation {
   '';
 
   installPhase = ''
-    mkdir -p $out/DeepSEA
-    cp -r src/. $out/DeepSEA/
-
-    mkdir -p $out/bin
-    cp src/_build/default/Edsger/edsger.bc $out/bin/dsc
-    chmod +x $out/bin/dsc
+    mkdir -p $out
+    
+    cp CompCert-LICENSE.txt $out/CompCert-LICENSE.txt
+    cp Selected-Files-LICENSE.txt $out/Selected-Files-License.txt
 
     cp dependencies.nix $out/dependencies.nix
+    
+    cp -r src/ $out/src/
+
+    mkdir -p $out/binaries/built-from-src
+    cp src/_build/default/Edsger/edsger.bc $out/binaries/built-from-src/dsc
+    chmod +x $out/binaries/built-from-src/dsc
   '';
 }
