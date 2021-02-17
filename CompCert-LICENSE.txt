@@ -1,4 +1,5 @@
-All files in this distribution are part of the CompCert verified compiler.
+All files in this distribution (except those indicated in 
+Selected-Files-LICENSE.txt) are part of the CompCert verified compiler.
 
 The CompCert verified compiler is Copyright by Institut National de
 Recherche en Informatique et en Automatique (INRIA) and
