@@ -1,12 +1,12 @@
-The vast majority of files in this repository are licenced as described in CompCert-LICENCE.txt
-However the following files are dual-licenced as MIT or GNU GPL v2 (or, at your option, any later version of the GNU GPL licence). You may choose to abide by either of those two licences (included below).
+The vast majority of files in this repository are licensed as described in CompCert-LICENSE.txt
+However the following files are dual-licensed as MIT or GNU GPL v2 (or, at your option, any later version of the GNU GPL license). You may choose to abide by either of those two licenses (included below).
 
 ./shell.nix
 ./default.nix
 ./dependencies.nix
 
 
-For all other files, please see CompCert-LICENSE.txt (in this directory) for their licence.
+For all other files, please see CompCert-LICENSE.txt (in this directory) for their license.
 
 ------------------------------
 
