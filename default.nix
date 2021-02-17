@@ -19,6 +19,8 @@ pkgs.stdenv.mkDerivation {
 
   installPhase = ''
     mkdir -p $out
+
+    echo "These files are built from https://github.com/Coda-Coda/deepsea-1 which is a fork of https://github.com/certikfoundation/deepsea/" > $out/README-result.md
     
     cp CompCert-LICENSE.txt $out/CompCert-LICENSE.txt
     cp Selected-Files-LICENSE.txt $out/Selected-Files-License.txt
