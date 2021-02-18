@@ -1030,8 +1030,8 @@ let output_type_naturally_aligned out t =
 				    ^ "Proof. reflexivity. Qed.\n")
       | _ -> ()
 
-
-let output_hyper_binary_impl_eq out t =
+(* output_hyper_binary_impl_eq, need to consider best way to generate Hbinary. *)
+(* let output_hyper_binary_impl_eq out t =
   let output_eq_expression t a b tt ff =
 #ifdef REDACTED
     () in
@@ -1063,7 +1063,7 @@ match a, b with
   Hbinary_ocond := otrue2;
   Hbinary a b := ");
     output_eq_expression t "a" "b" "true" "false";
-    output_string out "\n}.\n"
+    output_string out "\n}.\n" *)
 
 let output_record_hyper_field_impl out struct_type_pair_ident s f ft
                             offset output_get output_set =
@@ -1249,8 +1249,8 @@ let gen_type env i t =
       output_string ops_out ").\n" in
     let _ = (* [HyperTypeImpl] and [HyperBinaryImpl Oeq] *)
       output_hyper_type_impl ops_out t;
-      output_hyper_type ops_out t;
-      output_hyper_binary_impl_eq ops_out t in
+      output_hyper_type ops_out t
+      in
     (* let _ = (* naturally_aligned *)
       output_type_naturally_aligned ops_out t in *)
     let _ = (* [HyperFieldImpl] and [HyperIndexImpl] *)
