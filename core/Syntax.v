@@ -493,7 +493,157 @@ Section CONSTR_PRF.
     FC_returns_ht : HyperType (tp_type_pair f.(FC_returns));
     FC_body_prf : cmd_constr_prf is_realizing f.(FC_returns) FC_returns_ht f.(FC_body)
   }.
-  
-  
-  
+  (* begin hide *)
+  (* Global Arguments FC_returns_cast _ {_} _.
+  Global Arguments FC_returns_ht   _ {_} _.
+  Global Arguments FC_body_prf     _ {_} _. *)
+  (* end hide *)
+
+  (* Abbreviations:
+       cmd = command
+       prf = proof
+       CRSP___ = Command Reentrancy Safety Proof ___
+  *)
+  Inductive cmd_reentrancy_safety_prf :
+  forall ret (htr : HyperType (tp_type_pair ret)), cmd_constr ret -> Prop :=
+| CRSPskip : cmd_reentrancy_safety_prf _ _ CCskip
+| CRSPlet : forall r `{ht : HyperType tp} htr id c1 c2,
+function_return_dec (mk_hyper_type_pair tp) = true ->
+cmd_reentrancy_safety_prf (mk_hyper_type_pair tp) ht c1 ->
+cmd_reentrancy_safety_prf r htr c2 ->
+cmd_reentrancy_safety_prf r htr (CClet id c1 c2)
+| CRSPload : forall `{ht : HyperType tp, hbv : !HyperByValueType tp} e
+            (* {hltrc: HyperLTypeRetCond} *)
+                 (ec : lexpr_constr_prf e),
+(* To be realizable, must not read from a ghost value:
+     => ~ is_ghost
+   <=>
+     ~ \/ ~ is_ghost
+   <=>
+     ~ (/\ is_ghost)
+*)
+(lexpr_is_ghost e = false) ->
+cmd_reentrancy_safety_prf (mk_hyper_type_pair tp) ht (CCload e)
+| CRSPstore : forall `{ht : HyperType tp, hbv : !HyperByValueType tp} el er
+                  (ecl : lexpr_constr_prf el)(ecr : expr_constr_prf er),
+(* To skip realization, must act ghostly not touching real data:
+     ~ => is_ghost
+   <=>
+     ~ ~ \/ is_ghost
+*)
+(lexpr_is_ghost el = true) ->
+cmd_reentrancy_safety_prf _ _ (CCstore el er)
+| CRSPsequence : forall r htr c1 c2,
+cmd_reentrancy_safety_prf _ _ c1 ->
+cmd_reentrancy_safety_prf r htr c2 ->
+cmd_reentrancy_safety_prf r htr (CCsequence c1 c2)
+| CRSPifthenelse : forall r htr e c_true c_false
+                       (ec : expr_constr_prf e),
+cmd_reentrancy_safety_prf r htr c_true ->
+cmd_reentrancy_safety_prf r htr c_false ->
+cmd_reentrancy_safety_prf r htr (CCifthenelse e c_true c_false)
+| CRSPfor : forall id_it id_end e1 e2 c
+               (ec1 : expr_constr_prf e1)(ec2 : expr_constr_prf e2),
+cmd_reentrancy_safety_prf _ _ c ->
+cmd_reentrancy_safety_prf _ _ (CCfor id_it id_end e1 e2 c)
+| CRSPfirst : forall r htr id_it id_end id_dest e1 e2 c3 c4 c5,
+expr_constr_prf e1 -> expr_constr_prf e2 ->
+cmd_reentrancy_safety_prf int_bool_pair int_bool c3 ->
+cmd_reentrancy_safety_prf r htr c4 ->
+cmd_reentrancy_safety_prf r htr c5 ->
+cmd_reentrancy_safety_prf r htr
+               (CCfirst id_it id_end id_dest e1 e2 c3 c4 c5)
+| CRSPfold : forall `{ht : HyperType tp} id_it id_end id_recur id_dest
+  e1 e2 e3 c (ec1 : expr_constr_prf e1)(ec2 : expr_constr_prf e2)
+  (ec3 : expr_constr_prf e3),
+function_return_dec (mk_hyper_type_pair tp) = true ->
+cmd_reentrancy_safety_prf (mk_hyper_type_pair tp) ht c ->
+cmd_reentrancy_safety_prf (mk_hyper_type_pair tp) ht
+               (CCfold id_it id_end id_recur id_dest e1 e2 e3 c)
+| CRSPcall : forall argt ret htr prim arg
+  (IHprim : @primitive_prf _ _ argt ret prim)
+  (IHprim_exec : primitive_exec_prf prim)
+  (IHprim_b : primitive_passthrough_prf prim)
+  (ecs : expr_constr_prf_conj arg),
+(* To be realizable, must not receive value from a ghost primitive call:
+     /\ ghost => ~ return
+   <=>
+     ~ (/\ ghost) \/ ~ return
+   <=>
+     ~ (/\ return /\ ghost)
+
+   To skip realization, must act ghostly and only call ghost or pure
+   primitives:
+     ~ => ghost \/ pure
+   <=>
+     ~ ~ \/ (ghost \/ pure)
+*)
+(* (&& function_return_dec ret && prim.(PRIMghost) = false) -> *)
+  (* (|| prim.(PRIMghost) || prim.(PRIMpure) = true) -> *)
+  prim.(PRIMpure) = true ->
+cmd_reentrancy_safety_prf ret htr (CCcall prim arg)
+(* | CRSPcall_ext : forall argt ret htr addr prim arg
+  (IHprim : @primitive_prf _ _ argt ret prim)
+  (IHprim_exec : primitive_exec_prf prim)
+  (IHprim_b : primitive_passthrough_prf prim)
+  (ecs : expr_constr_prf_conj arg),
+(* To be realizable, must not receive value from a ghost primitive call:
+     /\ ghost => ~ return
+   <=>
+     ~ (/\ ghost) \/ ~ return
+   <=>
+     ~ (/\ return /\ ghost)
+
+   To skip realization, must act ghostly and only call ghost or pure
+   primitives:
+     ~ => ghost \/ pure
+   <=>
+     ~ ~ \/ (ghost \/ pure)
+*)
+(* (&& function_return_dec ret && prim.(PRIMghost) = false) -> *)
+  (* (|| prim.(PRIMghost) || prim.(PRIMpure) = true) -> *)
+  || prim.(PRIMpure) = true ->
+cmd_reentrancy_safety_prf ret htr (CCcall_ext addr prim arg) *)
+| CRSPyield : forall `{ht : HyperType tp} e (ec : expr_constr_prf e),
+cmd_reentrancy_safety_prf (mk_hyper_type_pair tp) ht (CCyield e)
+| CRSPconstr : forall `{ht : HyperType tp} fld_ids fld_tps el flds constr
+  `{hc : !HyperConstructor tp fld_ids fld_tps constr}
+  (ecl : lexpr_constr_prf el)(fldc : expr_constr_prf_conj flds)
+  (flds_byvalue : HList
+    (fun htp : hyper_type_pair =>
+       HyperByValueType (tp_type_pair htp)) fld_tps),
+(* See [CRSPstore] *)
+(lexpr_is_ghost el = true) ->
+(length fld_ids <= Z.to_nat Int256.modulus)%nat ->
+cmd_reentrancy_safety_prf _ _ (CCconstr fld_ids fld_tps el flds constr)
+
+| CRSPtransfer : forall e1 e2,
+expr_constr_prf e1 ->
+expr_constr_prf e2 ->
+cmd_reentrancy_safety_prf _ _ (CCtransfer e1 e2)
+
+               
+(* These three constructors is where the bit changes, their subexpressions are ghost. *)
+| CRSPassert : forall c, cmd_reentrancy_safety_prf _ _ c -> cmd_reentrancy_safety_prf _ _ (CCassert c)
+| CRSPdeny : forall c, cmd_reentrancy_safety_prf _ _ c -> cmd_reentrancy_safety_prf _ _ (CCdeny c)
+(*  | CRSPghost : forall c, cmd_reentrancy_safety_prf false _ _ c -> cmd_reentrancy_safety_prf _ _ (CCghost c) *)
+| CRSPpanic : forall `{ht : HyperType} (*f*), cmd_reentrancy_safety_prf _ _ (CCpanic tp (*f*))
+| CRSPrespec : forall r htr tmp' c spec,
+(* Not sure if necessary
+function_return_dec r = true ->
+*)
+cmd_reentrancy_safety_prf r htr c ->
+cmd_reentrancy_safety_prf r htr (CCrespec tmp' c spec)
+| CRSPrespec_opt : forall r htr tmp' c spec,
+(*    (spec_param : forall se m B k b, spec se m B k = Some b ->
+              exists p, forall B' k', spec se m B' k' = k' p), *)
+(* Do not know if [spec] acts on the abstract state stealthily, restrict
+   it to be realizing. *)
+
+cmd_reentrancy_safety_prf r htr c ->
+cmd_reentrancy_safety_prf r htr (CCrespec_opt tmp' c spec)
+.
+
+
+
 End CONSTR_PRF.
