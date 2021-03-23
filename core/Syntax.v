@@ -499,149 +499,142 @@ Section CONSTR_PRF.
   Global Arguments FC_body_prf     _ {_} _. *)
   (* end hide *)
 
-  (* Abbreviations:
-       cmd = command
-       prf = proof
-       CRSP___ = Command Reentrancy Safety Proof ___
+
+  Inductive reentrancy_safety_state :=
+  | Safe_no_reentrancy
+  | Safe_with_potential_reentrancy.
+
+Inductive cmd_constr_reentrancy_safety_prf :
+
+(*  Abbreviations:
+      cmd = command
+      prf = proof
+      CCRSP___ = Command ?Constructor? Reentrancy Safety Proof ___
+      r = return type (of the command)
+      r1 = return type 1
+      c1 = command 1
+      rst = reentrancy safety state
+      e = expression
   *)
-  Inductive cmd_reentrancy_safety_prf :
-  forall ret (htr : HyperType (tp_type_pair ret)), cmd_constr ret -> Prop :=
-| CRSPskip : cmd_reentrancy_safety_prf _ _ CCskip
-| CRSPlet : forall r `{ht : HyperType tp} htr id c1 c2,
-function_return_dec (mk_hyper_type_pair tp) = true ->
-cmd_reentrancy_safety_prf (mk_hyper_type_pair tp) ht c1 ->
-cmd_reentrancy_safety_prf r htr c2 ->
-cmd_reentrancy_safety_prf r htr (CClet id c1 c2)
-| CRSPload : forall `{ht : HyperType tp, hbv : !HyperByValueType tp} e
-            (* {hltrc: HyperLTypeRetCond} *)
-                 (ec : lexpr_constr_prf e),
-(* To be realizable, must not read from a ghost value:
-     => ~ is_ghost
-   <=>
-     ~ \/ ~ is_ghost
-   <=>
-     ~ (/\ is_ghost)
-*)
-(lexpr_is_ghost e = false) ->
-cmd_reentrancy_safety_prf (mk_hyper_type_pair tp) ht (CCload e)
-| CRSPstore : forall `{ht : HyperType tp, hbv : !HyperByValueType tp} el er
-                  (ecl : lexpr_constr_prf el)(ecr : expr_constr_prf er),
-(* To skip realization, must act ghostly not touching real data:
-     ~ => is_ghost
-   <=>
-     ~ ~ \/ is_ghost
-*)
-(lexpr_is_ghost el = true) ->
-cmd_reentrancy_safety_prf _ _ (CCstore el er)
-| CRSPsequence : forall r htr c1 c2,
-cmd_reentrancy_safety_prf _ _ c1 ->
-cmd_reentrancy_safety_prf r htr c2 ->
-cmd_reentrancy_safety_prf r htr (CCsequence c1 c2)
-| CRSPifthenelse : forall r htr e c_true c_false
-                       (ec : expr_constr_prf e),
-cmd_reentrancy_safety_prf r htr c_true ->
-cmd_reentrancy_safety_prf r htr c_false ->
-cmd_reentrancy_safety_prf r htr (CCifthenelse e c_true c_false)
-| CRSPfor : forall id_it id_end e1 e2 c
-               (ec1 : expr_constr_prf e1)(ec2 : expr_constr_prf e2),
-cmd_reentrancy_safety_prf _ _ c ->
-cmd_reentrancy_safety_prf _ _ (CCfor id_it id_end e1 e2 c)
-| CRSPfirst : forall r htr id_it id_end id_dest e1 e2 c3 c4 c5,
-expr_constr_prf e1 -> expr_constr_prf e2 ->
-cmd_reentrancy_safety_prf int_bool_pair int_bool c3 ->
-cmd_reentrancy_safety_prf r htr c4 ->
-cmd_reentrancy_safety_prf r htr c5 ->
-cmd_reentrancy_safety_prf r htr
-               (CCfirst id_it id_end id_dest e1 e2 c3 c4 c5)
-| CRSPfold : forall `{ht : HyperType tp} id_it id_end id_recur id_dest
-  e1 e2 e3 c (ec1 : expr_constr_prf e1)(ec2 : expr_constr_prf e2)
-  (ec3 : expr_constr_prf e3),
-function_return_dec (mk_hyper_type_pair tp) = true ->
-cmd_reentrancy_safety_prf (mk_hyper_type_pair tp) ht c ->
-cmd_reentrancy_safety_prf (mk_hyper_type_pair tp) ht
-               (CCfold id_it id_end id_recur id_dest e1 e2 e3 c)
-| CRSPcall : forall argt ret htr prim arg
-  (IHprim : @primitive_prf _ _ argt ret prim)
-  (IHprim_exec : primitive_exec_prf prim)
-  (IHprim_b : primitive_passthrough_prf prim)
-  (ecs : expr_constr_prf_conj arg),
-(* To be realizable, must not receive value from a ghost primitive call:
-     /\ ghost => ~ return
-   <=>
-     ~ (/\ ghost) \/ ~ return
-   <=>
-     ~ (/\ return /\ ghost)
 
-   To skip realization, must act ghostly and only call ghost or pure
-   primitives:
-     ~ => ghost \/ pure
-   <=>
-     ~ ~ \/ (ghost \/ pure)
+  forall ret,
+    reentrancy_safety_state -> cmd_constr ret -> reentrancy_safety_state -> Prop :=
+    (* In the type of cmd_constr_reentrancy_safety_prf, the first occurance of reentrancy_safety_state corresponds to the reentrancy_safety_state before executing the command, and the last reentrancy_safety_state corresponds to the reentrancy_safety_state after executing the command. *)
+| CCRSPskip :
+    forall {rst},
+      cmd_constr_reentrancy_safety_prf _ rst CCskip rst
+      (* "skip" leaves rst unchaged *)
+| CCRSPlet :
+    forall {rst1} {rst2} {rst3} r `{ht : HyperType tp} id c1 c2,
+      cmd_constr_reentrancy_safety_prf (mk_hyper_type_pair tp) rst1 c1 rst2 ->
+      cmd_constr_reentrancy_safety_prf r rst2 c2 rst3 ->
+      cmd_constr_reentrancy_safety_prf r rst1 (CClet id c1 c2) rst3
+      (* "let" leaves rst as the rst from running c1 then c2 *)
+| CCRSPload : 
+  forall e,
+    cmd_constr_reentrancy_safety_prf _ Safe_no_reentrancy (CCload e) Safe_no_reentrancy
+    (* "load" can only be run safely from Safe_no_reentrancy, and leaves it rst as Safe_no_reentrancy *)
+| CCRSPstore :
+    forall el er,
+      cmd_constr_reentrancy_safety_prf _ Safe_no_reentrancy (CCstore el er) Safe_no_reentrancy
+      (* "store" can only be run safely from Safe_no_reentrancy, and leaves it rst as Safe_no_reentrancy *)
+| CCRSPsequence :
+    forall {rst1} {rst2} {rst3} r (c1 : cmd_constr void_unit_pair) (c2 : cmd_constr r),
+      cmd_constr_reentrancy_safety_prf void_unit_pair rst1 c1 rst2 ->
+      cmd_constr_reentrancy_safety_prf r rst2 c2 rst3 ->
+      cmd_constr_reentrancy_safety_prf r rst1 (CCsequence c1 c2) rst3
+      (* "sequence" leaves rst as the rst from running c1 then c2 *)
+| CCRSPifthenelse :
+  forall {rst1} {rst2} {rst3} r e c_true c_false,
+    cmd_constr_reentrancy_safety_prf r rst1 c_true rst2 ->
+    cmd_constr_reentrancy_safety_prf r rst1 c_false rst3 ->
+    cmd_constr_reentrancy_safety_prf r rst1 (CCifthenelse e c_true c_false)
+      (match rst2 with
+        | Safe_no_reentrancy => rst3
+        | Safe_with_potential_reentrancy => Safe_with_potential_reentrancy
+       end) (* Here we assume the worst case scenario, I guess it would be nice to be able to analyse the truth value of e here. *)
+    (* "ifthenelse" leaves rst as the rst from assuming the worst case scenario out of the commands in the branches *)
+| CCRSPfor :
+    forall id_it id_end e1 e2 c,
+      cmd_constr_reentrancy_safety_prf _ Safe_no_reentrancy c Safe_no_reentrancy ->
+      cmd_constr_reentrancy_safety_prf _ Safe_no_reentrancy (CCfor id_it id_end e1 e2 c) Safe_no_reentrancy
+      (* This is slightly overly restrictive, for example a for loop that actually only loops once and contains a transferEth call will not be allowed. *)
+    (* "for" probably loops through c many times, so to be safe we assume it can only be run safely if c is a command which results in Safe_no_reentrancy (and starts from Safe_no_reentrancy). Then the loop as a whole is only safe if started from Safe_no_reentrancy and will result in a Safe_no_reentrancy state. *)
+| CCRSPfirst :
+    forall r id_it id_end id_dest e1 e2 c3 c4 c5,
+      cmd_constr_reentrancy_safety_prf int_bool_pair Safe_no_reentrancy c3 Safe_no_reentrancy ->
+      cmd_constr_reentrancy_safety_prf r Safe_no_reentrancy c4 Safe_no_reentrancy ->
+      cmd_constr_reentrancy_safety_prf r Safe_no_reentrancy c5 Safe_no_reentrancy ->
+      cmd_constr_reentrancy_safety_prf r Safe_no_reentrancy
+                    (CCfirst id_it id_end id_dest e1 e2 c3 c4 c5)
+                    Safe_no_reentrancy
+            (* Todo-Daniel, check with Vilhelm exactly what CCfirst does, this is (probably) overly restrictive. This disallows any commands that are not completely safe to be used in a first loop.
+
+            A similar approach is taken with fold.
+            
+            According to Zach Page in the language reference it states:
+
+                ##### Fold/First-loops
+
+                Although for-loops are fairly general, there is a limitation because DeepSEA statements can only affect storage variables. For efficiency, DeepSEA also provides special purpose support for certain idioms which can be computed using only stack variables.
+
+                :exclamation: The preview release only implements for-loops, and other loop types will be added in the future.      
+            *)
+      (* With "first", similarly to "for" we assume all the commands (which may be looped) result in Safe_no_reentrancy (and start from Safe_no_reentrancy). So the overall first-loop is only safe if started from Safe_no_reentrancy and will result in a Safe_no_reentrancy state. *)
+| CCRSPfold :
+    forall id_it id_end id_recur id_dest e1 e2 e3 c,
+      cmd_constr_reentrancy_safety_prf _ Safe_no_reentrancy c Safe_no_reentrancy ->
+      cmd_constr_reentrancy_safety_prf _
+        Safe_no_reentrancy
+        (CCfold id_it id_end id_recur id_dest e1 e2 e3 c)
+        Safe_no_reentrancy
+        (* Similarly to CCRSPfirst, this is overly restrictive. Todo-Daniel Check with Vilhlem to see if constraints can be relaxed. *)
+    (* With "fold", similarly to "for" and "first" we assume all the commands (which may be looped) result in Safe_no_reentrancy (and start from Safe_no_reentrancy). So the overall fold is only safe if started from Safe_no_reentrancy and will result in a Safe_no_reentrancy state. *)
+| CCRSPcall1 :
+    forall {rst1} {rst2} r argt prim arg (IHprim : @primitive_prf _ _ argt r prim),
+      (* False is a placeholder until a better solution is implemented. *)
+      False -> cmd_constr_reentrancy_safety_prf r rst1 (CCcall prim arg) rst2
+    (* "call" should result in the same rst as the primitive being called, and be safe to call in the same circumstances as the primitive is called. However, this has not yet been implemented and so for now due to the `False` precondition, this implies "call" is always unsafe - a temporary measure. *)
+(* | CCRSPcall_ext : 
+       (* Note: this should be similar to CCRSPtransfer and also to CCPcall_ext *)
 *)
-(* (&& function_return_dec ret && prim.(PRIMghost) = false) -> *)
-  (* (|| prim.(PRIMghost) || prim.(PRIMpure) = true) -> *)
-  prim.(PRIMpure) = true ->
-cmd_reentrancy_safety_prf ret htr (CCcall prim arg)
-(* | CRSPcall_ext : forall argt ret htr addr prim arg
-  (IHprim : @primitive_prf _ _ argt ret prim)
-  (IHprim_exec : primitive_exec_prf prim)
-  (IHprim_b : primitive_passthrough_prf prim)
-  (ecs : expr_constr_prf_conj arg),
-(* To be realizable, must not receive value from a ghost primitive call:
-     /\ ghost => ~ return
-   <=>
-     ~ (/\ ghost) \/ ~ return
-   <=>
-     ~ (/\ return /\ ghost)
-
-   To skip realization, must act ghostly and only call ghost or pure
-   primitives:
-     ~ => ghost \/ pure
-   <=>
-     ~ ~ \/ (ghost \/ pure)
-*)
-(* (&& function_return_dec ret && prim.(PRIMghost) = false) -> *)
-  (* (|| prim.(PRIMghost) || prim.(PRIMpure) = true) -> *)
-  || prim.(PRIMpure) = true ->
-cmd_reentrancy_safety_prf ret htr (CCcall_ext addr prim arg) *)
-| CRSPyield : forall `{ht : HyperType tp} e (ec : expr_constr_prf e),
-cmd_reentrancy_safety_prf (mk_hyper_type_pair tp) ht (CCyield e)
-| CRSPconstr : forall `{ht : HyperType tp} fld_ids fld_tps el flds constr
-  `{hc : !HyperConstructor tp fld_ids fld_tps constr}
-  (ecl : lexpr_constr_prf el)(fldc : expr_constr_prf_conj flds)
-  (flds_byvalue : HList
-    (fun htp : hyper_type_pair =>
-       HyperByValueType (tp_type_pair htp)) fld_tps),
-(* See [CRSPstore] *)
-(lexpr_is_ghost el = true) ->
-(length fld_ids <= Z.to_nat Int256.modulus)%nat ->
-cmd_reentrancy_safety_prf _ _ (CCconstr fld_ids fld_tps el flds constr)
-
-| CRSPtransfer : forall e1 e2,
-expr_constr_prf e1 ->
-expr_constr_prf e2 ->
-cmd_reentrancy_safety_prf _ _ (CCtransfer e1 e2)
-
-               
-(* These three constructors is where the bit changes, their subexpressions are ghost. *)
-| CRSPassert : forall c, cmd_reentrancy_safety_prf _ _ c -> cmd_reentrancy_safety_prf _ _ (CCassert c)
-| CRSPdeny : forall c, cmd_reentrancy_safety_prf _ _ c -> cmd_reentrancy_safety_prf _ _ (CCdeny c)
-(*  | CRSPghost : forall c, cmd_reentrancy_safety_prf false _ _ c -> cmd_reentrancy_safety_prf _ _ (CCghost c) *)
-| CRSPpanic : forall `{ht : HyperType} (*f*), cmd_reentrancy_safety_prf _ _ (CCpanic tp (*f*))
-| CRSPrespec : forall r htr tmp' c spec,
-(* Not sure if necessary
-function_return_dec r = true ->
-*)
-cmd_reentrancy_safety_prf r htr c ->
-cmd_reentrancy_safety_prf r htr (CCrespec tmp' c spec)
-| CRSPrespec_opt : forall r htr tmp' c spec,
-(*    (spec_param : forall se m B k b, spec se m B k = Some b ->
-              exists p, forall B' k', spec se m B' k' = k' p), *)
-(* Do not know if [spec] acts on the abstract state stealthily, restrict
-   it to be realizing. *)
-
-cmd_reentrancy_safety_prf r htr c ->
-cmd_reentrancy_safety_prf r htr (CCrespec_opt tmp' c spec)
+| CCRSPyield :
+    forall {rst} e,
+      cmd_constr_reentrancy_safety_prf _ rst (CCyield e) rst
+      (* TODO-daniel, check meaning of yield with Vilhelm to ensure that the handling of rst is correct *)
+    (* "yield" retains the current rst *)
+| CCRSPconstr :
+    forall fld_ids fld_tps el flds constr,
+      cmd_constr_reentrancy_safety_prf _ Safe_no_reentrancy (CCconstr fld_ids fld_tps el flds constr) Safe_no_reentrancy
+      (* TODO-daniel, check meaning of constr with Vilhelm to ensure that the handling of rst is correct. *)
+      (* "constr" can only be called if Safe_no_reentrancy, and does not introduce the possiblity of reentrancy itself. TODO-daniel check if it defintely does not introduce reentrancy itself. *)
+| CCRSPtransfer :
+    forall e1 e2,
+      cmd_constr_reentrancy_safety_prf _ Safe_no_reentrancy (CCtransfer e1 e2) Safe_with_potential_reentrancy
+      (* What this is all about, "transfer" can only be called in a Safe_no_reentrancy state and DOES introduce potential reentrancy. *)
+| CCRSPassert :
+    forall {rst1} {rst2} c,
+      cmd_constr_reentrancy_safety_prf _ rst1 c rst2 -> cmd_constr_reentrancy_safety_prf _ rst1 (CCassert c) rst2
+    (* "assert" results in the same rst (and can be called safely in the same situations as) the command c *)
+| CCRSPdeny :
+    forall {rst1} {rst2} c,
+      cmd_constr_reentrancy_safety_prf _ rst1 c rst2 -> cmd_constr_reentrancy_safety_prf _ rst1 (CCdeny c) rst2
+  (* "deny" results in the same rst (and can be called safely in the same situations as) the command c *)
+| CCRSPpanic :
+    forall {rst} `{ht : HyperType},
+      cmd_constr_reentrancy_safety_prf _ rst (CCpanic tp) rst
+  (* "panic" retains the current rst *)
+| CCRSPrespec :
+    forall {rst1} {rst2} r tmp' c spec,
+      cmd_constr_reentrancy_safety_prf r rst1 c rst2 -> 
+      cmd_constr_reentrancy_safety_prf r rst1 (CCrespec tmp' c spec) rst2
+      (* TODO-daniel, check meaning of respec with Vilhelm to ensure that the handling of rst is correct. *)
+  (* "respec" results in the same rst (and can be called safely in the same situations as) the command c *)
+| CCRSPrespec_opt : 
+    forall {rst1} {rst2} r tmp' c spec,
+      cmd_constr_reentrancy_safety_prf r rst1 c rst2 -> 
+      cmd_constr_reentrancy_safety_prf r rst1 (CCrespec_opt tmp' c spec) rst2
+  (* "respec_opt" results in the same rst (and can be called safely in the same situations as) the command c *)
 .
 
 
