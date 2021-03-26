@@ -180,7 +180,18 @@ Section STMT_CONSTR.
   apply Monad_option.
   apply Zero_option.
   Defined.
-  
+
+
+  Inductive checks_effects_interactions_pattern_state :=
+    | Safe_no_reentrancy
+    | Safe_with_potential_reentrancy.
+
+  (*  The underlay interface for a primitive is a Coq Prop, a relation from memory etc to the final value.
+      But we want a Coq function. So the primitive record contains the function.
+
+      Then the class primitive_exec_prf says that the primitive is equivalent to the specification in the
+      underlay interface.
+   *)
   Record primitive (argt : list hyper_type_pair)(ret : hyper_type_pair)
       : Type := mk_prim {
     PRIMident : ident;
@@ -190,7 +201,31 @@ Section STMT_CONSTR.
     PRIMpure  : bool;                 
     PRIMargt_marker : type_marker argt;
     PRIMret_marker : type_marker ret;
-    
+    (* PRIMrst_before/after_A/B relate to reentrancy tracking using the Checks Effects 
+       Interactions pattern. They represent the safe state(s) the prim can be executed
+       in and the resulting checks_effects_interactions_pattern_state afterwards.
+       In particular they should be one of the following:
+         
+         When a prim has only safe commands:
+         Some Safe_no_reentrancy, Some Safe_no_reentrancy
+         Some Safe_with_potential_reentrancy, Some Safe_with_potential_reentrancy
+         
+         When a prim has commands only safe before reentrancy:
+         Some Safe_no_reentrancy, Some Safe_no_reentrancy
+
+         When a prim has a command that introduces reentrancy:
+         Some Safe_no_reentrancy, Some Safe_with_potential_reentrancy
+
+       The relevant values are filled in automatically.
+         *)
+    PRIMrst_before_A : option checks_effects_interactions_pattern_state;
+    PRIMrst_after_A : option checks_effects_interactions_pattern_state;
+    PRIMrst_before_B : option checks_effects_interactions_pattern_state;
+    PRIMrst_after_B : option checks_effects_interactions_pattern_state;
+
+    (* PRIMsem_opt, the "monadic" version, combines PRIMcond and PRIMsem into one thing.
+       There is a verification condition below saying that they must be equivalent;
+       the synthesis use them interchangably for convenience. *)
     PRIMcond : HList tp_ft argt -> machine_env GetHighData -> GetHighData -> Prop;
     PRIMsem_opt : HList tp_ft argt -> machine_env GetHighData -> DS (tp_ft ret)
   }.
@@ -500,17 +535,13 @@ Section CONSTR_PRF.
   (* end hide *)
 
 
-Inductive checks_effects_interactions_pattern_state :=
-  | Safe_no_reentrancy
-  | Safe_with_potential_reentrancy.
-
 Inductive cmd_constr_CEI_pattern_prf :
 
 (*  Abbreviations:
       CEI = Checks-Effects-Interactions (pattern)
       cmd = command
       prf = proof
-      CCRSP___ = Command ?Constructor? Reentrancy Safety Proof ___
+      CCRSP___ = Command Constructor Reentrancy Safety Proof ___
       r = return type (of the command)
       r1 = return type 1
       c1 = command 1
@@ -613,9 +644,12 @@ Inductive cmd_constr_CEI_pattern_prf :
     (* With "fold", similarly to "for" and "first" we assume all the commands (which may be looped) result in Safe_no_reentrancy (and start from Safe_no_reentrancy). So the overall fold is only safe if started from Safe_no_reentrancy and will result in a Safe_no_reentrancy state. *)
 | CCRSPcall1 :
     forall {rst1} {rst2} r argt prim arg (IHprim : @primitive_prf _ _ argt r prim),
-      (* False is a placeholder until a better solution is implemented. *)
-      False -> cmd_constr_CEI_pattern_prf r rst1 (CCcall prim arg) rst2
-    (* "call" should result in the same rst as the primitive being called, and be safe to call in the same circumstances as the primitive is called. However, this has not yet been implemented and so for now due to the `False` precondition, this implies "call" is always unsafe - a temporary measure. *)
+      prim.(rst_before_A) = Some rst1 -> prim.(rst_after_A) = Some rst2 -> cmd_constr_CEI_pattern_prf r rst1 (CCcall prim arg) rst2
+| CCRSPcall2 :
+    forall {rst1} {rst2} r argt prim arg (IHprim : @primitive_prf _ _ argt r prim),
+      prim.(rst_before_B) = Some rst1 -> prim.(rst_after_B) = Some rst2 -> cmd_constr_CEI_pattern_prf r rst1 (CCcall prim arg) rst2
+    (* "call" should result in the same rst as the primitive being called, and be safe to call in the same circumstances as the primitive is called.
+       The primitives will have automatically generated fields rst_before/after_A/B to describe the safe ways in which prim can be called. *)
 (* | CCRSPcall_ext : 
        (* Note: this should be similar to CCRSPtransfer and also to CCPcall_ext *)
 *)
