@@ -695,6 +695,10 @@ Inductive cmd_constr_CEI_pattern_prf :
   (* "respec_opt" results in the same rst (and can be called safely in the same situations as) the command c *)
 .
 
-
+Definition function_constr_CEI_pattern_prf 
+    (rst_before : checks_effects_interactions_pattern_state)
+    (f : function_constr)
+    (rst_after : checks_effects_interactions_pattern_state) :=
+       cmd_constr_CEI_pattern_prf f.(FC_returns) rst_before f.(FC_body) rst_after.
 
 End CONSTR_PRF.
