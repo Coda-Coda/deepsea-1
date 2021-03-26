@@ -566,11 +566,11 @@ Inductive cmd_constr_CEI_pattern_prf :
       cmd_constr_CEI_pattern_prf r rst1 (CClet id c1 c2) rst3
       (* "let" leaves rst as the rst from running c1 then c2 *)
 | CCRSPload : 
-    forall `{ht : HyperType tp, hbv : !HyperByValueType tp} e,
+    forall `{ht : HyperType tp} e,
       cmd_constr_CEI_pattern_prf _ Safe_no_reentrancy (CCload e) Safe_no_reentrancy
       (* "load" can only be run safely from Safe_no_reentrancy, and leaves it rst as Safe_no_reentrancy *)
 | CCRSPstore :
-    forall `{ht : HyperType tp, hbv : !HyperByValueType tp} el er,
+    forall `{ht : HyperType tp} el er,
       cmd_constr_CEI_pattern_prf _ Safe_no_reentrancy (CCstore el er) Safe_no_reentrancy
       (* "store" can only be run safely from Safe_no_reentrancy, and leaves it rst as Safe_no_reentrancy *)
 | CCRSPsequence :
