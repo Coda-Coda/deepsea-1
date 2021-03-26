@@ -2602,8 +2602,10 @@ Proof.
   CEI_auto_BA.
 Defined.
 
-Definition " ^ method_full_name ^ "_CEI_rsts_A := proj1_sig " ^ method_full_name ^ "_CEI_AB.
-Definition " ^ method_full_name ^ "_CEI_rsts_B := proj1_sig " ^ method_full_name ^ "_CEI_BA.
+Definition " ^ method_full_name ^ "_CEI_rsts_before_A := fst (proj1_sig " ^ method_full_name ^ "_CEI_AB).
+Definition " ^ method_full_name ^ "_CEI_rsts_after_A := snd (proj1_sig " ^ method_full_name ^ "_CEI_AB).
+Definition " ^ method_full_name ^ "_CEI_rsts_before_B := fst (proj1_sig " ^ method_full_name ^ "_CEI_BA).
+Definition " ^ method_full_name ^ "_CEI_rsts_after_B := snd (proj1_sig " ^ method_full_name ^ "_CEI_BA).
 
   Definition " ^ method_full_name ^ "_prim := {|
     PRIMident := ident_" ^ o.aObjectName ^ "_" ^ m.aMethodName ^ ";
@@ -2613,10 +2615,10 @@ Definition " ^ method_full_name ^ "_CEI_rsts_B := proj1_sig " ^ method_full_name
     PRIMpure := " ^ string_of_bool is_pure ^ ";
     PRIMargt_marker := " ^ method_full_name ^ ".(FC_params);
     PRIMret_marker := " ^ method_full_name ^ ".(FC_returns);
-    PRIMrst_before_A := fst " ^ method_full_name ^ "_CEI_rsts_A;
-    PRIMrst_after_A := snd " ^ method_full_name ^ "_CEI_rsts_A;
-    PRIMrst_before_B := fst " ^ method_full_name ^ "_CEI_rsts_B;
-    PRIMrst_after_B := snd " ^ method_full_name ^ "_CEI_rsts_B;
+    PRIMrst_before_A := " ^ method_full_name ^ "_CEI_rsts_before_A;
+    PRIMrst_after_A := " ^ method_full_name ^ "_CEI_rsts_after_A;
+    PRIMrst_before_B := " ^ method_full_name ^ "_CEI_rsts_before_B;
+    PRIMrst_after_B := " ^ method_full_name ^ "_CEI_rsts_after_B;
     PRIMcond := fun _ _ _ => True;
     (* PRIMsem := " ^ method_full_name ^ "_spec_hlist; *)
     PRIMsem_opt := " ^ method_full_name ^ "_spec_hlist_opt
