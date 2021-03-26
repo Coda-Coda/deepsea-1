@@ -207,21 +207,24 @@ Section STMT_CONSTR.
        In particular they should be one of the following:
          
          When a prim has only safe commands:
-         Some Safe_no_reentrancy, Some Safe_no_reentrancy
-         Some Safe_with_potential_reentrancy, Some Safe_with_potential_reentrancy
+         Safe_no_reentrancy, Safe_no_reentrancy
+         Safe_with_potential_reentrancy, Safe_with_potential_reentrancy
          
          When a prim has commands only safe before reentrancy:
-         Some Safe_no_reentrancy, Some Safe_no_reentrancy
+         Safe_no_reentrancy, Safe_no_reentrancy
+         Safe_no_reentrancy, Safe_no_reentrancy (repeated)
+         
 
          When a prim has a command that introduces reentrancy:
-         Some Safe_no_reentrancy, Some Safe_with_potential_reentrancy
+         Safe_no_reentrancy, Safe_with_potential_reentrancy
+         Safe_no_reentrancy, Safe_with_potential_reentrancy (repeated)
 
        The relevant values are filled in automatically.
          *)
-    PRIMrst_before_A : option checks_effects_interactions_pattern_state;
-    PRIMrst_after_A : option checks_effects_interactions_pattern_state;
-    PRIMrst_before_B : option checks_effects_interactions_pattern_state;
-    PRIMrst_after_B : option checks_effects_interactions_pattern_state;
+    PRIMrst_before_A : checks_effects_interactions_pattern_state;
+    PRIMrst_after_A : checks_effects_interactions_pattern_state;
+    PRIMrst_before_B : checks_effects_interactions_pattern_state;
+    PRIMrst_after_B : checks_effects_interactions_pattern_state;
 
     (* PRIMsem_opt, the "monadic" version, combines PRIMcond and PRIMsem into one thing.
        There is a verification condition below saying that they must be equivalent;
@@ -643,11 +646,11 @@ Inductive cmd_constr_CEI_pattern_prf :
         (* Similarly to CCRSPfirst, this is overly restrictive. Todo-Daniel Check with Vilhlem to see if constraints can be relaxed. *)
     (* With "fold", similarly to "for" and "first" we assume all the commands (which may be looped) result in Safe_no_reentrancy (and start from Safe_no_reentrancy). So the overall fold is only safe if started from Safe_no_reentrancy and will result in a Safe_no_reentrancy state. *)
 | CCRSPcall1 :
-    forall {rst1} {rst2} r argt prim arg (IHprim : @primitive_prf _ _ argt r prim),
-      prim.(rst_before_A) = Some rst1 -> prim.(rst_after_A) = Some rst2 -> cmd_constr_CEI_pattern_prf r rst1 (CCcall prim arg) rst2
+    forall {rst1} {rst2} r argt prim arg,
+      rst1 = prim.(PRIMrst_before_A argt r) -> rst2 = prim.(PRIMrst_after_A argt r) -> cmd_constr_CEI_pattern_prf r rst1 (CCcall prim arg) rst2
 | CCRSPcall2 :
     forall {rst1} {rst2} r argt prim arg (IHprim : @primitive_prf _ _ argt r prim),
-      prim.(rst_before_B) = Some rst1 -> prim.(rst_after_B) = Some rst2 -> cmd_constr_CEI_pattern_prf r rst1 (CCcall prim arg) rst2
+      rst1 = prim.(PRIMrst_before_B argt r)-> rst2 = prim.(PRIMrst_after_B argt r) -> cmd_constr_CEI_pattern_prf r rst1 (CCcall prim arg) rst2
     (* "call" should result in the same rst as the primitive being called, and be safe to call in the same circumstances as the primitive is called.
        The primitives will have automatically generated fields rst_before/after_A/B to describe the safe ways in which prim can be called. *)
 (* | CCRSPcall_ext : 
