@@ -865,10 +865,34 @@ Qed.
    cmd_constr_CEI_pattern_prf ____ rst_before _____ rst_after
 *)
 Ltac CEI_auto :=
-  repeat match goal with
-  | |- _ => typeclasses eauto 
-  | |- _ => econstructor
-  end.
+  repeat (
+  reflexivity
++ typeclasses eauto 
++ eapply CCRSPskip1 
++ eapply CCRSPskip2 
++ eapply CCRSPlet 
++ eapply CCRSPload  
++ eapply CCRSPstore 
++ eapply CCRSPsequence 
++ eapply CCRSPifthenelse1 
++ eapply CCRSPifthenelse2 
++ eapply CCRSPifthenelse3 
++ eapply CCRSPifthenelse4 
++ eapply CCRSPifthenelse5 
++ eapply CCRSPfor 
++ eapply CCRSPfirst 
++ eapply CCRSPfold 
++ eapply CCRSPcall1 
++ eapply CCRSPcall2 
++ eapply CCRSPyield 
++ eapply CCRSPconstr 
++ eapply CCRSPtransfer 
++ eapply CCRSPassert 
++ eapply CCRSPdeny 
++ eapply CCRSPpanic 
++ eapply CCRSPrespec 
++ eapply CCRSPrespec_opt)
+  .
 
 (* CEI_auto_states_A tries to solve a CEI goal by trying the pairs of states shown below. *)
 Ltac CEI_auto_states_A := 
