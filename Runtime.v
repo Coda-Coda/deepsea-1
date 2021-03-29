@@ -868,29 +868,29 @@ Ltac CEI_auto :=
   repeat (
   reflexivity
 + typeclasses eauto 
-+ eapply CCRSPskip
-+ eapply CCRSPlet 
-+ eapply CCRSPload  
-+ eapply CCRSPstore 
-+ eapply CCRSPsequence 
-+ eapply CCRSPifthenelse1 
-+ eapply CCRSPifthenelse2 
-+ eapply CCRSPifthenelse3 
-+ eapply CCRSPifthenelse4 
-+ eapply CCRSPifthenelse5 
-+ eapply CCRSPfor 
-+ eapply CCRSPfirst 
-+ eapply CCRSPfold 
-+ eapply CCRSPcall1 
-+ eapply CCRSPcall2 
-+ eapply CCRSPyield 
-+ eapply CCRSPconstr 
-+ eapply CCRSPtransfer 
-+ eapply CCRSPassert 
-+ eapply CCRSPdeny 
-+ eapply CCRSPpanic 
-+ eapply CCRSPrespec 
-+ eapply CCRSPrespec_opt)
++ eapply CCCEIPskip
++ eapply CCCEIPlet 
++ eapply CCCEIPload  
++ eapply CCCEIPstore 
++ eapply CCCEIPsequence 
++ eapply CCCEIPifthenelse1 
++ eapply CCCEIPifthenelse2 
++ eapply CCCEIPifthenelse3 
++ eapply CCCEIPifthenelse4 
++ eapply CCCEIPifthenelse5 
++ eapply CCCEIPfor 
++ eapply CCCEIPfirst 
++ eapply CCCEIPfold 
++ eapply CCCEIPcall1 
++ eapply CCCEIPcall2 
++ eapply CCCEIPyield 
++ eapply CCCEIPconstr 
++ eapply CCCEIPtransfer 
++ eapply CCCEIPassert 
++ eapply CCCEIPdeny 
++ eapply CCCEIPpanic 
++ eapply CCCEIPrespec 
++ eapply CCCEIPrespec_opt)
   .
 
 (* CEI_auto_states_A tries to solve a CEI goal by trying the pairs of states shown below. *)
