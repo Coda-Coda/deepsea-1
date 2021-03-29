@@ -868,8 +868,7 @@ Ltac CEI_auto :=
   repeat (
   reflexivity
 + typeclasses eauto 
-+ eapply CCRSPskip1 
-+ eapply CCRSPskip2 
++ eapply CCRSPskip
 + eapply CCRSPlet 
 + eapply CCRSPload  
 + eapply CCRSPstore 

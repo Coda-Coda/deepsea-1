@@ -555,13 +555,10 @@ Inductive cmd_constr_CEI_pattern_prf :
   forall ret,
     checks_effects_interactions_pattern_state -> cmd_constr ret -> checks_effects_interactions_pattern_state -> Prop :=
     (* In the type of cmd_constr_CEI_pattern_prf, the first occurance of checks_effects_interactions_pattern_state corresponds to the checks_effects_interactions_pattern_state before executing the command, and the last checks_effects_interactions_pattern_state corresponds to the checks_effects_interactions_pattern_state after executing the command. *)
-| CCRSPskip1 :
+| CCRSPskip :
     forall {rst},
       cmd_constr_CEI_pattern_prf _ rst CCskip rst
       (* "skip" leaves rst unchaged *)
-| CCRSPskip2 :
-      cmd_constr_CEI_pattern_prf _ Safe_no_reentrancy CCskip Safe_with_potential_reentrancy
-      (* TODO-daniel - understand why this might be neccsary - it probably shouldn't be. But it should be safe. *)
 | CCRSPlet :
     forall {rst1} {rst2} {rst3} r `{ht : HyperType tp} id c1 c2,
       cmd_constr_CEI_pattern_prf (mk_hyper_type_pair tp) rst1 c1 rst2 ->
