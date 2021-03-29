@@ -5124,6 +5124,54 @@ auto.\n";
 
   output_string stream ("\nEnd Proof.\n")
 
+(** Generate Transfers Proof - a proof that Transfer is called at most once in any invocation of a function. *)
+let gen_transfers_prf env fileDeclarations = 
+  let stream = open_out (env.project_name ^ "/transfers_check.v") in
+  output_string stream (
+    "Require Import " ^ env.project_name ^ ".DataTypes.\n" ^
+    "Require Import " ^ env.project_name ^ ".DataTypeOps.\n" ^
+    "Require Import lib.Monad.StateMonadOption.\n" ^
+    "Require Import cclib.Maps.\n" ^
+    "Require Import cclib.Integers.\n" ^
+    "Require Import ZArith.\n" ^
+    "Require Import core.HyperTypeInst.\n" ^
+    "Require Import backend.MachineModel.\n"
+  );
+  List.iter (function 
+    | i, ADlayer l -> output_string stream ("Require Import " ^ env.project_name ^ ".Layer" ^ i ^ ".\n")
+    | _, _ -> ()
+    ) fileDeclarations;
+
+  output_string stream ("\n");
+
+  List.iter (function
+  | i, ADlayer l ->
+    List.iter (fun (_, o) ->
+      List.iter (fun m ->
+        let method_full_name = o.aObjectName ^ "_" ^ m.aMethodName in
+        output_string stream ("Transparent " ^ method_full_name ^ "_opt.\n")
+      ) o.aObjectMethods
+    ) l.aLayerFreshObjects
+  | _, _ -> ()
+  ) fileDeclarations;
+
+
+  List.iter (function
+  | i, ADlayer l ->
+    List.iter (fun (_, o) ->
+      List.iter (fun f ->
+        (* let method_full_name = o.aObjectName ^ "_" ^ m.aMethodName in *)
+        output_string stream (o.aObjectName ^ "_" ^ f.aObjectFieldName ^ "\n")
+      ) o.aObjectFields
+    ) l.aLayerFreshObjects
+  | _, _ -> ()
+  ) fileDeclarations;
+
+  output_string stream ("\n\n
+    Proof goal and tactic goes here
+  ")
+
+
 let coqgen filename ast =
   let final_layer = ref None in
   let env = new_coqgen_env filename ast
@@ -5150,6 +5198,8 @@ let coqgen filename ast =
      end;
      gen_linksource env ast.aFileDeclarations;
      gen_coqProj env ast.aFileDeclarations; 
+     (* gen_prf env ast.aFileDeclarations; *)
+     gen_transfers_prf env ast.aFileDeclarations;
 #ifndef REDACTED
      gen_extract_make env ast.aFileDeclarations;
 #endif
