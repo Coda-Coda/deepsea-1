@@ -5198,22 +5198,26 @@ Instance GlobalLayerSpec : LayerSpecClass := {
   | _, _ -> ()
   ) fileDeclarations;
   output_string stream ("|}.
-Context (contract_address : addr).
-Context (coinbase : int256)
-          (timestamp : int256)
-          (number : int256)
-          (balance : int256 -> int256)
-          (blockhash : int256 -> int256)
-          (prev_contract_state : global_abstract_data_type)
-          (chainid : int256)
-          (caller: addr).
+
+Context 
+  (contract_address : addr)
+  (origin: addr)
+  (caller: addr)
+  (callvalue : int256)
+  (coinbase : int256)
+  (timestamp : int256)
+  (number : int256)
+  (balance : int256 -> int256)
+  (blockhash : int256 -> int256)
+  (prev_contract_state : global_abstract_data_type)
+  (chainid : int256).
   
 Definition generic_machine_env 
                             : machine_env global_abstract_data_type
   := {| me_address := contract_address;
-        me_origin := caller;
+        me_origin := origin;
         me_caller := caller; (* need update after every control-flow transfer *)
-        me_callvalue := Int256.repr (0);
+        me_callvalue := callvalue;
         me_coinbase := coinbase; 
         me_timestamp := timestamp;
         me_number := number;
