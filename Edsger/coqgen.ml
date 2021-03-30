@@ -353,6 +353,14 @@ let output_method_type_expr out mt =
   output_string out " machine_env GetHighData -> DS ";
   output_type_expr out "" mt.aMethodReturnType
 
+(* Output a snippet often used in the specification related to a method,
+   A simple listing of arg1 arg2 ... based on the number of arguments in the method.
+    e.g. "arg1 arg2" *)		       
+let output_method_args_listing out mt =
+  (match mt.aMethodArgumentTypes with
+  | [t] when t.aTypeDesc = ATbuiltin Tunit -> ()
+  | params -> (List.fold_left (fun i t -> output_string out (" arg" ^ (string_of_int i)); i + 1) 1 params); ())
+
 let gen_struct_type env i c =
   let out = env.coq_DataTypes in
   let record_field_leftover = ref "\n" in
@@ -4725,7 +4733,8 @@ let gen_coqProj env fileDeclarations =
     "./EdsgerIdents.v\n" ^
     "./DataTypes.v\n" ^
     "./DataTypeOps.v\n" ^
-    "./DataTypeProofs.v\n"
+    "./DataTypeProofs.v\n" ^
+    "./SingleTransferCheck.v\n"
   );
   List.iter (function 
   | i, ADlayer l -> output_string stream ("./Layer" ^ i ^ ".v\n")
@@ -5124,9 +5133,9 @@ auto.\n";
 
   output_string stream ("\nEnd Proof.\n")
 
-(** Generate Transfers Proof - a proof that Transfer is called at most once in any invocation of a function. *)
-let gen_transfers_prf env fileDeclarations = 
-  let stream = open_out (env.project_name ^ "/transfers_check.v") in
+(** Generates SingleTransferCheck.v - proofs that Transfer is called at most once in any invocation of any function. *)
+let gen_single_transfer_prf env fileDeclarations = 
+  let stream = open_out (env.project_name ^ "/SingleTransferCheck.v") in
   output_string stream (
     "Require Import " ^ env.project_name ^ ".DataTypes.\n" ^
     "Require Import " ^ env.project_name ^ ".DataTypeOps.\n" ^
@@ -5135,14 +5144,23 @@ let gen_transfers_prf env fileDeclarations =
     "Require Import cclib.Integers.\n" ^
     "Require Import ZArith.\n" ^
     "Require Import core.HyperTypeInst.\n" ^
-    "Require Import backend.MachineModel.\n"
+    "Require Import backend.MachineModel.\n" ^
+    "Require Import core.MemoryModel.\n" ^ 
+    "Require Import DeepSpec.lib.Monad.RunStateTInv.\n" ^
+    "Require Import Lia.\n"
   );
   List.iter (function 
     | i, ADlayer l -> output_string stream ("Require Import " ^ env.project_name ^ ".Layer" ^ i ^ ".\n")
     | _, _ -> ()
     ) fileDeclarations;
 
-  output_string stream ("\n");
+  output_string stream ("\n
+Context {memModelOps : MemoryModelOps mem}.
+Instance GlobalLayerSpec : LayerSpecClass := {
+  memModelOps := memModelOps;
+  GetHighData := global_abstract_data_type 
+}.  
+\n");
 
   List.iter (function
   | i, ADlayer l ->
@@ -5155,21 +5173,109 @@ let gen_transfers_prf env fileDeclarations =
   | _, _ -> ()
   ) fileDeclarations;
 
-
+  output_string stream ("\n\nDefinition d_with_transfer adr amount (d : global_abstract_data_type) : global_abstract_data_type :=\n{|\n");
   List.iter (function
   | i, ADlayer l ->
     List.iter (fun (_, o) ->
       List.iter (fun f ->
-        (* let method_full_name = o.aObjectName ^ "_" ^ m.aMethodName in *)
-        output_string stream (o.aObjectName ^ "_" ^ f.aObjectFieldName ^ "\n")
+          let unmingledFieldName o f = 
+            o.aObjectName ^ "_" ^ f.aObjectFieldName in
+        output_string stream (
+          if (unmingledFieldName o f = "FixedSupplyToken__events")
+            then "  FixedSupplyToken__events := ({| DataTypes._to := adr; DataTypes._amount := amount |}) :: (FixedSupplyToken__events d);\n"
+            else "  " ^ unmingledFieldName o f ^ " := " ^ unmingledFieldName o f ^ " d; \n"
+          )
       ) o.aObjectFields
     ) l.aLayerFreshObjects
   | _, _ -> ()
   ) fileDeclarations;
+  output_string stream ("|}.
+Context (contract_address : addr).
+Context (coinbase : int256)
+          (timestamp : int256)
+          (number : int256)
+          (balance : int256 -> int256)
+          (blockhash : int256 -> int256)
+          (prev_contract_state : global_abstract_data_type)
+          (chainid : int256)
+          (caller: addr).
+  
+Definition generic_machine_env 
+                            : machine_env global_abstract_data_type
+  := {| me_address := contract_address;
+        me_origin := caller;
+        me_caller := caller; (* need update after every control-flow transfer *)
+        me_callvalue := Int256.repr (0);
+        me_coinbase := coinbase; 
+        me_timestamp := timestamp;
+        me_number := number;
+        me_balance := balance;
+        me_blockhash := blockhash;
+        me_transfer := (fun to amount d => (Int256.one, d_with_transfer to amount d)) (* TODO-Daniel improve definition of me_transfer *);
+        me_callmethod _ _ _ _ _ _ _ _ _ _ := False;
+        me_log _ _ _ := prev_contract_state;
+        me_chainid := chainid;
+        me_selfbalance := balance contract_address
+      |}.
 
-  output_string stream ("\n\n
-    Proof goal and tactic goes here
-  ")
+
+
+  ");
+
+  output_string stream ("\nLtac unfold_all :=\n");
+
+  List.iter (function
+    | i, ADlayer l ->
+      List.iter (fun (_, o) ->
+        List.iter (fun m ->
+          let method_full_name = o.aObjectName ^ "_" ^ m.aMethodName in
+          output_string stream ("unfold " ^ method_full_name ^ "_opt in *;\n")
+        ) o.aObjectMethods
+      ) l.aLayerFreshObjects
+    | _, _ -> ()
+  ) fileDeclarations;
+
+  output_string stream ("simpl.\n\n");
+
+  output_string stream ("
+Ltac solve_single_transfer :=
+    intros;
+    repeat unfold_all;
+    inv_runStateT_branching;
+    subst;
+    unfold d_with_transfer;
+    simpl;
+    match goal with
+     | H : FixedSupplyToken__events _ = nil |- _ => rewrite H
+    end;
+    simpl;
+    lia.
+");
+
+
+(* Lemmas *)
+output_string stream ("(*Lemmas demonstrating that Transfer is called at most once in any invocation of any function. *)\n\n");
+List.iter (function
+  | i, ADlayer l ->
+    List.iter (fun (_, o) ->
+      List.iter (fun m ->
+        let method_full_name_with_opt = o.aObjectName ^ "_" ^ m.aMethodName ^ "_opt" in
+        let mt = m.aMethodType in
+        output_string stream ("\n
+Lemma " ^ method_full_name_with_opt ^ "_single_transfer : forall d d' ");
+          output_method_args_listing stream mt;
+        output_string stream (" result,
+(FixedSupplyToken__events d = nil) -> runStateT (" ^ method_full_name_with_opt ^ " ");
+        output_method_args_listing stream mt;
+        output_string stream (" generic_machine_env) d = Some (result, d') -> 
+(length (FixedSupplyToken__events d') <= 1)%nat.
+Proof.
+solve_single_transfer.
+Qed.\n")
+      ) o.aObjectMethods
+    ) l.aLayerFreshObjects
+  | _, _ -> ()
+  ) fileDeclarations
 
 
 let coqgen filename ast =
@@ -5199,7 +5305,7 @@ let coqgen filename ast =
      gen_linksource env ast.aFileDeclarations;
      gen_coqProj env ast.aFileDeclarations; 
      (* gen_prf env ast.aFileDeclarations; *)
-     gen_transfers_prf env ast.aFileDeclarations;
+     gen_single_transfer_prf env ast.aFileDeclarations;
 #ifndef REDACTED
      gen_extract_make env ast.aFileDeclarations;
 #endif
