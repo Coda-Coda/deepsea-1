@@ -2601,7 +2601,7 @@ Section OBJECT_" ^ i ^ "_DEFINITION.
 Lemma " ^ method_full_name ^ "_CEI_AB : { rsts | function_constr_CEI_pattern_prf (fst rsts) " ^ method_full_name ^ " (snd rsts)}.
 Proof.
   unfold " ^ method_full_name ^ ".
-  CEI_auto_AB.
+  CEI_auto_AB. (* If this tactic fails then it indicates that a strict version of the Checks-Effects-Interactions pattern was not followed in the function: " ^ method_full_name ^ ". *)
 Defined.
 
 Lemma " ^ method_full_name ^ "_CEI_BA : { rsts | function_constr_CEI_pattern_prf (fst rsts) " ^ method_full_name ^ " (snd rsts)}.
@@ -5326,7 +5326,7 @@ Lemma " ^ method_full_name_with_opt ^ "_single_transfer : forall d d' ");
         output_string stream (" generic_machine_env) d = Some (result, d') -> 
 (length (FixedSupplyToken__events d') <= 1)%nat.
 Proof.
-solve_single_transfer.
+solve_single_transfer. (* If this tactic fails it indicates that the " ^ method_full_name_with_opt ^ " function either calls transferEth twice (which is considered a bad pattern) or doesn't call transferEth twice but has complex logic such as two interrelated if statements that make the tactic fail. *)
 Qed.\n")
       ) o.aObjectMethods
     ) l.aLayerFreshObjects
