@@ -5221,11 +5221,11 @@ Definition generic_machine_env
         me_number := number;
         me_balance := balance;
         me_blockhash := blockhash;
-        me_transfer := (fun to amount d => (Int256.one, d_with_transfer to amount d)) (* TODO-Daniel improve definition of me_transfer *);
+        me_transfer := (fun to amount d => (if Int256.lt (balance contract_address) amount then (Int256.zero, d) else (Int256.one, d_with_transfer to amount d)));
         me_callmethod _ _ _ _ _ _ _ _ _ _ := False;
         me_log _ _ _ := prev_contract_state;
         me_chainid := chainid;
-        me_selfbalance := balance contract_address
+        me_selfbalance := balance contract_address (* Note that this form of getting selfbalance is also used in me_transfer's definition. *)
       |}.
 
 
@@ -5248,18 +5248,65 @@ Definition generic_machine_env
   output_string stream ("simpl.\n\n");
 
   output_string stream ("
+(* The following tactic will also destruct goals that include an me_transfer
+     that checks if the contract has sufficient funds.
+     IMPORTANT: Note that this may only be valid in cases where it is correct to
+     assume that at most one transfer per function call is done. If more than
+     one transfer is allowed it would need to be checked that me_transfer
+     correctly accounts for the reductions in the contract's balance. Changes
+     to me_transfer would likely cause related changes to be necessary in this
+     tactic. *)
+Ltac inv_runStateT_branching_with_me_transfer_cases :=
+  repeat (
+    try inv_runStateT_branching;
+    let Case := fresh \"SufficientFundsToTransferCase\" in
+    try match goal with
+      | H : context[me_transfer _ _ ?X _] |- _ => 
+      unfold me_transfer, generic_machine_env in H;
+      destruct (Int256.lt (balance contract_address) X) eqn:Case
+    end
+  ).
+
+(* This tactic solves goals relating to transfer only being called once,
+    it automatically expands all branches. Note that this means it may fail
+    in particular cases where the validity of the associated lemmas depends
+    on the interactions between 'if statements' (for example). In such
+    (probably unlikely) cases interactive proof could be undertaken instead
+    of relying on this tactic. *)
 Ltac solve_single_transfer :=
-    intros;
-    repeat unfold_all;
-    inv_runStateT_branching;
-    subst;
-    unfold d_with_transfer;
+  intros;
+  repeat unfold_all;
+  repeat inv_runStateT_branching_with_me_transfer_cases;
+  subst;
+  solve [
+    match goal with
+    | H : FixedSupplyToken__events _ = nil |- _ => rewrite H; simpl; lia
+    end
+    |
+    match goal with
+    | H : Int256.eq Int256.zero Int256.one = true |- _ => 
+        apply ArithInv.Int256eq_true in H;
+        inversion H
+    end
+    |
+    match goal with
+      | H : Int256.eq Int256.one Int256.one = false |- _ => 
+        apply ArithInv.Int256eq_false in H;
+       contradiction
+    end
+    |
+    match goal with
+      | H : runStateT mzero _ = ret _ |- _ => 
+        simpl in H; inversion H    
+    end
+    |
     simpl;
     match goal with
-     | H : FixedSupplyToken__events _ = nil |- _ => rewrite H
-    end;
-    simpl;
-    lia.
+      | H : FixedSupplyToken__events ?X = nil |- context[FixedSupplyToken__events ?X] => 
+        rewrite H; simpl; lia
+    end
+  ].
+
 ");
 
 
