@@ -5187,8 +5187,8 @@ Instance GlobalLayerSpec : LayerSpecClass := {
           let unmingledFieldName o f = 
             o.aObjectName ^ "_" ^ f.aObjectFieldName in
         output_string stream (
-          if (unmingledFieldName o f = "FixedSupplyToken__events")
-            then "  FixedSupplyToken__events := ({| DataTypes._to := adr; DataTypes._amount := amount |}) :: (FixedSupplyToken__events d);\n"
+          if (unmingledFieldName o f = "ETH_transfers")
+            then "  ETH_transfers := ({| DataTypes._to := adr; DataTypes._amount := amount |}) :: (ETH_transfers d);\n"
             else "  " ^ unmingledFieldName o f ^ " := " ^ unmingledFieldName o f ^ " d; \n"
           )
       ) o.aObjectFields
@@ -5280,7 +5280,7 @@ Ltac solve_single_transfer :=
   subst;
   solve [
     match goal with
-    | H : FixedSupplyToken__events _ = nil |- _ => rewrite H; simpl; lia
+    | H : ETH_transfers _ = nil |- _ => rewrite H; simpl; lia
     end
     |
     match goal with
@@ -5302,7 +5302,7 @@ Ltac solve_single_transfer :=
     |
     simpl;
     match goal with
-      | H : FixedSupplyToken__events ?X = nil |- context[FixedSupplyToken__events ?X] => 
+      | H : ETH_transfers ?X = nil |- context[ETH_transfers ?X] => 
         rewrite H; simpl; lia
     end
   ].
@@ -5321,10 +5321,10 @@ List.iter (function
 Lemma " ^ method_full_name_with_opt ^ "_single_transfer : forall d d' ");
           output_method_args_listing stream mt;
         output_string stream (" result,
-(FixedSupplyToken__events d = nil) -> runStateT (" ^ method_full_name_with_opt ^ " ");
+(ETH_transfers d = nil) -> runStateT (" ^ method_full_name_with_opt ^ " ");
         output_method_args_listing stream mt;
         output_string stream (" generic_machine_env) d = Some (result, d') -> 
-(length (FixedSupplyToken__events d') <= 1)%nat.
+(length (ETH_transfers d') <= 1)%nat.
 Proof.
 solve_single_transfer. (* If this tactic fails it indicates that the " ^ method_full_name_with_opt ^ " function either calls transferEth twice (which is considered a bad pattern) or doesn't call transferEth twice but has complex logic such as two interrelated if statements that make the tactic fail. *)
 Qed.\n")
