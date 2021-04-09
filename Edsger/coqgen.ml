@@ -5188,7 +5188,7 @@ Instance GlobalLayerSpec : LayerSpecClass := {
             o.aObjectName ^ "_" ^ f.aObjectFieldName in
         output_string stream (
           if (unmingledFieldName o f = "ETH_transfers")
-            then "  ETH_transfers := ({| DataTypes._to := adr; DataTypes._amount := amount |}) :: (ETH_transfers d);\n"
+            then "  ETH_transfers := ({| DataTypes.recipient := adr; DataTypes.amount := amount |}) :: (ETH_transfers d);\n"
             else "  " ^ unmingledFieldName o f ^ " := " ^ unmingledFieldName o f ^ " d; \n"
           )
       ) o.aObjectFields
