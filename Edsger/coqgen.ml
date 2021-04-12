@@ -5222,6 +5222,11 @@ Definition generic_machine_env
         me_balance := balance;
         me_blockhash := blockhash;
         me_transfer := (fun to amount d => (if Int256.lt (balance contract_address) amount then (Int256.zero, d) else (Int256.one, d_with_transfer to amount d)));
+        (* Note that the way me_transfer has been defined above will only add a transaction to the ETH_transfers list if the contract has sufficient balance to send the transaction.
+           It is still possible that the recipient might reject the funds (e.g. if the recipient is a Smart Contract and the processing of receiving the transfer runs out of gas).
+           
+           It is also IMPORTANT to note that the above definition relies on `balance contract_address` being up to date.
+           This is simplified by having at most one transfer per function call, but if multiple transfers happen, me_balance would need to be updated appropriately. *)
         me_callmethod _ _ _ _ _ _ _ _ _ _ := False;
         me_log _ _ _ := prev_contract_state;
         me_chainid := chainid;
