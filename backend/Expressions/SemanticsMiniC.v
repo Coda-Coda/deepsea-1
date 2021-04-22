@@ -22,6 +22,8 @@ Section SEMANTICS.
   (* machine environment *)
   Variable me: machine_env adata.
 
+  Variable d: adata.
+
   (* storage/memory environment *)
   Variable ee: ext_env.
 
@@ -64,11 +66,11 @@ Section SEMANTICS.
       sem_binary_operation op v1 ty1 v2 ty2 = Some v ->
       eval_rvalue (Ebinop op a1 a2 ty) v
   | eval_Ecall0: forall b ty v,
-      (me_query me) (Qcall0 b) = v ->
+      (me_query me d) (Qcall0 b) = v ->
       eval_rvalue (Ecall0 b ty) v
   | eval_Ecall1: forall b a av ty v,
       eval_rvalue a av ->
-      (me_query me) (Qcall1 b av) = v ->
+      (me_query me d) (Qcall1 b av) = v ->
       eval_rvalue (Ecall1 b a ty) v
 
 (* lvalues always evaluate to extended identifiers.

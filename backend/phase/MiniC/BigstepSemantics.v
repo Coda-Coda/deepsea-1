@@ -278,7 +278,7 @@ Qed.
 
 (* Lemma exec_stmt_eval_funcall_steps:  *)
 (*   (forall le m s le' m' g out, *)
-(*    exec_stmt ge me le m s le' m' g out -> *)
+(*    exec_stmt ge me d le m s le' m' g out -> *)
 (*    forall f k G, *)
 (*      (G >= g) -> *)
 (*      exists S, *)
@@ -483,7 +483,7 @@ Qed.
 
 (* Lemma exec_stmt_steps: *)
 (*   forall le m s le' m' g out, *)
-(*   exec_stmt ge me le m s le' m' g out -> *)
+(*   exec_stmt ge me d le m s le' m' g out -> *)
 (*   forall f k G, *)
 (*     (G >= g) -> *)
 (*     exists S, *)

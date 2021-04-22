@@ -128,8 +128,8 @@ Section STEP.
   (* This models sucessful runs. In particular, note that there is no rule for revert, so a call for revert is a stuck state. *)
   Inductive step: state -> state -> Prop :=
   | step_assign: forall f e1 lv e2 rv k ee le d g ee',
-      eval_lvalue (call_cont_index k) me ee le e1 lv ->
-      eval_rvalue (call_cont_index k) me ee le e2 rv ->
+      eval_lvalue (call_cont_index k) me d ee le e1 lv ->
+      eval_rvalue (call_cont_index k) me d ee le e2 rv ->
       (* only assign to locations that are already defined *)
       write lv rv ee = Some ee' ->
       step (State f (Sassign e1 e2) k le ee d (g + gas_assign true e1 e2 2))
@@ -138,12 +138,12 @@ Section STEP.
            
   | step_set: forall f id rv rv_int k le ee prev d g,
       PTree.get id le = Some prev -> (* Can only Sset an existing temp *)
-      eval_rvalue (call_cont_index k) me ee le rv rv_int ->
+      eval_rvalue (call_cont_index k) me d ee le rv rv_int ->
       step (State f (Sset id rv) k le ee d (g + gas_set true rv 2))
            (State f Sskip k (PTree.set id rv_int le) ee d g)
 
   | step_call: forall f optid lab fd args arg_ints k le ee d g,
-      eval_rvalues (call_cont_index k) me ee le args arg_ints ->
+      eval_rvalues (call_cont_index k) me d ee le args arg_ints ->
       lookup_function lab = Some fd ->
       (* gas for returning is reserved in step_returnstate *)
       step (State f (Scall optid lab args) k le ee d (g + gas_call true args 1))
@@ -160,7 +160,7 @@ Section STEP.
            (State f Sbreak k le ee d g)
 
   | step_ifthenelse: forall f cond b s1 s2 k le ee d g,
-      eval_rvalue (call_cont_index k) me ee le cond (Vint b) ->
+      eval_rvalue (call_cont_index k) me d ee le cond (Vint b) ->
       step (State f (Sifthenelse cond s1 s2) k le ee d (g + gas_eval_cond true cond 3))
            (State f (if (Int256.eq b Int256.zero) then s2 else s1) k le ee d g)
 
@@ -201,15 +201,15 @@ Section STEP.
          (State f Sskip k (optset id retval le) ee d g)
 
   | step_transfer: forall f a a' v v' le d d' ee k g,
-      eval_rvalue (call_cont_index k) me ee le a (Vint a') ->
-      eval_rvalue (call_cont_index k) me ee le v (Vint v') ->
+      eval_rvalue (call_cont_index k) me d ee le a (Vint a') ->
+      eval_rvalue (call_cont_index k) me d ee le v (Vint v') ->
       (me_transfer me) a' v' d = (Int256.one, d') ->
       step (State f (Stransfer a v) k le ee d (g + gas_transfer true a v 2))
            (State f Sskip k le ee d' g)
            
   | step_log: forall f topics topics' args args' le d ee k g,
-      eval_rvalues (call_cont_index k) me ee le topics topics' ->
-      eval_rvalues (call_cont_index k) me ee le args args' ->
+      eval_rvalues (call_cont_index k) me d ee le topics topics' ->
+      eval_rvalues (call_cont_index k) me d ee le args args' ->
       step (State f (Slog topics args) k le ee d (g + gas_log true topics args 2))
            (State f Sskip k le ee (me_log me topics' args' d) g)
            
@@ -223,9 +223,9 @@ Section STEP.
      In our compiler, we have a test for a failing method call, and if so we call revert. 
  *)
   | step_callmethod: forall f a a' sg v v' args args' le le' ee ee' d d' k rvs rv_keys g gas,
-      eval_rvalue (call_cont_index k) me ee le a a' ->
-      eval_rvalue (call_cont_index k) me ee le v v' ->
-      eval_rvalues (call_cont_index k) me ee le args args' ->
+      eval_rvalue (call_cont_index k) me d ee le a a' ->
+      eval_rvalue (call_cont_index k) me d ee le v v' ->
+      eval_rvalues (call_cont_index k) me d ee le args args' ->
       (me_callmethod me) a' sg v' args' d ee d' ee' Int256.one rvs ->
       listset rv_keys rvs le = Some le' ->
       step (State f (Scallmethod a rv_keys sg v gas args) k le ee d (g + gas_callmethod true a (length rv_keys) v args 2))

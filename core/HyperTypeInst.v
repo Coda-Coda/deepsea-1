@@ -843,7 +843,7 @@ constructor.
   + reflexivity.
 Qed.
 Instance builtin1_blockhash_impl : HyperBuiltin1Impl tint_U tint_U
-  := Build_HyperBuiltin1Impl tint_U tint_U me_blockhash Bblockhash.
+  := Build_HyperBuiltin1Impl tint_U tint_U (fun me d => me_blockhash me) Bblockhash.
 Instance builtin1_blockhash : HyperBuiltin1 builtin1_blockhash_impl.
 constructor.
 - 

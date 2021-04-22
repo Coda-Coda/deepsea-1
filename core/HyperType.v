@@ -119,24 +119,24 @@ Section HYPER_TYPE.
     `{hti : HyperTypeImpl tp, !HyperBuiltin0Impl tp} : Prop := {
     Hbuiltin0_returns : forall me,
       ht_ft_cond (Hquery0 me);
-    Hbuiltin0_correct : forall me,
-      ht_cval (Hquery0 me) = (CVval (me_query me (Qcall0 Hbuiltin0)));
+    Hbuiltin0_correct : forall me d,
+      ht_cval (Hquery0 me) = (CVval (me_query me d (Qcall0 Hbuiltin0)));
   }.
   Class HyperBuiltin1Impl (arg_tp tp  : type_pair) : Type := {
-    Hquery1 : machine_env GetHighData -> unpair_ft arg_tp -> unpair_ft tp;
+    Hquery1 : machine_env GetHighData -> GetHighData -> unpair_ft arg_tp -> unpair_ft tp;
     Hbuiltin1 : MachineModel.builtin1
   }.
   Class HyperBuiltin1 (arg_tp tp  : type_pair) 
     `{arg_hti : HyperTypeImpl arg_tp, hti : HyperTypeImpl tp, !HyperBuiltin1Impl arg_tp tp} : Prop := {
-    Hbuiltin1_returns : forall me f,
+    Hbuiltin1_returns : forall me d f,
       ht_ft_cond f ->
-      ht_ft_cond (Hquery1 me f);
-    Hbuiltin1_correct : forall me f v,
+      ht_ft_cond (Hquery1 me d f);
+    Hbuiltin1_correct : forall me d f v,
       ht_ft_cond f ->
       ht_cval f = v ->
       exists v',
         v = CVval v' /\
-        ht_cval (Hquery1 me f) = CVval (me_query me (Qcall1 Hbuiltin1 v'));
+        ht_cval (Hquery1 me d f) = CVval (me_query me d (Qcall1 Hbuiltin1 v'));
   }.
   
   Class HyperUnaryImpl (op : unary_operation)(tp tpo : type_pair) : Type := {

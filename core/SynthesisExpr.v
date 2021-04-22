@@ -26,6 +26,8 @@ Section EXPR_FUNC.
   Context`{HM : HyperMem}.
   Context {ctx: int256}.
   Context (me : machine_env GetHighData).
+  Context (d : GetHighData).
+
   Let genv_t := genv.
   
   
@@ -90,7 +92,7 @@ Section EXPR_FUNC.
     | ECconst_int256 _ _ f _ => fun _ _ => f
     | ECtempvar _ _ i => fun wf se => SpecTree.get_eq i se wf
     | ECbuiltin0 _ _ _ => fun wf se => Hquery0 me
-    | ECbuiltin1 _ _ _ _ _ e' => fun wf se => Hquery1 me (synth_expr_spec tmp e' wf se)
+    | ECbuiltin1 _ _ _ _ _ e' => fun wf se => Hquery1 me d (synth_expr_spec tmp e' wf se)
     | ECunop _ op _ tpo _ _ e' =>
       fun wf se => Hunary (synth_expr_spec tmp e' wf se)
     | ECbinop _ op _ tpl tpr _ _ _ el er =>
@@ -207,14 +209,14 @@ Require Import Omega.
     forall wf se le, expr_constr_prf e ->
       oProp1 (synth_expr_ocond tmp e wf) se -> lenv_cond se le ->
       exists v,
-        (forall m, eval_rvalue ctx me m le (synth_expr_expr tmp e) v) /\
+        (forall m, eval_rvalue ctx me d m le (synth_expr_expr tmp e) v) /\
         ht_rel (synth_expr_spec tmp e wf se) v
   with synth_lexpr_spec_correct {tmp}`{HyperType} e :
     forall wf se le, lexpr_constr_prf e ->
       oProp1 (synth_lexpr_ocond tmp e wf) se -> lenv_cond se le ->
       let ltp := synth_lexpr_spec tmp e wf se in 
         (forall m,
-          eval_lvalue ctx me m le (synth_lexpr_expr tmp e) ltp.(ltype_ident)) /\
+          eval_lvalue ctx me d m le (synth_lexpr_expr tmp e) ltp.(ltype_ident)) /\
         HyperLType ltp.
   Proof. Admitted.
   Theorem synth_lexpr_spec_is_ghost_eq {tmp}`{HyperTypeImpl} e wf se :

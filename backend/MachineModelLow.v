@@ -43,7 +43,7 @@ Record machine_env  : Type := mkmachine {
   me_log : forall (topics : list val) (args : list val), adata -> adata
 }.
 
-Definition me_query (me : machine_env) (q: state_query) : val :=
+Definition me_query (me : machine_env) (d : adata) (q: state_query) : val :=
   match q with
   | Qcall0 Baddress => Vint (me_address me)
   | Qcall0 Borigin => Vint (me_origin me)
@@ -53,8 +53,8 @@ Definition me_query (me : machine_env) (q: state_query) : val :=
   | Qcall0 Btimestamp => Vint (me_timestamp me)
   | Qcall0 Bnumber => Vint (me_number me)
   | Qcall0 Bchainid => Vint (me_chainid me)
-  | Qcall0 Bselfbalance => Vint (me_selfbalance me)
-  | Qcall1 Bbalance (Vint addr) => Vint (me_balance me addr)
+  | Qcall0 Bselfbalance => Vint (me_selfbalance me d)
+  | Qcall1 Bbalance (Vint addr) => Vint (me_balance me d addr)
   | Qcall1 Bbalance _ => Vunit (* ill-typed query. *)
   | Qcall1 Bblockhash (Vint n) => Vint (me_blockhash me n)
   | Qcall1 Bblockhash _ => Vunit (* ill-typed query. *)

@@ -371,13 +371,14 @@ Section STMT_FUNC.
     | CCrespec _ tmp' c spec => synth_stmt_stmt c dest tmp
     | CCrespec_opt _ tmp' c spec => synth_stmt_stmt c dest tmp
     end.
-  Fixpoint map2_synth_expr_spec {tmp tps} es (se : spec_env_t tmp)
+
+  Fixpoint map2_synth_expr_spec {tmp tps} es (se : spec_env_t tmp) (d : GetHighData)
       : @fold_synth_expr_wellformed tmp tps es -> HList tp_ft tps :=
     match es with
     | HNil => fun _ => HNil
     | HCons x ls e es => fun wf =>
       let (wf, IHwf) := wf
-      in HCons x ls (synth_expr_spec me tmp e wf se) (map2_synth_expr_spec es se IHwf)
+      in HCons x ls (synth_expr_spec me d tmp e wf se) (map2_synth_expr_spec es se d IHwf)
     end.
 Require Import DeepSpec.lib.Monad.Monad.
 Require Import DeepSpec.lib.Monad.MonadState.
@@ -788,10 +789,12 @@ Fixpoint synth_stmt_spec_opt {returns}(c : cmd_constr returns) dest tmp :
        let se' := SpecTree.set id htp spec1 se in
        (synth_stmt_spec_opt c2 dest _ (cddr wf) se'))
   | CCload tp _ e => fun wf se =>
-    gets (synth_lexpr_spec me tmp e wf se).(ltype_get)
+    d <- get;;
+    gets (synth_lexpr_spec me d tmp e wf se).(ltype_get)
   | CCstore _ _ el er => fun wf se =>
-    let f := synth_expr_spec me tmp er (cdr wf) se in
-    modify ((synth_lexpr_spec me tmp el (car wf) se).(ltype_set) f)
+    d <- get;;
+    let f := synth_expr_spec me d tmp er (cdr wf) se in
+    modify ((synth_lexpr_spec me d tmp el (car wf) se).(ltype_set) f)
   | CCsequence _ c1 c2 =>
     fun (wf : synth_stmt_wellformed c1 dest tmp * synth_stmt_wellformed c2 dest tmp)
       se =>
@@ -801,7 +804,8 @@ Fixpoint synth_stmt_spec_opt {returns}(c : cmd_constr returns) dest tmp :
     fun (wf : synth_expr_wellformed tmp e *
              (synth_stmt_wellformed c_true dest tmp * synth_stmt_wellformed c_false dest tmp))
         se =>
-      if synth_expr_spec me tmp e (car wf) se
+      d <- get;;
+      if synth_expr_spec me d tmp e (car wf) se
       then synth_stmt_spec_opt c_true  dest tmp (cadr wf) se
       else synth_stmt_spec_opt c_false dest tmp (cddr wf) se
   | CCfor id_it id_end e1 e2 c3 =>
@@ -812,8 +816,9 @@ Fixpoint synth_stmt_spec_opt {returns}(c : cmd_constr returns) dest tmp :
             (synth_expr_wellformed tmp e1 * (synth_expr_wellformed tmp e2 *
              synth_stmt_wellformed c3 dest tmp'')))
       se =>
-      let start := synth_expr_spec me tmp e1 (cadr wf) se in
-      let bound := synth_expr_spec me tmp e2 (caddr wf) se in
+      d <- get;;
+      let start := synth_expr_spec me d tmp e1 (cadr wf) se in
+      let bound := synth_expr_spec me d tmp e2 (caddr wf) se in
       let initial_se := SpecTree.set id_end int_Z32_pair bound se in
       Ziteri (for_step_opt initial_se start
                          (synth_stmt_spec_opt c3 dest _ (cdddr wf)))
@@ -830,9 +835,9 @@ Fixpoint synth_stmt_spec_opt {returns}(c : cmd_constr returns) dest tmp :
                (synth_stmt_wellformed c4 dest tmp'' *
                 synth_stmt_wellformed c5 dest tmp'')))))
       se =>
-      let start := (synth_expr_spec me tmp e1 (cadr wf) se) in
-      let bound := (synth_expr_spec me tmp e2 (caddr wf) se) in
-      m <- get;;
+      d <- get;;
+      let start := (synth_expr_spec me d tmp e1 (cadr wf) se) in
+      let bound := (synth_expr_spec me d tmp e2 (caddr wf) se) in
       first_map
       (fun n =>
          synth_stmt_spec_opt c3 id_dest _ (cadddr wf)
@@ -854,7 +859,7 @@ Fixpoint synth_stmt_spec_opt {returns}(c : cmd_constr returns) dest tmp :
            (SpecTree.set id_end int_Z32_pair n se)))
       start
       bound
-      m
+      d
   | CCfold tp _ id_it id_end id_recur id_dest e1 e2 e3 c4 =>
     let htp := mk_hyper_type_pair tp in
     fun (wf : let tmp' := AList.set id_end int_Z32_pair tmp in
@@ -866,9 +871,10 @@ Fixpoint synth_stmt_spec_opt {returns}(c : cmd_constr returns) dest tmp :
               (synth_expr_wellformed tmp e1 * (synth_expr_wellformed tmp e2 *
                (synth_expr_wellformed tmp e3 * synth_stmt_wellformed c4 id_dest tmp'''))))
         se =>
-    let start := synth_expr_spec me tmp e1 (cadr wf) se in
-    let bound := synth_expr_spec me tmp e2 (caddr wf) se in
-    let init := synth_expr_spec me tmp e3 (cadddr wf) se in
+    d <- get;;
+    let start := synth_expr_spec me d tmp e1 (cadr wf) se in
+    let bound := synth_expr_spec me d tmp e2 (caddr wf) se in
+    let init := synth_expr_spec me d tmp e3 (cadddr wf) se in
     let initial_se := SpecTree.set id_end int_Z32_pair bound se in
     oZiteri (fold_step_opt initial_se start
                           (synth_stmt_spec_opt c4 id_dest _ (cddddr wf)))
@@ -876,7 +882,8 @@ Fixpoint synth_stmt_spec_opt {returns}(c : cmd_constr returns) dest tmp :
            init
   | CCcall argt ret prim args =>
     fun wf se =>
-      let argv := map2_synth_expr_spec args se wf in
+      d <- get;;
+      let argv := map2_synth_expr_spec args se d wf in
       prim.(PRIMsem_opt) argv me
   
   | CCtransfer e1 e2 =>
@@ -886,18 +893,20 @@ Fixpoint synth_stmt_spec_opt {returns}(c : cmd_constr returns) dest tmp :
       d <- get ;;
       let (success , d') :=
           me_transfer me
-                      (synth_expr_spec me tmp e1 (car wf) se)
-                      (synth_expr_spec me tmp e2 (cdr wf) se)
+                      (synth_expr_spec me d tmp e1 (car wf) se)
+                      (synth_expr_spec me d tmp e2 (cdr wf) se)
                       d in
       if (Int256.eq success Int256.one)
       then put d'
       else mzero
   | CCyield tp _ e =>
     fun wf se =>
-      ret (synth_expr_spec me tmp e wf se)
-  | CCconstr _ _ _ _ el flds constr =>
+      d <- get;;
+      ret (synth_expr_spec me d tmp e wf se)
+  | CCconstr _ _ _ _ el flds constr =>  
     fun wf se =>
-      let l := synth_lexpr_spec me tmp el (car wf) se in
+    d <- get;;
+    let l := synth_lexpr_spec me d tmp el (car wf) se in
       modify (l.(ltype_set)
                (apply_curried_func
                   constr
@@ -964,9 +973,9 @@ Fixpoint fold_CCcall_spec_ocond {tmp tps} es
   | HCons x ls e es =>
     fun wf acc =>
     let (wf, IHwf) := wf in
-    fold_CCcall_spec_ocond es IHwf
+    fold_CCcall_spec_ocond d es IHwf
       (omap3 (fun p args se m =>
-          p (HCons x _ (synth_expr_spec me _ e wf se) args) se m)
+          p (HCons x _ (synth_expr_spec me d _ e wf se) args) se m)
         acc)
   end.
   
@@ -1055,7 +1064,7 @@ Proof. Admitted.
     (omap1 (fun (p : unpair_ft (tp_type_pair x) -> Prop)
                 (y : spec_env_t tmp) =>
               p
-                (synth_expr_spec me tmp e wf y))
+                (synth_expr_spec me d tmp e wf y))
            ht_valid_ft_ocond) 
              )%oprop1 se /\ 
       fold_expr_constr_list_cond es IHwf se
@@ -1074,15 +1083,15 @@ Proof. Admitted.
                     synth_stmt_cond c2 dest _ (cddr wf)
                                     (SpecTree.set id (mk_hyper_type_pair tp) v se) m1)
     | CCload tp _ e => fun wf se d =>
-      oProp1 (synth_lexpr_ocond me tmp e wf) se /\
+      oProp1 (synth_lexpr_ocond me d tmp e wf) se /\
       oProp1
-        ((synth_lexpr_spec me tmp e wf se).(ltype_set_ocond) /\
-         (synth_lexpr_spec me tmp e wf se).(ltype_get_extra_ocond))%oprop1 d
+        ((synth_lexpr_spec me d tmp e wf se).(ltype_set_ocond) /\
+         (synth_lexpr_spec me d tmp e wf se).(ltype_get_extra_ocond))%oprop1 d
     | CCstore _ _ el er => fun wf se d =>
-      oProp1 (synth_lexpr_ocond me tmp el (car wf)) se /\
-      oProp1 (synth_expr_ocond me tmp er (cdr wf)) se /\
-      ht_valid_ft_cond (synth_expr_spec me tmp er (cdr wf) se) /\
-      oProp1 (synth_lexpr_spec me tmp el (car wf) se).(ltype_set_ocond) d
+      oProp1 (synth_lexpr_ocond me d tmp el (car wf)) se /\
+      oProp1 (synth_expr_ocond me d tmp er (cdr wf)) se /\
+      ht_valid_ft_cond (synth_expr_spec me d tmp er (cdr wf) se) /\
+      oProp1 (synth_lexpr_spec me d tmp el (car wf) se).(ltype_set_ocond) d
     | CCsequence _ c1 c2 =>
       fun (wf : synth_stmt_wellformed c1 dest tmp * synth_stmt_wellformed c2 dest tmp)
         se m =>
@@ -1093,10 +1102,10 @@ Proof. Admitted.
       fun (wf : synth_expr_wellformed tmp e *
                (synth_stmt_wellformed c_true dest tmp * synth_stmt_wellformed c_false dest tmp))
           se m =>
-      oProp1 (synth_expr_ocond me tmp e (car wf)) se /\
-      (synth_expr_spec me tmp e (car wf) se = true ->
+      oProp1 (synth_expr_ocond me m tmp e (car wf)) se /\
+      (synth_expr_spec me m tmp e (car wf) se = true ->
         synth_stmt_cond c_true dest tmp (cadr wf) se m) /\
-      (synth_expr_spec me tmp e (car wf) se = false ->
+      (synth_expr_spec me m tmp e (car wf) se = false ->
         synth_stmt_cond c_false dest tmp (cddr wf) se m)
     | CCfor id_it id_end e1 e2 c3 =>
       fun (wf : let tmp' := AList.set id_end int_Z32_pair tmp in
@@ -1106,10 +1115,10 @@ Proof. Admitted.
                 (synth_expr_wellformed tmp e1 * (synth_expr_wellformed tmp e2 *
                  synth_stmt_wellformed c3 dest tmp'')))
           se m =>
-      oProp1 (synth_expr_ocond me tmp e1 (cadr wf)) se /\
-      oProp1 (synth_expr_ocond me tmp e2 (caddr wf)) se /\
-      (let start := synth_expr_spec me tmp e1 (cadr wf) se in
-       let bound := synth_expr_spec me tmp e2 (caddr wf) se in
+      oProp1 (synth_expr_ocond me m tmp e1 (cadr wf)) se /\
+      oProp1 (synth_expr_ocond me m tmp e2 (caddr wf)) se /\
+      (let start := synth_expr_spec me m tmp e1 (cadr wf) se in
+       let bound := synth_expr_spec me m tmp e2 (caddr wf) se in
        let initial_se := SpecTree.set id_end int_Z32_pair bound se in
        forall n, start <= n < bound ->
          forall m',
@@ -1131,12 +1140,12 @@ Proof. Admitted.
                 (synth_expr_wellformed tmp e1 * (synth_expr_wellformed tmp e2 *
                  (synth_expr_wellformed tmp e3 * synth_stmt_wellformed c4 id_dest tmp'''))))
           se m =>
-      oProp1 (synth_expr_ocond me tmp e1 (cadr wf)) se /\
-      oProp1 (synth_expr_ocond me tmp e2 (caddr wf)) se /\
-      oProp1 (synth_expr_ocond me tmp e3 (cadddr wf)) se /\
-      (let start := synth_expr_spec me tmp e1 (cadr wf) se in
-       let bound := synth_expr_spec me tmp e2 (caddr wf) se in
-      let init := synth_expr_spec me tmp e3 (cadddr wf) se in
+      oProp1 (synth_expr_ocond me m tmp e1 (cadr wf)) se /\
+      oProp1 (synth_expr_ocond me m tmp e2 (caddr wf)) se /\
+      oProp1 (synth_expr_ocond me m tmp e3 (cadddr wf)) se /\
+      (let start := synth_expr_spec me m tmp e1 (cadr wf) se in
+       let bound := synth_expr_spec me m tmp e2 (caddr wf) se in
+      let init := synth_expr_spec me m tmp e3 (cadddr wf) se in
       let initial_se := SpecTree.set id_end int_Z32_pair bound se in
        forall n, start <= n < bound ->
         forall recur,
@@ -1155,9 +1164,9 @@ Proof. Admitted.
     | CCconstr _ _ _ _ el flds _ =>
       fun (wf : synth_lexpr_wellformed tmp el * fold_synth_expr_wellformed tmp flds)
           se m =>
-      oProp1 (synth_lexpr_ocond me tmp el (car wf)) se /\
-      oProp1 (synth_lexpr_spec me tmp el (car wf) se).(ltype_set_ocond) m /\
-      fold_expr_constr_list_cond flds (cdr wf) se
+      oProp1 (synth_lexpr_ocond me m tmp el (car wf)) se /\
+      oProp1 (synth_lexpr_spec me m tmp el (car wf) se).(ltype_set_ocond) m /\
+      fold_expr_constr_list_cond m flds (cdr wf) se
     | CCassert c => fun wf se m => synth_stmt_cond c dest tmp (cdr wf) se m
     | CCdeny c => fun wf se m => synth_stmt_cond c dest tmp (cdr wf) se m
     
@@ -1194,7 +1203,7 @@ Proof. Admitted.
       fun (wf : synth_expr_wellformed tmp e1 *
                  synth_expr_wellformed tmp e2)
           se m =>
-      oProp1 (synth_expr_ocond me tmp e1 (car wf)) se /\ oProp1 (synth_expr_ocond me tmp e2 (cdr wf)) se
+      oProp1 (synth_expr_ocond me m tmp e1 (car wf)) se /\ oProp1 (synth_expr_ocond me m tmp e2 (cdr wf)) se
     | CCrespec _ tmp' c spec =>
       fun (wf : ((tmp ~~~ tmp') * (synth_stmt_pure c ~~~ true)) *
                 synth_stmt_wellformed c dest tmp) =>
@@ -1212,16 +1221,16 @@ Proof. Admitted.
                     synth_stmt_CD dest _ (SpecTree.set id (mk_hyper_type_pair tp) v se) m1 c2 (cddr wf)) ->
       synth_stmt_CD dest tmp se m (@CClet _ r tp hti id c1 c2) wf
   | CDload: forall tp hti e wf,
-      oProp1 (synth_lexpr_ocond me tmp e wf) se ->
+      oProp1 (synth_lexpr_ocond me m tmp e wf) se ->
       oProp1
-        (ltype_set_ocond (synth_lexpr_spec me tmp e wf se) /\
-         ltype_get_extra_ocond (synth_lexpr_spec me tmp e wf se))%oprop1 m ->
+        (ltype_set_ocond (synth_lexpr_spec me m tmp e wf se) /\
+         ltype_get_extra_ocond (synth_lexpr_spec me m tmp e wf se))%oprop1 m ->
       synth_stmt_CD dest tmp se m (@CCload _ tp hti e) wf
   | CDstore: forall tp hti el er wf,
-      oProp1 (synth_lexpr_ocond me tmp el (car wf)) se ->
-      oProp1 (synth_expr_ocond me tmp er (cdr wf)) se ->
-      ht_valid_ft_cond (synth_expr_spec me tmp er (cdr wf) se) ->
-      oProp1 (ltype_set_ocond (synth_lexpr_spec me tmp el (car wf) se)) m ->
+      oProp1 (synth_lexpr_ocond me m tmp el (car wf)) se ->
+      oProp1 (synth_expr_ocond me m tmp er (cdr wf)) se ->
+      ht_valid_ft_cond (synth_expr_spec me m tmp er (cdr wf) se) ->
+      oProp1 (ltype_set_ocond (synth_lexpr_spec me m tmp el (car wf) se)) m ->
       synth_stmt_CD dest tmp se m (@CCstore _ tp hti el er) wf
   | CDsequence: forall r c1 c2 wf,
       synth_stmt_CD dest tmp se m c1 (car wf) ->
@@ -1229,16 +1238,16 @@ Proof. Admitted.
                      synth_stmt_CD dest tmp se m1 c2 (cdr wf)) ->
       synth_stmt_CD dest tmp se m (@CCsequence _ r c1 c2) wf
   | CDifthenelse: forall r (e: @expr_constr _ tint_bool _) c_true c_false wf,
-      oProp1 (synth_expr_ocond me tmp e (car wf)) se ->
-      (synth_expr_spec me tmp e (car wf) se = true -> synth_stmt_CD dest tmp se m c_true (cadr wf)) ->
-      (synth_expr_spec me tmp e (car wf) se = false -> synth_stmt_CD dest tmp se m c_false (cddr wf)) ->
+      oProp1 (synth_expr_ocond me m tmp e (car wf)) se ->
+      (synth_expr_spec me m tmp e (car wf) se = true -> synth_stmt_CD dest tmp se m c_true (cadr wf)) ->
+      (synth_expr_spec me m tmp e (car wf) se = false -> synth_stmt_CD dest tmp se m c_false (cddr wf)) ->
       synth_stmt_CD dest tmp se m (@CCifthenelse _ r e c_true c_false) wf
   | CDfor: forall id_it id_end
                   (e1 e2: @expr_constr _ tint_Z32 _) (c3: @cmd_constr _ void_unit_pair) wf,
-      oProp1 (synth_expr_ocond me tmp e1 (cadr wf)) se ->
-      oProp1 (synth_expr_ocond me tmp e2 (caddr wf)) se ->
-      (let start := synth_expr_spec me tmp e1 (cadr wf) se in
-       let bound := synth_expr_spec me tmp e2 (caddr wf) se in
+      oProp1 (synth_expr_ocond me m tmp e1 (cadr wf)) se ->
+      oProp1 (synth_expr_ocond me m tmp e2 (caddr wf)) se ->
+      (let start := synth_expr_spec me m tmp e1 (cadr wf) se in
+       let bound := synth_expr_spec me m tmp e2 (caddr wf) se in
        let initial_se := SpecTree.set id_end int_Z32_pair bound se in
        forall n, start <= n < bound ->
        forall v m',
@@ -1255,35 +1264,35 @@ Proof. Admitted.
       synth_stmt_CD dest tmp se m (@CCfor _ id_it id_end e1 e2 c3) wf
   | CDfirst: forall r id_it id_end id_dest
                     (e1 e2: @expr_constr _ tint_Z32 _) c3 (c4 c5: @cmd_constr _ r) wf,
-      oProp1 (synth_expr_ocond me tmp e1 (cadr wf)) se ->
-      oProp1 (synth_expr_ocond me tmp e2 (caddr wf)) se ->
-      (let start := synth_expr_spec me tmp e1 (cadr wf) se in
-       let bound := synth_expr_spec me tmp e2 (caddr wf) se in
+      oProp1 (synth_expr_ocond me m tmp e1 (cadr wf)) se ->
+      oProp1 (synth_expr_ocond me m tmp e2 (caddr wf)) se ->
+      (let start := synth_expr_spec me m tmp e1 (cadr wf) se in
+       let bound := synth_expr_spec me m tmp e2 (caddr wf) se in
        forall n,
           start <= n < bound ->
           synth_stmt_CD id_dest _
                         (SpecTree.set id_it int_Z32_pair n (SpecTree.set id_end int_Z32_pair bound se))
                         m c3 (cadddr wf)) ->
-      (let start := synth_expr_spec me tmp e1 (cadr wf) se in
-       let bound := synth_expr_spec me tmp e2 (caddr wf) se in
+      (let start := synth_expr_spec me m tmp e1 (cadr wf) se in
+       let bound := synth_expr_spec me m tmp e2 (caddr wf) se in
        forall n,
           start <= n < bound ->
           synth_stmt_CD dest _
                         (SpecTree.set id_it int_Z32_pair n (SpecTree.set id_end int_Z32_pair bound se))
                         m c4 (caddddr wf)) ->
-      (let bound := synth_expr_spec me tmp e2 (caddr wf) se in
+      (let bound := synth_expr_spec me m tmp e2 (caddr wf) se in
        synth_stmt_CD dest _
                      (SpecTree.set id_it int_Z32_pair bound (SpecTree.set id_end int_Z32_pair bound se))
                      m c5 (cdddddr wf)) ->
       synth_stmt_CD dest tmp se m (@CCfirst _ r id_it id_end id_dest e1 e2 c3 c4 c5) wf
   | CDfold: forall tp hti id_it id_end id_recur id_dest
                    (e1 e2: @expr_constr _ tint_Z32 _) e3 (c4: @cmd_constr _ (mk_hyper_type_pair tp)) wf,
-      oProp1 (synth_expr_ocond me tmp e1 (cadr wf)) se ->
-      oProp1 (synth_expr_ocond me tmp e2 (caddr wf)) se ->
-      oProp1 (synth_expr_ocond me tmp e3 (cadddr wf)) se ->
-      (let start := synth_expr_spec me tmp e1 (cadr wf) se in
-       let bound := synth_expr_spec me tmp e2 (caddr wf) se in
-       let init := synth_expr_spec me tmp e3 (cadddr wf) se in
+      oProp1 (synth_expr_ocond me m tmp e1 (cadr wf)) se ->
+      oProp1 (synth_expr_ocond me m tmp e2 (caddr wf)) se ->
+      oProp1 (synth_expr_ocond me m tmp e3 (cadddr wf)) se ->
+      (let start := synth_expr_spec me m tmp e1 (cadr wf) se in
+       let bound := synth_expr_spec me m tmp e2 (caddr wf) se in
+       let init := synth_expr_spec me m tmp e3 (cadddr wf) se in
        let initial_se := SpecTree.set id_end int_Z32_pair bound se in
        forall n : Z,
          start <= n < bound ->
@@ -1301,21 +1310,21 @@ Proof. Admitted.
                      m c4 (cddddr wf)) ->
       synth_stmt_CD dest tmp se m (@CCfold _ tp hti id_it id_end id_recur id_dest e1 e2 e3 c4) wf
   | CDcall: forall argts r prim args wf,
-      fold_expr_constr_list_cond args wf se ->
+      fold_expr_constr_list_cond m args wf se ->
       synth_stmt_CD dest tmp se m (@CCcall _ argts r prim args) wf
   
   | CDtransfer: forall e1 e2 wf,
-      oProp1 (synth_expr_ocond me tmp e1 (car wf)) se ->
-      oProp1 (synth_expr_ocond me tmp e2 (cdr wf)) se ->
+      oProp1 (synth_expr_ocond me m tmp e1 (car wf)) se ->
+      oProp1 (synth_expr_ocond me m tmp e2 (cdr wf)) se ->
       synth_stmt_CD dest tmp se m (CCtransfer e1 e2) wf
                     
   | CDyield: forall tp hti e wf,
-      oProp1 (synth_expr_ocond me tmp e wf) se ->
+      oProp1 (synth_expr_ocond me m tmp e wf) se ->
       synth_stmt_CD dest tmp se m (@CCyield _ tp hti e) wf
   | CDconstr: forall tp hti fld_ids fld_tps el flds constr wf,
-      oProp1 (synth_lexpr_ocond me tmp el (car wf)) se ->
-      oProp1 (ltype_set_ocond (synth_lexpr_spec me tmp el (car wf) se)) m ->
-      fold_expr_constr_list_cond flds (cdr wf) se ->
+      oProp1 (synth_lexpr_ocond me m tmp el (car wf)) se ->
+      oProp1 (ltype_set_ocond (synth_lexpr_spec me m tmp el (car wf) se)) m ->
+      fold_expr_constr_list_cond m flds (cdr wf) se ->
       synth_stmt_CD dest tmp se m (@CCconstr _ tp hti fld_ids fld_tps el flds constr) wf
   | CDassert: forall c wf,
       synth_stmt_CD dest tmp se m c (cdr wf) ->
@@ -1362,9 +1371,9 @@ Proof. Admitted.
       fun (wf : synth_expr_wellformed tmp e *
                (synth_stmt_wellformed c_true dest tmp * synth_stmt_wellformed c_false dest tmp))
         se m =>
-        (synth_expr_spec me tmp e (car wf) se = true ->
+        (synth_expr_spec me m tmp e (car wf) se = true ->
          synth_stmt_obligation c_true dest tmp (cadr wf) se m) /\
-        (synth_expr_spec me tmp e (car wf) se = false ->
+        (synth_expr_spec me m tmp e (car wf) se = false ->
          synth_stmt_obligation c_false dest tmp (cddr wf) se m)
     | CCfor id_it id_end e1 e2 c3 =>
       fun (wf : let tmp' := AList.set id_end int_Z32_pair tmp in
@@ -1374,8 +1383,8 @@ Proof. Admitted.
                 (synth_expr_wellformed tmp e1 * (synth_expr_wellformed tmp e2 *
                  synth_stmt_wellformed c3 dest tmp'')))
           se m =>
-      (let start := synth_expr_spec me tmp e1 (cadr wf) se in
-       let bound := synth_expr_spec me tmp e2 (caddr wf) se in
+      (let start := synth_expr_spec me m tmp e1 (cadr wf) se in
+       let bound := synth_expr_spec me m tmp e2 (caddr wf) se in
        let initial_se := SpecTree.set id_end int_Z32_pair bound se in
        forall n, start <= n < bound ->
          forall m', execStateT (Ziteri
@@ -1396,9 +1405,9 @@ Proof. Admitted.
                 (synth_expr_wellformed tmp e1 * (synth_expr_wellformed tmp e2 *
                  (synth_expr_wellformed tmp e3 * synth_stmt_wellformed c4 id_dest tmp'''))))
           se m =>
-      (let start := synth_expr_spec me tmp e1 (cadr wf) se in
-       let bound := synth_expr_spec me tmp e2 (caddr wf) se in
-       let init := synth_expr_spec me tmp e3 (cadddr wf) se in
+      (let start := synth_expr_spec me m tmp e1 (cadr wf) se in
+       let bound := synth_expr_spec me m tmp e2 (caddr wf) se in
+       let init := synth_expr_spec me m tmp e3 (cadddr wf) se in
        let initial_se := SpecTree.set id_end int_Z32_pair bound se in
        forall n, start <= n < bound ->
         forall recur,
@@ -1477,7 +1486,7 @@ Proof. Admitted.
           synth_stmt_RC dest _ (SpecTree.set id (mk_hyper_type_pair tp) v se) m' c2 (cddr wf)) ->
       synth_stmt_RC dest tmp se m (@CClet _ r tp hti id c1 c2) wf
   | RCload: forall tp hti e wf,
-      ht_ft_cond (ltype_get (synth_lexpr_spec me tmp e wf se) m) ->
+      ht_ft_cond (ltype_get (synth_lexpr_spec me m tmp e wf se) m) ->
       synth_stmt_RC dest tmp se m (@CCload _ tp hti e) wf
   | RCstore: forall tp hti el er wf,
       synth_stmt_RC dest tmp se m (@CCstore _ tp hti el er) wf
@@ -1486,9 +1495,9 @@ Proof. Admitted.
       synth_stmt_RC dest tmp se m' c2 (cdr wf)) ->
       synth_stmt_RC dest tmp se m (@CCsequence _ r c1 c2) wf
   | RCifthenelse: forall r (e: @expr_constr _ tint_bool _) c_true c_false wf,
-      (synth_expr_spec me tmp e (car wf) se = true ->
+      (synth_expr_spec me m tmp e (car wf) se = true ->
        synth_stmt_RC dest tmp se m c_true (cadr wf)) ->
-      (synth_expr_spec me tmp e (car wf) se = false ->
+      (synth_expr_spec me m tmp e (car wf) se = false ->
        synth_stmt_RC dest tmp se m c_false (cddr wf)) ->
       synth_stmt_RC dest tmp se m (@CCifthenelse _ r e c_true c_false) wf
   | RCfor: forall id_it id_end
@@ -1512,12 +1521,12 @@ Proof. Admitted.
       synth_stmt_RC dest tmp se m (@CCfirst _ r id_it id_end id_dest e1 e2 c3 c4 c5) wf
   | RCfold: forall tp hti id_it id_end id_recur id_dest
                    (e1 e2: @expr_constr _ tint_Z32 _) e3 (c4: @cmd_constr _ (mk_hyper_type_pair tp)) wf,
-      oProp1 (synth_expr_ocond me tmp e1 (cadr wf)) se ->
-      oProp1 (synth_expr_ocond me tmp e2 (caddr wf)) se ->
-      oProp1 (synth_expr_ocond me tmp e3 (cadddr wf)) se ->
-      (let start := synth_expr_spec me tmp e1 (cadr wf) se in
-       let bound := synth_expr_spec me tmp e2 (caddr wf) se in
-       let init := synth_expr_spec me tmp e3 (cadddr wf) se in
+      oProp1 (synth_expr_ocond me m tmp e1 (cadr wf)) se ->
+      oProp1 (synth_expr_ocond me m tmp e2 (caddr wf)) se ->
+      oProp1 (synth_expr_ocond me m tmp e3 (cadddr wf)) se ->
+      (let start := synth_expr_spec me m tmp e1 (cadr wf) se in
+       let bound := synth_expr_spec me m tmp e2 (caddr wf) se in
+       let init := synth_expr_spec me m tmp e3 (cadddr wf) se in
        let initial_se := SpecTree.set id_end int_Z32_pair bound se in
        
        forall n, start <= n < bound ->
@@ -1531,15 +1540,15 @@ Proof. Admitted.
              (SpecTree.set id_it int_Z32_pair n initial_se)) m c4 (cddddr wf)) ->
       synth_stmt_RC dest tmp se m (@CCfold _ tp hti id_it id_end id_recur id_dest e1 e2 e3 c4) wf
   | RCcall: forall argts r prim args wf,
-      ht_list_ft_cond (map2_synth_expr_spec args se wf) ->
-      ht_list_valid_ft_cond (map2_synth_expr_spec args se wf) ->
+      ht_list_ft_cond (map2_synth_expr_spec args se m wf) ->
+      ht_list_valid_ft_cond (map2_synth_expr_spec args se m wf) ->
       synth_stmt_RC dest tmp se m (@CCcall _ argts r prim args) wf
   
   | RCtransfer: forall (e1 e2: @expr_constr _ tint_U _) wf,
       synth_stmt_RC dest tmp se m (CCtransfer e1 e2) wf
                     
   | RCyield: forall tp hti e wf,
-      oProp1 (synth_expr_ocond me tmp e wf) se ->
+      oProp1 (synth_expr_ocond me m tmp e wf) se ->
       synth_stmt_RC dest tmp se m (@CCyield _ tp hti e) wf
   | RCconstr: forall tp hti fld_ids fld_tps el flds constr wf,
       synth_stmt_RC dest tmp se m (@CCconstr _ tp hti fld_ids fld_tps el flds constr) wf
@@ -1572,7 +1581,7 @@ Proof. Admitted.
           synth_stmt_ret_cond c2 dest _ (cddr wf) (SpecTree.set id (mk_hyper_type_pair tp) v se) m'
       
     | CCload tp _ e => fun wf se m =>
-      ht_ft_cond (ltype_get (synth_lexpr_spec me tmp e wf se) m)
+      ht_ft_cond (ltype_get (synth_lexpr_spec me m tmp e wf se) m)
     | CCstore _ _ el er => fun _ _ _ => True
     | CCsequence _ c1 c2 =>
       fun (wf : synth_stmt_wellformed c1 dest tmp * synth_stmt_wellformed c2 dest tmp)
@@ -1586,8 +1595,8 @@ Proof. Admitted.
         se m =>
       let obt := synth_stmt_ret_cond c_true dest tmp (cadr wf) se m in
       let obf := synth_stmt_ret_cond c_false dest tmp (cddr wf) se m in
-      (synth_expr_spec me tmp e (car wf) se = true  -> obt) /\
-      (synth_expr_spec me tmp e (car wf) se = false -> obf)
+      (synth_expr_spec me m tmp e (car wf) se = true  -> obt) /\
+      (synth_expr_spec me m tmp e (car wf) se = false -> obf)
     | CCfor id_it id_end e1 e2 c3 =>
       fun (wf : let tmp' := AList.set id_end int_Z32_pair tmp in
                 let tmp'' := AList.set id_it int_Z32_pair tmp' in
@@ -1608,12 +1617,12 @@ Proof. Admitted.
                 (synth_expr_wellformed tmp e1 * (synth_expr_wellformed tmp e2 *
                  (synth_expr_wellformed tmp e3 * synth_stmt_wellformed c4 id_dest tmp'''))))
           se m =>
-      oProp1 (synth_expr_ocond me tmp e1 (cadr wf)) se /\
-      oProp1 (synth_expr_ocond me tmp e2 (caddr wf)) se /\
-      oProp1 (synth_expr_ocond me tmp e3 (cadddr wf)) se /\
-      (let start := synth_expr_spec me tmp e1 (cadr wf) se in
-       let bound := synth_expr_spec me tmp e2 (caddr wf) se in
-       let init := synth_expr_spec me tmp e3 (cadddr wf) se in
+      oProp1 (synth_expr_ocond me m tmp e1 (cadr wf)) se /\
+      oProp1 (synth_expr_ocond me m tmp e2 (caddr wf)) se /\
+      oProp1 (synth_expr_ocond me m tmp e3 (cadddr wf)) se /\
+      (let start := synth_expr_spec me m tmp e1 (cadr wf) se in
+       let bound := synth_expr_spec me m tmp e2 (caddr wf) se in
+       let init := synth_expr_spec me m tmp e3 (cadddr wf) se in
        let initial_se := SpecTree.set id_end int_Z32_pair bound se in
        
        forall n, start <= n < bound ->
@@ -1633,7 +1642,7 @@ Proof. Admitted.
       fun (wf : synth_expr_wellformed tmp e1 * synth_expr_wellformed tmp e2)
         se m =>
         True
-    | CCyield tp _ e => fun wf se _ => oProp1 (synth_expr_ocond me tmp e wf) se
+    | CCyield tp _ e => fun wf se m => oProp1 (synth_expr_ocond me m tmp e wf) se
     | CCconstr _ _ _ _ el flds _ => fun _ _ _ => True
     | CCassert c => fun _ _ _ => True
     | CCdeny c => fun _ _ _ => True
@@ -1681,8 +1690,9 @@ Proof. Admitted.
     {arg : expr_constr_list argt}
     (argc : expr_constr_prf_conj arg)
     (wf : fold_synth_expr_wellformed tmp arg)
-    (se : spec_env_t tmp) :
-      fold_expr_constr_list_cond arg wf se ->
+    (se : spec_env_t tmp)
+    (m : GetHighData) :
+      fold_expr_constr_list_cond m arg wf se ->
       senv_cond se ->
       ht_list_ft_cond (map2_synth_expr_spec arg se wf).
   Proof. Admitted.
@@ -1690,8 +1700,9 @@ Proof. Admitted.
     {arg : expr_constr_list argt}
     (argc : expr_constr_prf_conj arg)
     (wf : fold_synth_expr_wellformed tmp arg)
-    (se : spec_env_t tmp) :
-      fold_expr_constr_list_cond arg wf se ->
+    (se : spec_env_t tmp)
+    (m : GetHighData) :
+      fold_expr_constr_list_cond m arg wf se ->
       senv_cond se ->
       ht_list_valid_ft_cond (map2_synth_expr_spec arg se wf).
   Proof. Admitted.
@@ -1729,409 +1740,6 @@ Proof. Admitted.
   
   
 Definition temp_env : Type := PTree.t val.
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   
   Lemma opt_bool_dec_t__f_none (x:option bool):
     {x = Some true} + {x = Some false \/ x = None}.
