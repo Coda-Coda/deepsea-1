@@ -68,8 +68,8 @@ Record machine_env  : Type := mkmachine {
   me_timestamp : int256;
   me_number : int256;
   me_chainid : int256;
-  me_selfbalance : int256;
-  me_balance : int256 -> int256;   (* Todo: make it int160. *)
+  me_selfbalance : forall (d: adata), int256;
+  me_balance : forall (d: adata), int256 -> int256;   (* Todo: make it int160. *)
   me_blockhash : int256 -> int256;
 
   (* todo: this is bad because it doesn't deal with potential reentrancy. *)
@@ -95,7 +95,7 @@ Definition me_query (me : machine_env) (q: state_query) : val :=
   | Qcall1 Bbalance _ => Vunit (* ill-typed query. *)
   | Qcall1 Bblockhash (Vint n) => Vint (me_blockhash me n)
   | Qcall1 Bblockhash _ => Vunit (* ill-typed query. *)
-  end.
+  end.  
   
 (*
 (* This is now done with a relation *)

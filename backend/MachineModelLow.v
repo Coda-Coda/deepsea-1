@@ -33,8 +33,8 @@ Record machine_env  : Type := mkmachine {
   me_timestamp : int256;
   me_number : int256;
   me_chainid : int256;
-  me_selfbalance : int256;
-  me_balance : int256 -> int256;   (* Todo: make it int160. *)
+  me_selfbalance : forall (d: adata), int256;
+  me_balance : forall (d: adata), int256 -> int256;   (* Todo: make it int160. *)
   me_blockhash : int256 -> int256;
 
   me_transfer : forall (addr value: val)(d: adata), (int256 * adata);
