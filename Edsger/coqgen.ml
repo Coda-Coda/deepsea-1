@@ -5187,8 +5187,8 @@ Instance GlobalLayerSpec : LayerSpecClass := {
           let unmingledFieldName o f = 
             o.aObjectName ^ "_" ^ f.aObjectFieldName in
         output_string stream (
-          if (unmingledFieldName o f = "ETH_transfers")
-            then "  ETH_transfers := ({| DataTypes.recipient := adr; DataTypes.amount := amount |}) :: (ETH_transfers d);\n"
+          if (unmingledFieldName o f = "ETH_successful_transfers")
+            then "  ETH_successful_transfers := ({| DataTypes.recipient := adr; DataTypes.amount := amount |}) :: (ETH_successful_transfers d);\n"
             else "  " ^ unmingledFieldName o f ^ " := " ^ unmingledFieldName o f ^ " d; \n"
           )
       ) o.aObjectFields
@@ -5205,11 +5205,50 @@ Context
   (coinbase : int256)
   (timestamp : int256)
   (number : int256)
-  (balance : int256 -> int256)
+  (initial_balances : addr -> int256)
   (blockhash : int256 -> int256)
   (prev_contract_state : global_abstract_data_type)
-  (chainid : int256).
-  
+  (chainid : int256)
+  (address_always_accepts_funds : addr -> bool).
+
+Axiom All_Addresses_Always_Accept_Funds : forall a, address_always_accepts_funds a = true.
+
+Definition debits_from_contract
+(successful_transfers: list Transfer) :=
+List.fold_left (fun z t => (Int256.intval (amount t) - z)%Z)
+successful_transfers 0%Z.
+
+Definition credits_to_address (a : addr)
+(successful_transfers: list Transfer) :=
+List.fold_left (fun z t =>
+if Int256.eq (recipient t) a
+then (Int256.intval (amount t) + z)%Z
+else z)
+successful_transfers 0%Z.
+
+Definition current_balances_Z (initial_balances : addr -> int256)
+                              (successful_transfers : list Transfer)
+                              (a : addr) : Z :=
+    if Int256.eq a contract_address
+    then
+      Int256.intval (initial_balances a)
+    - debits_from_contract successful_transfers
+    + credits_to_address a successful_transfers (*Just in case the contract transfers to itself. *)
+    else 
+      Int256.intval (initial_balances a)
+    + credits_to_address a successful_transfers.
+
+Definition current_balances (initial_balances : addr -> int256)
+    (successful_transfers : list Transfer)
+    (a : addr) : int256 :=
+    Int256.repr (current_balances_Z initial_balances successful_transfers a).
+
+Definition successful_transfer initial_balances current_successful_transfers recipient amount : bool := 
+  let balance := current_balances initial_balances current_successful_transfers in    
+        ((Int256.intval (balance contract_address)) - (Int256.intval amount) >=? 0)%Z
+    && ((Int256.intval (balance recipient)) + (Int256.intval amount) <=? Int256.max_unsigned)%Z
+    && (address_always_accepts_funds recipient).
+
 Definition generic_machine_env 
                             : machine_env global_abstract_data_type
   := {| me_address := contract_address;
@@ -5219,18 +5258,21 @@ Definition generic_machine_env
         me_coinbase := coinbase; 
         me_timestamp := timestamp;
         me_number := number;
-        me_balance := balance;
+        me_balance d a := current_balances initial_balances (ETH_successful_transfers d) a;
         me_blockhash := blockhash;
-        me_transfer := (fun to amount d => (if Int256.lt (balance contract_address) amount then (Int256.zero, d) else (Int256.one, d_with_transfer to amount d)));
-        (* Note that the way me_transfer has been defined above will only add a transaction to the ETH_transfers list if the contract has sufficient balance to send the transaction.
-           It is still possible that the recipient might reject the funds (e.g. if the recipient is a Smart Contract and the processing of receiving the transfer runs out of gas).
+        me_transfer recipient amount d := if successful_transfer initial_balances (ETH_successful_transfers d) recipient amount then (Int256.one, d_with_transfer recipient amount d) else (Int256.zero, d);
+        (* Note that the way me_transfer has been defined above will only add a transaction to the ETH_successful_transfers list if the contract has sufficient balance to send the transaction,
+           the recipient isn't so rich such that their balance being added to would cause an overflow, and if the `address_always_accepts_funds` function indicates they would accept the funds.
            
-           It is also IMPORTANT to note that the above definition relies on `balance contract_address` being up to date.
-           This is simplified by having at most one transfer per function call, but if multiple transfers happen, me_balance would need to be updated appropriately. *)
+           The function from the context `address_always_accepts_funds` defines which addresses are assumed to always accept funds.
+           Currently, the Axiom `All_Addresses_Always_Accept_Funds` assumes that all addresses always accept funds. This axiom should be changed if it is not a reasonable assumption,
+           for example if an address rejecting funds is part of a model of what an attacker might do.
+           It is possible that the recipient might reject the funds (e.g. if the recipient is a 'smart contract' and the processing of receiving the transfer runs out of gas).
+        *)
         me_callmethod _ _ _ _ _ _ _ _ _ _ := False;
         me_log _ _ _ := prev_contract_state;
         me_chainid := chainid;
-        me_selfbalance := balance contract_address (* Note that this form of getting selfbalance is also used in me_transfer's definition. *)
+        me_selfbalance d := current_balances initial_balances (ETH_successful_transfers d) contract_address (* Note that this form of getting selfbalance is also used in me_transfer's definition. *)
       |}.
 
 
@@ -5266,9 +5308,9 @@ Ltac inv_runStateT_branching_with_me_transfer_cases :=
     try inv_runStateT_branching;
     let Case := fresh \"SufficientFundsToTransferCase\" in
     try match goal with
-      | H : context[me_transfer _ _ ?X _] |- _ => 
+      | H : context[me_transfer _  _ _] |- _ => 
       unfold me_transfer, generic_machine_env in H;
-      destruct (Int256.lt (balance contract_address) X) eqn:Case
+      destruct (successful_transfer _ _ _ _) eqn:Case
     end
   ).
 
@@ -5285,7 +5327,7 @@ Ltac solve_single_transfer :=
   subst;
   solve [
     match goal with
-    | H : ETH_transfers _ = nil |- _ => rewrite H; simpl; lia
+    | H : ETH_successful_transfers _ = nil |- _ => rewrite H; simpl; lia
     end
     |
     match goal with
@@ -5307,7 +5349,7 @@ Ltac solve_single_transfer :=
     |
     simpl;
     match goal with
-      | H : ETH_transfers ?X = nil |- context[ETH_transfers ?X] => 
+      | H : ETH_successful_transfers ?X = nil |- context[ETH_successful_transfers ?X] => 
         rewrite H; simpl; lia
     end
   ].
@@ -5326,10 +5368,10 @@ List.iter (function
 Lemma " ^ method_full_name_with_opt ^ "_single_transfer : forall d d' ");
           output_method_args_listing stream mt;
         output_string stream (" result,
-(ETH_transfers d = nil) -> runStateT (" ^ method_full_name_with_opt ^ " ");
+(ETH_successful_transfers d = nil) -> runStateT (" ^ method_full_name_with_opt ^ " ");
         output_method_args_listing stream mt;
         output_string stream (" generic_machine_env) d = Some (result, d') -> 
-(length (ETH_transfers d') <= 1)%nat.
+(length (ETH_successful_transfers d') <= 1)%nat.
 Proof.
 solve_single_transfer. (* If this tactic fails it indicates that the " ^ method_full_name_with_opt ^ " function either calls transferEth twice (which is considered a bad pattern) or doesn't call transferEth twice but has complex logic such as two interrelated if statements that make the tactic fail. *)
 Qed.\n")
