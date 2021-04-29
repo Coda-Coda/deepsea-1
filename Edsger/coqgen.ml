@@ -5211,8 +5211,6 @@ Context
   (chainid : int256)
   (address_always_accepts_funds : addr -> bool).
 
-Axiom All_Addresses_Always_Accept_Funds : forall a, address_always_accepts_funds a = true.
-
 Definition debits_from_contract
 (successful_transfers: list Transfer) :=
 List.fold_left (fun z t => (Int256.intval (amount t) - z)%Z)
@@ -5270,7 +5268,7 @@ Definition generic_machine_env
            It is possible that the recipient might reject the funds (e.g. if the recipient is a 'smart contract' and the processing of receiving the transfer runs out of gas).
         *)
         me_callmethod _ _ _ _ _ _ _ _ _ _ := False;
-        me_log _ _ _ := prev_contract_state;
+        me_log _ _ d := d; (* TODO-Daniel what is the purpose of me_log? Is this a sufficient definition for now? *)
         me_chainid := chainid;
         me_selfbalance d := current_balances initial_balances (ETH_successful_transfers d) contract_address (* Note that this form of getting selfbalance is also used in me_transfer's definition. *)
       |}.
