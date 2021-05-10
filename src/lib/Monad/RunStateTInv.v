@@ -253,6 +253,14 @@ End StateMonadOption.
       | (runStateT (if ?b then _ else _) _ = ret _) =>
         destruct b eqn:?;
         inv_runStateT1_branching H
+      | (runStateT (let (success, d') :=
+        ?me_transfer ?me ?recipient ?amount ?d in
+             if ?Int256_eq success ?Int256_one then put _ else mzero) _ = ret _) =>
+             let success := fresh "success" in
+             let d_after_transfer := fresh "d_after_transfer" in 
+             destruct (me_transfer me recipient amount d) as [success d_after_transfer];
+             destruct (Int256_eq success Int256_one);
+          inv_runStateT1_branching H
 
       (* And the same for Some instead of ret. They are definitionally
          equal, but match differently, so we include patterns for  both.*)
@@ -277,6 +285,14 @@ End StateMonadOption.
       | (runStateT (if ?b then _ else _) _ = Some  _) =>
         destruct b eqn:?;
         inv_runStateT1_branching H
+      | (runStateT (let (success, d') :=
+        ?me_transfer ?me ?recipient ?amount ?d in
+             if ?Int256_eq success ?Int256_one then put _ else mzero) _ = Some _) =>
+             let success := fresh "success" in
+             let d_after_transfer := fresh "d_after_transfer" in 
+             destruct (me_transfer me recipient amount d) as [success d_after_transfer];
+             destruct (Int256_eq success Int256_one);
+          inv_runStateT1_branching H
     | _ => idtac        
     end.
 
