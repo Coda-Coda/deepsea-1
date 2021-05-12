@@ -5154,20 +5154,15 @@ This file contains lemmas demonstrating and checking that transferEth is called 
     "Require Import backend.MachineModel.\n" ^
     "Require Import core.MemoryModel.\n" ^ 
     "Require Import DeepSpec.lib.Monad.RunStateTInv.\n" ^
-    "Require Import Lia.\n"
+    "Require Import Lia.\n" ^ 
+    "Require Import Crowdfunding_Based_On_Scilla.GenericMachineEnv.\n"
   );
   List.iter (function 
     | i, ADlayer l -> output_string stream ("Require Import " ^ env.project_name ^ ".Layer" ^ i ^ ".\n")
     | _, _ -> ()
     ) fileDeclarations;
 
-  output_string stream ("\nSection SingleTransferCheck.\n\n
-Context {memModelOps : MemoryModelOps mem}.
-Instance GlobalLayerSpec : LayerSpecClass := {
-  memModelOps := memModelOps;
-  GetHighData := global_abstract_data_type 
-}.  
-\n");
+  output_string stream ("\nModule SingleTransferCheck.\n\n");
 
   List.iter (function
   | i, ADlayer l ->
@@ -5179,104 +5174,6 @@ Instance GlobalLayerSpec : LayerSpecClass := {
     ) l.aLayerFreshObjects
   | _, _ -> ()
   ) fileDeclarations;
-
-  output_string stream ("\n\nDefinition d_with_transfer adr amount (d : global_abstract_data_type) : global_abstract_data_type :=\n{|\n");
-  List.iter (function
-  | i, ADlayer l ->
-    List.iter (fun (_, o) ->
-      List.iter (fun f ->
-          let unmingledFieldName o f = 
-            o.aObjectName ^ "_" ^ f.aObjectFieldName in
-        output_string stream (
-          if (unmingledFieldName o f = "ETH_successful_transfers")
-            then "  ETH_successful_transfers := ({| DataTypes.recipient := adr; DataTypes.amount := amount |}) :: (ETH_successful_transfers d);\n"
-            else "  " ^ unmingledFieldName o f ^ " := " ^ unmingledFieldName o f ^ " d; \n"
-          )
-      ) o.aObjectFields
-    ) l.aLayerFreshObjects
-  | _, _ -> ()
-  ) fileDeclarations;
-  output_string stream ("|}.
-
-Context 
-  (contract_address : addr)
-  (origin: addr)
-  (caller: addr)
-  (callvalue : int256)
-  (coinbase : int256)
-  (timestamp : int256)
-  (number : int256)
-  (initial_balances : addr -> int256)
-  (blockhash : int256 -> int256)
-  (prev_contract_state : global_abstract_data_type)
-  (chainid : int256)
-  (address_always_accepts_funds : addr -> bool).
-
-Definition debits_from_contract
-(successful_transfers: list Transfer) :=
-List.fold_left (fun z t => (Int256.intval (amount t) - z)%Z)
-successful_transfers 0%Z.
-
-Definition credits_to_address (a : addr)
-(successful_transfers: list Transfer) :=
-List.fold_left (fun z t =>
-if Int256.eq (recipient t) a
-then (Int256.intval (amount t) + z)%Z
-else z)
-successful_transfers 0%Z.
-
-Definition current_balances_Z (initial_balances : addr -> int256)
-                              (successful_transfers : list Transfer)
-                              (a : addr) : Z :=
-    if Int256.eq a contract_address
-    then
-      Int256.intval (initial_balances a)
-    - debits_from_contract successful_transfers
-    + credits_to_address a successful_transfers (*Just in case the contract transfers to itself. *)
-    else 
-      Int256.intval (initial_balances a)
-    + credits_to_address a successful_transfers.
-
-Definition current_balances (initial_balances : addr -> int256)
-    (successful_transfers : list Transfer)
-    (a : addr) : int256 :=
-    Int256.repr (current_balances_Z initial_balances successful_transfers a).
-
-Definition successful_transfer initial_balances current_successful_transfers recipient amount : bool := 
-  let balance := current_balances initial_balances current_successful_transfers in    
-        ((Int256.intval (balance contract_address)) - (Int256.intval amount) >=? 0)%Z
-    && ((Int256.intval (balance recipient)) + (Int256.intval amount) <=? Int256.max_unsigned)%Z
-    && (address_always_accepts_funds recipient).
-
-Definition generic_machine_env 
-                            : machine_env global_abstract_data_type
-  := {| me_address := contract_address;
-        me_origin := origin;
-        me_caller := caller; (* need update after every control-flow transfer *)
-        me_callvalue := callvalue;
-        me_coinbase := coinbase; 
-        me_timestamp := timestamp;
-        me_number := number;
-        me_balance d a := current_balances initial_balances (ETH_successful_transfers d) a;
-        me_blockhash := blockhash;
-        me_transfer recipient amount d := if successful_transfer initial_balances (ETH_successful_transfers d) recipient amount then (Int256.one, d_with_transfer recipient amount d) else (Int256.zero, d);
-        (* Note that the way me_transfer has been defined above will only add a transaction to the ETH_successful_transfers list if the contract has sufficient balance to send the transaction,
-           the recipient isn't so rich such that their balance being added to would cause an overflow, and if the `address_always_accepts_funds` function indicates they would accept the funds.
-           
-           The function from the context `address_always_accepts_funds` defines which addresses are assumed to always accept funds.
-           Currently, the Axiom `All_Addresses_Always_Accept_Funds` assumes that all addresses always accept funds. This axiom should be changed if it is not a reasonable assumption,
-           for example if an address rejecting funds is part of a model of what an attacker might do.
-           It is possible that the recipient might reject the funds (e.g. if the recipient is a 'smart contract' and the processing of receiving the transfer runs out of gas).
-        *)
-        me_callmethod _ _ _ _ _ _ _ _ _ _ := False;
-        me_log _ _ d := d; (* TODO-Daniel what is the purpose of me_log? Is this a sufficient definition for now? *)
-        me_chainid := chainid;
-        me_selfbalance d := current_balances initial_balances (ETH_successful_transfers d) contract_address (* Note that this form of getting selfbalance is also used in me_transfer's definition. *)
-      |}.
-
-
-
-  ");
 
   output_string stream ("\nLtac unfold_all :=\n");
 
@@ -5290,10 +5187,46 @@ Definition generic_machine_env
       ) l.aLayerFreshObjects
     | _, _ -> ()
   ) fileDeclarations;
-
   output_string stream ("simpl.\n\n");
 
-  output_string stream ("
+  output_string stream ("\n\n
+
+Section Block_Context. (* like bstep *)
+(* 'Forall Blocks:' *)
+Context
+  (coinbase : int256)
+  (timestamp : int256)
+  (number : int256)
+  (blockhash : int256 -> int256)
+  (chainid : int256).
+
+Section Nested_Calls_Context.
+(* 'Forall calls from EoA:' *)
+Context
+  (origin: addr).
+
+Section Individual_Call_Context. (* like mstep *)
+(* 'Forall function calls: '*)
+Context 
+  (contract_address : addr)
+  (caller: addr)
+  (callvalue : int256)
+  (initial_balances : addr -> int256)
+  (address_always_accepts_funds : addr -> bool).
+
+  Context {HmemOps: MemoryModelOps mem}.
+  Context {memModelOps : MemoryModelOps mem}.
+  Instance GlobalLayerSpec : LayerSpecClass := {
+    memModelOps := memModelOps;
+    GetHighData := global_abstract_data_type 
+  }.
+  
+
+  Definition me := 
+    GenericMachineEnv.generic_machine_env coinbase timestamp number blockhash chainid origin contract_address caller callvalue initial_balances address_always_accepts_funds.
+
+
+    
 (* The following tactic will also destruct goals that include an me_transfer
      that checks if the contract has sufficient funds.
      IMPORTANT: Note that this may only be valid in cases where it is correct to
@@ -5302,61 +5235,62 @@ Definition generic_machine_env
      correctly accounts for the reductions in the contract's balance. Changes
      to me_transfer would likely cause related changes to be necessary in this
      tactic. *)
-Ltac inv_runStateT_branching_with_me_transfer_cases :=
-  repeat (
-    try inv_runStateT_branching;
-    let Case := fresh \"SufficientFundsToTransferCase\" in
-    try match goal with
-      | H : context[me_transfer _  _ _] |- _ => 
-      unfold me_transfer, generic_machine_env in H;
-      destruct (successful_transfer _ _ _ _) eqn:Case
-    end
-  ).
-
-(* This tactic solves goals relating to transfer only being called once,
-    it automatically expands all branches. Note that this means it may fail
-    in particular cases where the validity of the associated lemmas depends
-    on the interactions between 'if statements' (for example). In such
-    (probably unlikely) cases interactive proof could be undertaken instead
-    of relying on this tactic. *)
-Ltac solve_single_transfer :=
-  intros;
-  repeat unfold_all;
-  repeat inv_runStateT_branching_with_me_transfer_cases;
-  subst;
-  solve [
-    match goal with
-    | H : ETH_successful_transfers _ = nil |- _ => rewrite H; simpl; lia
-    end
-    |
-    match goal with
-    | H : Int256.eq Int256.zero Int256.one = true |- _ => 
-        apply ArithInv.Int256eq_true in H;
-        inversion H
-    end
-    |
-    match goal with
-      | H : Int256.eq Int256.one Int256.one = false |- _ => 
-        apply ArithInv.Int256eq_false in H;
-       contradiction
-    end
-    |
-    match goal with
-      | H : runStateT mzero _ = ret _ |- _ => 
-        simpl in H; inversion H    
-    end
-    |
-    simpl;
-    match goal with
-      | H : ETH_successful_transfers ?X = nil |- context[ETH_successful_transfers ?X] => 
-        rewrite H; simpl; lia
-    end
-  ].
-
-");
+     Ltac inv_runStateT_branching_with_me_transfer_cases :=
+      repeat (
+        try inv_runStateT_branching;
+        let Case := fresh \"SufficientFundsToTransferCase\" in
+        try match goal with
+          | H : context[me_transfer _  _ _] |- _ => 
+          unfold me_transfer, me, GenericMachineEnv.generic_machine_env in H;
+          destruct (GenericMachineEnv.successful_transfer _ _ _ _) eqn:Case
+        end
+      ).
+    
+    (* This tactic solves goals relating to transfer only being called once,
+        it automatically expands all branches. Note that this means it may fail
+        in particular cases where the validity of the associated lemmas depends
+        on the interactions between 'if statements' (for example). In such
+        (probably unlikely) cases interactive proof could be undertaken instead
+        of relying on this tactic. *)
+    Ltac solve_single_transfer :=
+      intros;
+      repeat unfold_all;
+      repeat inv_runStateT_branching_with_me_transfer_cases;
+      subst;
+      solve [
+        match goal with
+        | H : ETH_successful_transfers _ = nil |- _ => rewrite H; simpl; lia
+        end
+        |
+        match goal with
+        | H : Int256.eq Int256.zero Int256.one = true |- _ => 
+            apply ArithInv.Int256eq_true in H;
+            inversion H
+        end
+        |
+        match goal with
+          | H : Int256.eq Int256.one Int256.one = false |- _ => 
+            apply ArithInv.Int256eq_false in H;
+           contradiction
+        end
+        |
+        match goal with
+          | H : runStateT mzero _ = ret _ |- _ => 
+            simpl in H; inversion H    
+        end
+        |
+        simpl;
+        match goal with
+          | H : ETH_successful_transfers ?X = nil |- context[ETH_successful_transfers ?X] => 
+            rewrite H; simpl; lia
+        end
+      ].
 
 
 (* Lemmas *)
+
+");
+
 List.iter (function
   | i, ADlayer l ->
     List.iter (fun (_, o) ->
@@ -5369,7 +5303,7 @@ Lemma " ^ method_full_name_with_opt ^ "_single_transfer : forall d d' ");
         output_string stream (" result,
 (ETH_successful_transfers d = nil) -> runStateT (" ^ method_full_name_with_opt ^ " ");
         output_method_args_listing stream mt;
-        output_string stream (" generic_machine_env) d = Some (result, d') -> 
+        output_string stream (" me) d = Some (result, d') -> 
 (length (ETH_successful_transfers d') <= 1)%nat.
 Proof.
 solve_single_transfer. (* If this tactic fails it indicates that the " ^ method_full_name_with_opt ^ " function either calls transferEth twice (which is considered a bad pattern) or doesn't call transferEth twice but has complex logic such as two interrelated if statements that make the tactic fail. *)
@@ -5379,9 +5313,16 @@ Qed.\n")
   | _, _ -> ()
   ) fileDeclarations;
 
-  output_string stream "\n\nEnd SingleTransferCheck."
+output_string stream ("
 
+End Individual_Call_Context.
 
+End Nested_Calls_Context.
+
+End Block_Context.
+
+End SingleTransferCheck.
+  ")
 
 (** Generates GenericMachineEnv.v - a file which defines a function that can be used to build machine environments. *)
 let gen_generic_machine_env env fileDeclarations = 
@@ -5458,10 +5399,6 @@ Context
   Instance GlobalLayerSpec : LayerSpecClass := {
     memModelOps := memModelOps;
     GetHighData := global_abstract_data_type 
-  }.
-  Instance CROWDFUNDING_underlay_spec : UnderlaySpecClass := {
-    cdataOpsLow := ETH_layer_data_ops;
-    cdataLow := ETH_layer_data;
   }.
 
 Definition debits_from_contract
