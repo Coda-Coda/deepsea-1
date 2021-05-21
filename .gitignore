@@ -6,3 +6,6 @@ core.make
 core.make.conf
 *_build
 *.merlin
+
+_build/
+result
