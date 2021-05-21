@@ -910,7 +910,7 @@ Fixpoint synth_stmt_spec_opt {returns}(c : cmd_constr returns) dest tmp :
       modify (l.(ltype_set)
                (apply_curried_func
                   constr
-                  (map2_synth_expr_spec flds se (cdr wf))))
+                  (map2_synth_expr_spec flds se d (cdr wf))))
   | CCassert c =>
     fun (wf: (synth_stmt_pure c ~~~ true) * synth_stmt_wellformed c dest tmp) se =>
       v <- synth_stmt_spec_opt c dest tmp (cdr wf) se;;
@@ -964,7 +964,7 @@ Lemma first_map_pure (check: Z -> DS bool) start bound:
            m = s.
 Proof. Admitted.
   
-Fixpoint fold_CCcall_spec_ocond {tmp tps} es
+Fixpoint fold_CCcall_spec_ocond {tmp tps} d es
   : @fold_synth_expr_wellformed tmp tps es ->
     OProp3 (HList tp_ft tps) (spec_env_t tmp) GetHighData ->
     OProp2 (spec_env_t tmp) GetHighData :=
@@ -1053,21 +1053,21 @@ Proof. Admitted.
       end.
   Proof. Admitted.
   
-  Fixpoint fold_expr_constr_list_cond {tmp tps} es
+  Fixpoint fold_expr_constr_list_cond {tmp tps} d es
     : @fold_synth_expr_wellformed tmp tps es ->
       spec_env_t tmp -> Prop :=
     match es with
     | HNil => fun _ _ => True
     | HCons x ls e es => fun wf se =>
       let (wf, IHwf) := wf in
-      oProp1 (synth_expr_ocond me tmp e wf /\
+      oProp1 (synth_expr_ocond me d tmp e wf /\
     (omap1 (fun (p : unpair_ft (tp_type_pair x) -> Prop)
                 (y : spec_env_t tmp) =>
               p
                 (synth_expr_spec me d tmp e wf y))
            ht_valid_ft_ocond) 
              )%oprop1 se /\ 
-      fold_expr_constr_list_cond es IHwf se
+      fold_expr_constr_list_cond d es IHwf se
     end.
   Fixpoint synth_stmt_cond {returns}(c : cmd_constr returns) dest tmp :
       synth_stmt_wellformed c dest tmp -> spec_env_t tmp -> GetHighData -> Prop :=
@@ -1157,10 +1157,10 @@ Proof. Admitted.
            (SpecTree.set id_recur htp recur
              (SpecTree.set id_it int_Z32_pair n initial_se))
            m)
-    | CCcall argt ret prim args => fun wf se _ =>
-      fold_expr_constr_list_cond args wf se
+    | CCcall argt ret prim args => fun wf se d =>
+      fold_expr_constr_list_cond d args wf se
     
-    | CCyield tp _ e => fun wf se _ => oProp1 (synth_expr_ocond me tmp e wf) se
+    | CCyield tp _ e => fun wf se d => oProp1 (synth_expr_ocond me d tmp e wf) se
     | CCconstr _ _ _ _ el flds _ =>
       fun (wf : synth_lexpr_wellformed tmp el * fold_synth_expr_wellformed tmp flds)
           se m =>
@@ -1182,10 +1182,10 @@ Proof. Admitted.
                  (synth_stmt_wellformed c4 dest tmp'' *
                   synth_stmt_wellformed c5 dest tmp'')))))
           se m =>
-      oProp1 (synth_expr_ocond me tmp e1 (cadr wf)) se /\
-      oProp1 (synth_expr_ocond me tmp e2 (caddr wf)) se /\
-      (let start := synth_expr_spec me tmp e1 (cadr wf) se in
-       let bound := synth_expr_spec me tmp e2 (caddr wf) se in
+      oProp1 (synth_expr_ocond me m tmp e1 (cadr wf)) se /\
+      oProp1 (synth_expr_ocond me m tmp e2 (caddr wf)) se /\
+      (let start := synth_expr_spec me m tmp e1 (cadr wf) se in
+       let bound := synth_expr_spec me m tmp e2 (caddr wf) se in
        (forall n, start <= n < bound ->
          
          synth_stmt_cond c3 id_dest _ (cadddr wf)
@@ -1447,8 +1447,8 @@ Proof. Admitted.
                  (synth_stmt_wellformed c4 dest tmp'' *
                   synth_stmt_wellformed c5 dest tmp'')))))
           se m =>
-      (let start := synth_expr_spec me tmp e1 (cadr wf) se in
-       let bound := synth_expr_spec me tmp e2 (caddr wf) se in
+      (let start := synth_expr_spec me m tmp e1 (cadr wf) se in
+       let bound := synth_expr_spec me m tmp e2 (caddr wf) se in
        (forall n, start <= n < bound ->
          
          synth_stmt_obligation c3 id_dest _ (cadddr wf)
@@ -1505,10 +1505,10 @@ Proof. Admitted.
       synth_stmt_RC dest tmp se m (@CCfor _ id_it id_end e1 e2 c3) wf
   | RCfirst: forall r id_it id_end id_dest
                     (e1 e2: @expr_constr _ tint_Z32 _) c3 (c4 c5: @cmd_constr _ r) wf,
-      oProp1 (synth_expr_ocond me tmp e1 (cadr wf)) se ->
-      oProp1 (synth_expr_ocond me tmp e2 (caddr wf)) se ->
-      let start := synth_expr_spec me tmp e1 (cadr wf) se in
-      let bound := synth_expr_spec me tmp e2 (caddr wf) se in
+      oProp1 (synth_expr_ocond me m tmp e1 (cadr wf)) se ->
+      oProp1 (synth_expr_ocond me m tmp e2 (caddr wf)) se ->
+      let start := synth_expr_spec me m tmp e1 (cadr wf) se in
+      let bound := synth_expr_spec me m tmp e2 (caddr wf) se in
       (forall n, start <= n < bound  ->
            synth_stmt_RC dest _
              (SpecTree.set id_it int_Z32_pair n
@@ -1635,9 +1635,9 @@ Proof. Admitted.
            (SpecTree.set id_recur htp recur
              (SpecTree.set id_it int_Z32_pair n initial_se))
            m)
-    | CCcall argt ret prim args => fun wf se _ =>
-     ht_list_ft_cond (map2_synth_expr_spec args se wf)
-    /\ ht_list_valid_ft_cond (map2_synth_expr_spec args se wf)
+    | CCcall argt ret prim args => fun wf se d =>
+     ht_list_ft_cond (map2_synth_expr_spec args se d wf)
+    /\ ht_list_valid_ft_cond (map2_synth_expr_spec args se d wf)
     | CCtransfer e1 e2 =>
       fun (wf : synth_expr_wellformed tmp e1 * synth_expr_wellformed tmp e2)
         se m =>
@@ -1659,10 +1659,10 @@ Proof. Admitted.
                  (synth_stmt_wellformed c4 dest tmp'' *
                   synth_stmt_wellformed c5 dest tmp'')))))
           se m =>
-       oProp1 (synth_expr_ocond me tmp e1 (cadr wf)) se /\
-       oProp1 (synth_expr_ocond me tmp e2 (caddr wf)) se /\ 
-       (let start := synth_expr_spec me tmp e1 (cadr wf) se in
-       let bound := synth_expr_spec me tmp e2 (caddr wf) se in
+       oProp1 (synth_expr_ocond me m tmp e1 (cadr wf)) se /\
+       oProp1 (synth_expr_ocond me m tmp e2 (caddr wf)) se /\ 
+       (let start := synth_expr_spec me m tmp e1 (cadr wf) se in
+       let bound := synth_expr_spec me m tmp e2 (caddr wf) se in
        
        (forall n, start <= n < bound  ->
            synth_stmt_ret_cond c4 dest _ (caddddr wf)
@@ -1694,7 +1694,7 @@ Proof. Admitted.
     (m : GetHighData) :
       fold_expr_constr_list_cond m arg wf se ->
       senv_cond se ->
-      ht_list_ft_cond (map2_synth_expr_spec arg se wf).
+      ht_list_ft_cond (map2_synth_expr_spec arg se m wf).
   Proof. Admitted.
   Lemma map2_synth_expr_spec_satisfies_valid_ft_cond {tmp argt}
     {arg : expr_constr_list argt}
@@ -1704,7 +1704,7 @@ Proof. Admitted.
     (m : GetHighData) :
       fold_expr_constr_list_cond m arg wf se ->
       senv_cond se ->
-      ht_list_valid_ft_cond (map2_synth_expr_spec arg se wf).
+      ht_list_valid_ft_cond (map2_synth_expr_spec arg se m wf).
   Proof. Admitted.
 Lemma synth_stmt_spec_opt_pure {is_realizing returns htr}(c : cmd_constr returns) :
     synth_stmt_pure c ~~~ true ->
