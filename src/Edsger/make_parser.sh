@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Edsger=$(dirname $(realpath $0))
+Edsger=`dirname $0`
 
 source_file=$(mktemp)
 processed=$(mktemp)

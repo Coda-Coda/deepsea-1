@@ -1,15 +1,11 @@
 #!/bin/bash
 
-dsc=../binaries/MacOS/dsc
+edsger=../binaries/MacOS/dsc
 
 if [[ ! -d  build ]]; then mkdir build; fi
 
-./cut_amm.sh
-
-for deepsea in ./contracts/*.ds; do
-	basename=${deepsea##*/}
-  echo Compiling $basename
-  $dsc $deepsea combined-json > build/${basename%.ds}.json
+for deepsea in *.ds; do
+  $edsger $deepsea combined-json | python3 clean-json.py > build/${deepsea%.ds}.json
 done
 
 npm run tsc

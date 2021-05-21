@@ -7,10 +7,9 @@ import fs from 'fs'
 import builtin from './builtins_test'
 import keccak256 from './keccak256_test'
 import events from './events_test'
-import amm from './amm_test'
 
 async function main() {
-  const tests = yaml.load(fs.readFileSync('./tests.yml', 'utf8'))
+  const tests = yaml.safeLoad(fs.readFileSync('./tests.yml'))
 
   const chains = [
     new EthereumChain,
@@ -34,9 +33,6 @@ async function main() {
       await specialTests[t].runTest(chain)
     }
 
-    if (! (tests instanceof Object)) {
-      return // type assertion so `tests` can be looped over
-    }
     // These are tests that can be described in the `tests.json` file. They
     // either check whether a method call passes/reverts or the result of a
     // method's return value against a constant expected value.
@@ -45,10 +41,6 @@ async function main() {
       await runTest(chain, t, tests[t].calls, tests[t].constructorArgs);
     }
   }
-
-  amm.runTest(new Array(4).fill(null).map(() => (new EthereumChain)))
-  // amm.runTest(new Array(4).fill(null).map(() => (new ConfluxChain)))
-
 }
 
 main()

@@ -22,8 +22,7 @@ type statement =
 | Sjumpi
 | Shash
 | Stransfer
-| Scallargs of Int.int * nat * nat
-| Scallmethod of bool
+| Scallmethod of Int.int * nat * nat
 | Slog of nat * nat
 | Srevert
 | Sfetchargs of nat

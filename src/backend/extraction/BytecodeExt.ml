@@ -26,11 +26,9 @@ let bytecode runtime genv =
   | false -> assemble asm
   | true -> assemble asm_runtime
 
-let assembly runtime genv =
-  let asm , asm_runtime, _ = get_bytecode_params genv in
-  match runtime with
-  | false -> mnemonics asm
-  | true -> mnemonics asm_runtime
+let assembly genv =
+  let asm , _, _ = get_bytecode_params genv in
+  mnemonics asm
 
 let ewasm runtime genv =
   match Glue.full_compile_genv_wasm genv with
