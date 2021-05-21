@@ -2,6 +2,16 @@ Please note: this is an **unofficial** fork of https://github.com/certikfoundati
 
 ----------
 
+# Files particularly relevant to FMBC 2021 Paper
+
+[src/core/Syntax.v (starting line 541)](https://github.com/Coda-Coda/deepsea-1/blob/fmbc-2021/src/core/Syntax.v#L541) has the definition of the inductive proposition that defines the notion of a command following the *Checks-Effects-Interactions Pattern*. The definition of `function_constr_CEI_pattern_prf` is also given here ([line 698](https://github.com/Coda-Coda/deepsea-1/blob/fmbc-2021/src/core/Syntax.v#L698)).
+
+[src/Runtime.v (starting line 862)](https://github.com/Coda-Coda/deepsea-1/blob/fmbc-2021/src/Runtime.v#L862) has the definitions of the tactics used to automatically prove that a command follows the *Checks-Effects-Interactions Pattern*.
+
+[src/Edsger/coqgen.ml (starting line 2597)](https://github.com/Coda-Coda/deepsea-1/blob/fmbc-2021/src/Edsger/coqgen.ml#L2597) has the OCaml code which generates the proof obligations related to following the *Checks-Effects-Interactions Pattern* for each command. Obligations relating to calls to other functions within a smart contract (`CCcall`) are also facilitated by this `coqgen.ml` code.
+
+----------
+
 # The DeepSEA Language
 
 You can download a zip file from the [releases
