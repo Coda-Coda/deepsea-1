@@ -6,7 +6,7 @@ const fs     = require('fs');
 const ethers = require('ethers');
 const assert = require('assert');
 
-const bn = ethers.utils.bigNumberify;
+const bn =  (ethers.utils.bigNumberify) ? ethers.utils.bigNumberify : ethers.BigNumber.from;
 const pe = ethers.utils.parseEther;
 
 if (process.argv.length != 3) {
@@ -17,16 +17,56 @@ if (process.argv.length != 3) {
 const endpoint = "http://localhost:8545";
 const provider = new ethers.providers.JsonRpcProvider(endpoint);
 
-const abi = [
-  "constructor()",
-  "function initialize(uint) public",
-  "function getbid() public view returns (uint)",
-  "function getbidder() public view returns (address)",
-  "function getchair() public view returns (address)",
-  "function getdeadline() public view returns (uint)",
-  "function bid() public returns (bool)"
-];
-
+const abi = [ {"type":"constructor",
+   "name":"constructor",
+   "inputs":[],
+   "outputs":[],
+   "payable":false,
+   "constant":false,
+   "stateMutability":"nonpayable"},
+ {"type":"function",
+   "name":"initialize",
+   "inputs":[{"name":"deadline", "type":"uint256"}],
+   "outputs":[],
+   "payable":true,
+   "constant":false,
+   "stateMutability":"payable"},
+ {"type":"function",
+   "name":"getbid",
+   "inputs":[],
+   "outputs":[{"name":"", "type":"uint256"}],
+   "payable":false,
+   "constant":true,
+   "stateMutability":"view"},
+ {"type":"function",
+   "name":"getbidder",
+   "inputs":[],
+   "outputs":[{"name":"", "type":"address"}],
+   "payable":false,
+   "constant":true,
+   "stateMutability":"view"},
+ {"type":"function",
+   "name":"getchair",
+   "inputs":[],
+   "outputs":[{"name":"", "type":"address"}],
+   "payable":false,
+   "constant":true,
+   "stateMutability":"view"},
+ {"type":"function",
+   "name":"getdeadline",
+   "inputs":[],
+   "outputs":[{"name":"", "type":"uint256"}],
+   "payable":false,
+   "constant":true,
+   "stateMutability":"view"},
+ {"type":"function",
+   "name":"bid",
+   "inputs":[],
+   "outputs":[{"name":"", "type":"bool"}],
+   "payable":true,
+   "constant":false,
+  "stateMutability":"payable"}];
+      
 const bytecode = fs.readFileSync(process.argv[2]).toString().replace(/\n|\t|\r| /g, "");
 const DEADLINE = 1000;
 const CREATOR  = provider.getSigner(0);
@@ -93,7 +133,11 @@ async function testBids () {
   console.log("valid bid: passing");
 
   // invalid bid (same bidder)
-  tx = await auction.bid({ value: BID1 });
+  tx = await auction.bid({ value: BID1 }).then((result) => {
+	console.log("fail! Expected a revert, but didn't see one.")
+  }, (error) => {
+      //  do nothing.
+  });
   [bid, bidder, chair, deadline] = await read(auction);
   assert(bid.eq(BID0));
   assert(deadline.eq(bn(DEADLINE)));
@@ -103,7 +147,11 @@ async function testBids () {
 
   // invalid bid (insufficient value)
   auction  = new ethers.Contract (addr, abi, bob);
-  tx = await auction.bid({ value: pe ('0.0') });
+  await auction.bid({ value: pe ('0.0') }).then((result) => {
+	console.log("fail! Expected a revert, but didn't see one.")
+  }, (error) => {
+      //  do nothing.
+  });
   [bid, bidder, chair, deadline] = await read(auction);
   assert(bid.eq(BID0));
   assert(deadline.eq(bn(DEADLINE)));
@@ -114,7 +162,11 @@ async function testBids () {
   // invalid bid (deadline)
   addr = await deploy(0);
   auction = new ethers.Contract(addr, abi, alice);
-  tx = await auction.bid({ value: BID0 });
+  tx = await auction.bid({ value: BID0 }).then((result) => {
+	console.log("fail! Expected a revert, but didn't see one.")
+  }, (error) => {
+      //  do nothing.
+  });
   [bid, bidder, chair, deadline] = await read(auction);
   assert(bid.eq(pe('0.0')));
   assert(deadline.eq(bn(0)));

@@ -22,9 +22,9 @@ and p_expression_desc =
   | PEun of unop * p_expression
   | PEbin of binop * p_expression * p_expression
   | PEpair of p_expression * p_expression
-  | PEapp of p_expression * p_expression list
+  | PEapp of p_expression list
   | PEstruct of (ident * p_expression) list
-  | PEfield of p_expression * ident
+  | PEfield of p_expression list * p_expression list
   | PEindex of p_expression * p_expression
 
 
@@ -57,6 +57,8 @@ and p_command_desc =
      event constructor directly applied to arguments, but
      hypothetically you could pass around events as a first-class data type. *)
   | PCemit of p_expression
+  (* [from; to; value] *)
+  | PCtransfer of p_expression list
 
   (* extension for certified programming *)
   | PCstore of p_expression * p_expression
@@ -292,16 +294,19 @@ and string_of_p_expression_desc = function
   | PEun (op, e) -> string_of_unop op ^ (string_of_p_expression e)
   | PEbin (op, e1, e2) ->
     "(" ^ string_of_p_expression e1 ^ " " ^ string_of_binop op ^ " " ^ string_of_p_expression e2 ^ ")"
-  | PEpair (e1, e2) ->
+  | PEpair (e1, e2) -> "PEpair:" ^
     "(" ^ string_of_p_expression e1 ^ ", " ^ string_of_p_expression e2 ^  ")"
-  | PEapp (e, es) ->
+  | PEapp (e::es) ->
     string_of_p_expression_desc e.p_expression_desc ^ "location info: " ^ string_of_location e.p_expression_loc ^
     " (" ^ String.concat ") (" (List.map string_of_p_expression es) ^ ")"
   | PEstruct ls -> "{" ^
     String.concat "; "
       (List.map (fun (i, e) -> i ^ " = " ^ string_of_p_expression e) ls) ^ "}"
-  | PEfield (e, i) -> string_of_p_expression e ^ ".{" ^ i ^ "}"
+  | PEfield (e1, e2) -> "(" ^ String.concat ") (" (List.map string_of_p_expression e1) ^ ")" ^ ".{" ^ 
+    "(" ^ String.concat ") (" (List.map string_of_p_expression e2) 
+    ^ "}"
   | PEindex (e1, e2) -> string_of_p_expression e1 ^ "[" ^ string_of_p_expression e2 ^ "]"
+  | PEapp [] -> raise Exit
 
 let rec string_of_p_command pcmd =
     (string_of_p_command_desc pcmd.p_command_desc) (* ^ (string_of_location pcmd.p_command_loc) *) 
@@ -348,6 +353,7 @@ and string_of_p_command_desc = function
     string_of_p_expression l ^ " to " ^ string_of_p_expression h ^
     "\n| " ^ a ^ " = " ^ string_of_p_expression s ^
     "\ndo " ^ string_of_p_command c
+  | PCtransfer l -> "transfer(" ^ String.concat ", " (List.map string_of_p_expression l)  ^ ")"
 and string_of_p_clause_list cls = String.concat "\n"
       (List.map (fun (i, vs, c) -> "| " ^ i ^ " " ^ String.concat " " vs ^
                                    " => " ^ string_of_p_command c) cls)

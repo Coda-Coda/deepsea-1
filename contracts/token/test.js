@@ -21,34 +21,35 @@ const provider = new ethers.providers.JsonRpcProvider(endpoint);
 //   "function transfer(uint, int) returns (bool)"
 // ];
 
-const abi = [ {"type":"function",
-   "name":"initialize",
+const abi =
+[ {"type":"constructor",
+   "name":"constructor",
    "inputs":[],
-   "outputs":[{"name":"", "type":"uint256"}],
-   "payable":"true",
+   "outputs":[],
+   "payable":false,
    "constant":false,
-   "stateMutability":"payable"},
+   "stateMutability":"nonpayable"},
  {"type":"function",
    "name":"totalSupply",
    "inputs":[],
    "outputs":[{"name":"", "type":"uint256"}],
-   "payable":"true",
+   "payable":false,
    "constant":true,
    "stateMutability":"view"},
  {"type":"function",
    "name":"balanceOf",
-   "inputs":[{"name":"tokenOwner", "type":"uint256"}],
+   "inputs":[{"name":"tokenOwner", "type":"address"}],
    "outputs":[{"name":"", "type":"uint256"}],
-   "payable":"true",
+   "payable":false,
    "constant":true,
    "stateMutability":"view"},
  {"type":"function",
    "name":"transfer",
-   "inputs":[{"name":"toA", "type":"uint256"},{"name":"tokens", "type":"uint256"}],
+   "inputs":[{"name":"toA", "type":"address"},{"name":"tokens", "type":"uint256"}],
    "outputs":[{"name":"", "type":"bool"}],
-   "payable":"true",
+   "payable":true,
    "constant":false,
-   "stateMutability":"payable"}];
+  "stateMutability":"payable"}];
 
 const bytecode = fs.readFileSync(process.argv[2]).toString().replace(/\n|\t|\r| /g, "");
 const signer = provider.getSigner(0);
@@ -64,13 +65,12 @@ async function deploy() {
   let deployedBytecode = await provider.getCode(contract.address);
   // console.log("deployed bytecode: " + deployedBytecode);
 
-  console.log("calling initalize...");
-  let tx = await contract.initialize();
-  console.log("transaction hash: " + tx.hash);
-  
-  let alice = 24; // arbitrary address
+  // console.log("calling initalize...");
+  // let tx = await contract.initialize();
+  // console.log("transaction hash: " + tx.hash);
+  let alice = ethers.utils.getAddress("0x0000000000000000000000000000000000000024"); // arbitrary address
   console.log("calling transfer...");
-  tx = await contract.transfer(alice, 100);
+  let tx = await contract.transfer(alice, 100);
   console.log("transaction hash: " + tx.hash);
   let supply = await contract.totalSupply();
   let aliceBalance = await contract.balanceOf(alice);

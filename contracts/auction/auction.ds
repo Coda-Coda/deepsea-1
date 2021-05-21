@@ -1,28 +1,22 @@
-(* TODO:
-   - implement withdrawals
- *)
-
-type addr := uint
-
 object signature AuctionInterface = {
-  initialize  : uint -> unit;
-  getbid      : unit -> uint;
-  getbidder   : unit -> addr;
-  getchair    : unit -> addr;
-  getdeadline : unit -> uint;
+  constructor   : uint -> unit;
+  const getbid      : unit -> uint;
+  const getbidder   : unit -> address;
+  const getchair    : unit -> address;
+  const getdeadline : unit -> uint;
   bid         : unit -> bool;
+  withdraw    : unit -> bool;
 }
 
 object OpenAuction : AuctionInterface {
   (* initial values don't get used *)
   let _bid        : uint := 0u0
-  let _bidder     : addr := 0u0
-  let _chair      : addr := 0u0
+  let _bidder     : address := address(0)
+  let _chair      : address := address(0)
   let _deadline   : uint := 0u0
-  let withdrawals : mapping[addr] uint := mapping_init
+  let withdrawals : mapping[address] uint := mapping_init
 
-  (* placeholder for constructor *)
-  let initialize deadline =
+  let constructor deadline =
     _bid         := 0u0;
     _bidder      := msg_sender;
     _chair       := msg_sender;
@@ -49,6 +43,15 @@ object OpenAuction : AuctionInterface {
     withdrawals[bidder] := withdrawal + bid;
     _bidder := msg_sender;
     _bid    := msg_value;
+    true
+
+  (* losers can withdraw their money *)
+  let withdraw () =
+    let winner = _bidder in
+    assert (msg_sender <> winner);
+    let balance = withdrawals[msg_sender] in
+    withdrawals[msg_sender] := 0u0;
+    transferEth(msg_sender, balance);
     true
 }
     

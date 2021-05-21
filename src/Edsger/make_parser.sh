@@ -1,6 +1,7 @@
 #!/bin/bash
 
-Edsger=`dirname $0`
+root=$(git rev-parse --show-toplevel)
+Edsger=$root/src/Edsger
 
 source_file=$(mktemp)
 processed=$(mktemp)

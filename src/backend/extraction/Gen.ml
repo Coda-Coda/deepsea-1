@@ -1147,6 +1147,16 @@ let rec clike_rvalue_list = function
     bind (Obj.magic coq_Monad_optErr) (clike_rvalue_list tl) (fun rest ->
       ret (Obj.magic coq_Monad_optErr) (Coq_cons (first, rest))))
 
+(** val clike_rvalue_option : expr option -> expr option optErr **)
+
+let rec clike_rvalue_option = function
+| Some e ->
+  let e' = clike_rvalue e in
+  (match e' with
+   | Success s -> ret (Obj.magic coq_Monad_optErr) (Some s)
+   | Error msg -> Error msg)
+| None -> ret (Obj.magic coq_Monad_optErr) None
+
 (** val clike_stm : statement -> statement optErr **)
 
 let rec clike_stm = function
@@ -1179,15 +1189,17 @@ let rec clike_stm = function
     (fun addr0 ->
     bind (Obj.magic coq_Monad_optErr) (Obj.magic clike_rvalue val0)
       (fun val1 -> ret (Obj.magic coq_Monad_optErr) (Stransfer (addr0, val1))))
-| Scallmethod (addr, retvals, funsig, val0, args) ->
+| Scallmethod (addr, retvals, funsig, val0, gas, args) ->
   bind (Obj.magic coq_Monad_optErr) (Obj.magic clike_rvalue addr)
     (fun addr0 ->
     bind (Obj.magic coq_Monad_optErr) (Obj.magic clike_rvalue val0)
       (fun val1 ->
-      bind (Obj.magic coq_Monad_optErr) (Obj.magic clike_rvalue_list args)
-        (fun args0 ->
-        ret (Obj.magic coq_Monad_optErr) (Scallmethod (addr0, retvals,
-          funsig, val1, args0)))))
+      bind (Obj.magic coq_Monad_optErr) (Obj.magic clike_rvalue_option gas)
+        (fun gas0 ->
+        bind (Obj.magic coq_Monad_optErr) (Obj.magic clike_rvalue_list args)
+          (fun args0 ->
+          ret (Obj.magic coq_Monad_optErr) (Scallmethod (addr0, retvals,
+            funsig, val1, gas0, args0))))))
 | Slog (topics, args) ->
   bind (Obj.magic coq_Monad_optErr) (Obj.magic clike_rvalue_list topics)
     (fun topics0 ->
