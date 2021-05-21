@@ -4693,7 +4693,7 @@ let gen_global_abstract_data_type env final_layer fileDeclarations = function
 let gen_coqProj env fileDeclarations = 
   let stream = open_out (env.project_name ^ "/_CoqProject") in
   output_string stream (
-    "-R ../../.. DeepSpec\n" ^
+    "-R ../result/src DeepSpec\n" ^
     "-R . " ^ env.project_name ^ "\n" ^
     "./EdsgerIdents.v\n" ^
     "./DataTypes.v\n" ^
