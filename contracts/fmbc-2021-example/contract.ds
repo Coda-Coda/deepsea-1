@@ -1,0 +1,43 @@
+type addr := uint
+
+type Transfer = {
+    amount : uint;
+    recipient : uint;
+}
+external let transfer_nil [[unfold always]] : list Transfer = "nil"
+
+trusted object ETH : { } {
+  let successful_transfers : list Transfer := transfer_nil (* The transfers added to this list are 'successful' in the sense that the sender had sufficient balance, the recipient's balance didn't overflow and the recipient accepted the funds (i.e. wasn't a contract that reverted.) *)
+}
+
+object signature ContractSig = {
+    ceip_example_ok : unit -> unit;
+    ceip_example_not_ok : unit -> unit
+}
+
+object Contract (ETH_object : { } ) : ContractSig {
+    let successfully_transferred : bool := false
+
+    let ceip_example_ok() = 
+      successfully_transferred := true;
+      transferEth(msg_sender, 0u42)
+
+    let ceip_example_not_ok(b) = 
+      (* transferEth(msg_sender, 0u42); *)
+      successfully_transferred := true
+
+}
+
+layer signature ETHSig = {
+  ETH_object : { }
+}
+
+layer ETH_layer : [{}] ETHSig = {
+  ETH_object = ETH
+}
+
+layer CONTRACT : [ {ETH_object : { }} ]  {contract : ContractSig}  = {
+    contract = Contract
+}
+
+layer TOP = CONTRACT @ ETH_layer
