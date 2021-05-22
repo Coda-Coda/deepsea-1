@@ -11,21 +11,21 @@ trusted object ETH : { } {
 }
 
 object signature ContractSig = {
-    ceip_example_ok : unit -> unit;
-    ceip_example_not_ok : unit -> unit
+    safeExample : unit -> unit;
+    unsafeExample : unit -> unit
 }
 
 object Contract (ETH_object : { } ) : ContractSig {
-    let successfully_transferred : bool := false
+    let transferSuccessful : bool := false
 
-    let ceip_example_ok() = 
-      successfully_transferred := true;
+    let safeExample() = 
+      transferSuccessful := true;
       transferEth(msg_sender, 0u42)
 
-    let ceip_example_not_ok(b) = 
+    let unsafeExample(b) = 
       (* transferEth(msg_sender, 0u42); *)
       (* Uncomment the line above and run build.sh to see Coq realise that the Checks-Effects-Interactions pattern has not been followed and produce and error. The helpful message is available as a comment at the file and line number indicated by the Coq error. *)
-      successfully_transferred := true
+      transferSuccessful := true
 
 }
 

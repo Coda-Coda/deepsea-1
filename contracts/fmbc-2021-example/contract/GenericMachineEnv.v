@@ -24,7 +24,7 @@ Module GenericMachineEnv.
 Definition d_with_transfer adr amount (d : global_abstract_data_type) : global_abstract_data_type :=
 {|
   ETH_successful_transfers := ({| DataTypes.recipient := adr; DataTypes.amount := amount |}) :: (ETH_successful_transfers d);
-  Contract_successfully_transferred := Contract_successfully_transferred d; 
+  Contract_transferSuccessful := Contract_transferSuccessful d; 
 |}.
 
 Section Block_Context. (* like bstep *)

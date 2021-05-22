@@ -71,16 +71,16 @@ Definition ext_call_me {adata: Type} (me : machine_env adata) (ext_contract : in
   me_log := me_log me;
 |}.
 Record global_abstract_data_type : Type := {
-  Contract_successfully_transferred : bool;
+  Contract_transferSuccessful : bool;
   ETH_successful_transfers : (list Transfer)
 }.
-Definition update_Contract_successfully_transferred glabs_b (glabs_a : global_abstract_data_type)
+Definition update_Contract_transferSuccessful glabs_b (glabs_a : global_abstract_data_type)
   := Build_global_abstract_data_type glabs_b (ETH_successful_transfers glabs_a) .
 Definition update_ETH_successful_transfers glabs_b (glabs_a : global_abstract_data_type)
-  := Build_global_abstract_data_type (Contract_successfully_transferred glabs_a) glabs_b .
+  := Build_global_abstract_data_type (Contract_transferSuccessful glabs_a) glabs_b .
 
 Definition init_global_abstract_data : global_abstract_data_type := {|
-  Contract_successfully_transferred := false;
+  Contract_transferSuccessful := false;
   ETH_successful_transfers := nil
 |}.
 
@@ -88,25 +88,25 @@ Definition block := positive.
 Definition global_low_level_invariant (n : block)(abd : global_abstract_data_type) := True.
 End EdsgerGen.
 
-Lemma Contract_successfully_transferred_of_update_Contract_successfully_transferred : forall _x (glabs_a : global_abstract_data_type),
-  Contract_successfully_transferred (update_Contract_successfully_transferred _x glabs_a) = _x.
+Lemma Contract_transferSuccessful_of_update_Contract_transferSuccessful : forall _x (glabs_a : global_abstract_data_type),
+  Contract_transferSuccessful (update_Contract_transferSuccessful _x glabs_a) = _x.
 Proof. intros. destruct glabs_a. reflexivity. Qed.
-Hint Rewrite Contract_successfully_transferred_of_update_Contract_successfully_transferred : updates.
+Hint Rewrite Contract_transferSuccessful_of_update_Contract_transferSuccessful : updates.
 
-Lemma Contract_successfully_transferred_of_update_ETH_successful_transfers : forall _x (glabs_a : global_abstract_data_type),
-  Contract_successfully_transferred (update_ETH_successful_transfers _x glabs_a) = Contract_successfully_transferred glabs_a.
+Lemma Contract_transferSuccessful_of_update_ETH_successful_transfers : forall _x (glabs_a : global_abstract_data_type),
+  Contract_transferSuccessful (update_ETH_successful_transfers _x glabs_a) = Contract_transferSuccessful glabs_a.
 Proof. intros. destruct glabs_a. reflexivity. Qed.
-Hint Rewrite Contract_successfully_transferred_of_update_ETH_successful_transfers : updates.
+Hint Rewrite Contract_transferSuccessful_of_update_ETH_successful_transfers : updates.
 
 
-Lemma ETH_successful_transfers_of_update_Contract_successfully_transferred : forall _x (glabs_a : global_abstract_data_type),
-  ETH_successful_transfers (update_Contract_successfully_transferred _x glabs_a) = ETH_successful_transfers glabs_a.
+Lemma ETH_successful_transfers_of_update_Contract_transferSuccessful : forall _x (glabs_a : global_abstract_data_type),
+  ETH_successful_transfers (update_Contract_transferSuccessful _x glabs_a) = ETH_successful_transfers glabs_a.
 Proof. intros. destruct glabs_a. reflexivity. Qed.
-Hint Rewrite ETH_successful_transfers_of_update_Contract_successfully_transferred : updates.
+Hint Rewrite ETH_successful_transfers_of_update_Contract_transferSuccessful : updates.
 
 Lemma ETH_successful_transfers_of_update_ETH_successful_transfers : forall _x (glabs_a : global_abstract_data_type),
   ETH_successful_transfers (update_ETH_successful_transfers _x glabs_a) = _x.
 Proof. intros. destruct glabs_a. reflexivity. Qed.
 Hint Rewrite ETH_successful_transfers_of_update_ETH_successful_transfers : updates.
 
-Opaque Contract_successfully_transferred update_Contract_successfully_transferred ETH_successful_transfers update_ETH_successful_transfers.
+Opaque Contract_transferSuccessful update_Contract_transferSuccessful ETH_successful_transfers update_ETH_successful_transfers.

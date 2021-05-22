@@ -8,8 +8,8 @@ Definition Transfer_struct_amount_ident : ident  := 550%positive.
 Definition Transfer_struct_ident : ident  := 551%positive.
 Definition Transfer_struct_recipient_ident : ident  := 552%positive.
 
-Definition ident_Contract_ceip_example_not_ok : ident  := 553%positive.
-Definition ident_Contract_ceip_example_ok : ident  := 554%positive.
-Definition ident_Contract_constructor : ident  := 555%positive.
+Definition ident_Contract_constructor : ident  := 553%positive.
+Definition ident_Contract_safeExample : ident  := 554%positive.
+Definition ident_Contract_unsafeExample : ident  := 555%positive.
 Definition ident_ETH_constructor : ident  := 556%positive.
-Definition var_Contract_Contract_successfully_transferred_ident : ident  := 557%positive.
+Definition var_Contract_Contract_transferSuccessful_ident : ident  := 557%positive.

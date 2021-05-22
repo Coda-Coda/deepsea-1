@@ -28,30 +28,30 @@ Lemma Contract_constructor_oblg me d :
 Proof.
 Admitted.
 
-Lemma Contract_ceip_example_ok_vc me d :
+Lemma Contract_safeExample_vc me d :
     high_level_invariant d ->
-    synth_func_cond Contract_ceip_example_ok Contract_ceip_example_ok_wf
+    synth_func_cond Contract_safeExample Contract_safeExample_wf
                     me d.
 Proof.
 Admitted.
 
-Lemma Contract_ceip_example_ok_oblg me d :
+Lemma Contract_safeExample_oblg me d :
     high_level_invariant d ->
-    synth_func_obligation Contract_ceip_example_ok Contract_ceip_example_ok_wf
+    synth_func_obligation Contract_safeExample Contract_safeExample_wf
                           me d.
 Proof.
 Admitted.
 
-Lemma Contract_ceip_example_not_ok_vc me d :
+Lemma Contract_unsafeExample_vc me d :
     high_level_invariant d ->
-    synth_func_cond Contract_ceip_example_not_ok Contract_ceip_example_not_ok_wf
+    synth_func_cond Contract_unsafeExample Contract_unsafeExample_wf
                     me d.
 Proof.
 Admitted.
 
-Lemma Contract_ceip_example_not_ok_oblg me d :
+Lemma Contract_unsafeExample_oblg me d :
     high_level_invariant d ->
-    synth_func_obligation Contract_ceip_example_not_ok Contract_ceip_example_not_ok_wf
+    synth_func_obligation Contract_unsafeExample Contract_unsafeExample_wf
                           me d.
 Proof.
 Admitted.

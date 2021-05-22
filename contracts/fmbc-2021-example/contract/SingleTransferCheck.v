@@ -22,14 +22,14 @@ Module SingleTransferCheck.
 
 Transparent ETH_constructor_opt.
 Transparent Contract_constructor_opt.
-Transparent Contract_ceip_example_ok_opt.
-Transparent Contract_ceip_example_not_ok_opt.
+Transparent Contract_safeExample_opt.
+Transparent Contract_unsafeExample_opt.
 
 Ltac unfold_all :=
 unfold ETH_constructor_opt in *;
 unfold Contract_constructor_opt in *;
-unfold Contract_ceip_example_ok_opt in *;
-unfold Contract_ceip_example_not_ok_opt in *;
+unfold Contract_safeExample_opt in *;
+unfold Contract_unsafeExample_opt in *;
 simpl.
 
 
@@ -152,19 +152,19 @@ solve_single_transfer. (* If this tactic fails it indicates that the Contract_co
 Qed.
 
 
-Lemma Contract_ceip_example_ok_opt_single_transfer : forall d d'  result,
-(ETH_successful_transfers d = nil) -> runStateT (Contract_ceip_example_ok_opt  me) d = Some (result, d') -> 
+Lemma Contract_safeExample_opt_single_transfer : forall d d'  result,
+(ETH_successful_transfers d = nil) -> runStateT (Contract_safeExample_opt  me) d = Some (result, d') -> 
 (length (ETH_successful_transfers d') <= 1)%nat.
 Proof.
-solve_single_transfer. (* If this tactic fails it indicates that the Contract_ceip_example_ok_opt function either calls transferEth twice (which is considered a bad pattern) or doesn't call transferEth twice but has complex logic such as two interrelated if statements that make the tactic fail. *)
+solve_single_transfer. (* If this tactic fails it indicates that the Contract_safeExample_opt function either calls transferEth twice (which is considered a bad pattern) or doesn't call transferEth twice but has complex logic such as two interrelated if statements that make the tactic fail. *)
 Qed.
 
 
-Lemma Contract_ceip_example_not_ok_opt_single_transfer : forall d d'  result,
-(ETH_successful_transfers d = nil) -> runStateT (Contract_ceip_example_not_ok_opt  me) d = Some (result, d') -> 
+Lemma Contract_unsafeExample_opt_single_transfer : forall d d'  result,
+(ETH_successful_transfers d = nil) -> runStateT (Contract_unsafeExample_opt  me) d = Some (result, d') -> 
 (length (ETH_successful_transfers d') <= 1)%nat.
 Proof.
-solve_single_transfer. (* If this tactic fails it indicates that the Contract_ceip_example_not_ok_opt function either calls transferEth twice (which is considered a bad pattern) or doesn't call transferEth twice but has complex logic such as two interrelated if statements that make the tactic fail. *)
+solve_single_transfer. (* If this tactic fails it indicates that the Contract_unsafeExample_opt function either calls transferEth twice (which is considered a bad pattern) or doesn't call transferEth twice but has complex logic such as two interrelated if statements that make the tactic fail. *)
 Qed.
 
 
