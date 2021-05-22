@@ -6,6 +6,7 @@ core.make
 core.make.conf
 *_build
 *.merlin
+*.lia.cache
 
 _build/
 result
