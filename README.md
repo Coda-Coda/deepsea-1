@@ -1,5 +1,7 @@
 Please note: this is an **unofficial** fork of https://github.com/certikfoundation/deepsea/
 
+The code related to the FMBC 2021 Paper is (currently) only available in this repository and not in CertiK's version.
+
 ----------
 
 # Files particularly relevant to FMBC 2021 Paper
