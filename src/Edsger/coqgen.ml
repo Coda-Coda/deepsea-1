@@ -4741,12 +4741,6 @@ let gen_coqProj env fileDeclarations =
   | i, ADlayer l -> output_string stream ("./Layer" ^ i ^ ".v\n")
   | _, _ -> ()
   ) fileDeclarations;
-  List.iter (function
-  | i, ADlayer l -> List.iter (fun (_, o) ->
-      output_string stream ("./Obj" ^ o.aObjectName ^ "CodeProofs.v\n"))
-      l.aLayerFreshObjects
-  | _, _ -> ()
-  ) fileDeclarations;
 #ifndef REDACTED
   List.iter (function
   | i, ADlayer l -> output_string stream ("./LSrc" ^ i ^ ".v\n")
