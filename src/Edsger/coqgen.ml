@@ -5149,7 +5149,7 @@ This file contains lemmas demonstrating and checking that transferEth is called 
     "Require Import core.MemoryModel.\n" ^ 
     "Require Import DeepSpec.lib.Monad.RunStateTInv.\n" ^
     "Require Import Lia.\n" ^ 
-    "Require Import Crowdfunding_Based_On_Scilla.GenericMachineEnv.\n"
+    "Require Import " ^ env.project_name ^ ".GenericMachineEnv.\n"
   );
   List.iter (function 
     | i, ADlayer l -> output_string stream ("Require Import " ^ env.project_name ^ ".Layer" ^ i ^ ".\n")
