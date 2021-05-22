@@ -4,6 +4,8 @@ Please note: this is an **unofficial** fork of https://github.com/certikfoundati
 
 # Files particularly relevant to FMBC 2021 Paper
 
+[contracts/fmbc-2021-example/contract.ds](https://github.com/Coda-Coda/deepsea-1/blob/fmbc-2021/contracts/fmbc-2021-example/contract.ds) has the DeepSEA smart contract source code used in examples.
+
 [src/core/Syntax.v (starting line 541)](https://github.com/Coda-Coda/deepsea-1/blob/fmbc-2021/src/core/Syntax.v#L541) has the definition of the inductive proposition that defines the notion of a command following the *Checks-Effects-Interactions Pattern*. The definition of `function_constr_CEI_pattern_prf` is also given here ([line 698](https://github.com/Coda-Coda/deepsea-1/blob/fmbc-2021/src/core/Syntax.v#L698)).
 
 [src/Runtime.v (starting line 862)](https://github.com/Coda-Coda/deepsea-1/blob/fmbc-2021/src/Runtime.v#L862) has the definitions of the tactics used to automatically prove that a command follows the *Checks-Effects-Interactions Pattern*.
