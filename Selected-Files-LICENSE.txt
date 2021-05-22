@@ -4,6 +4,7 @@ However the following files are dual-licensed as MIT or GNU GPL v2 (or, at your 
 ./shell.nix
 ./default.nix
 ./dependencies.nix
+./fmbc-2021-example/contract.ds
 
 
 For all other files, please see CompCert-LICENSE.txt (in this directory) for their license.
