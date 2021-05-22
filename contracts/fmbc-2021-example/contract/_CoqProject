@@ -1,0 +1,10 @@
+-R ../../../src/ DeepSpec
+-R . contract
+./EdsgerIdents.v
+./DataTypes.v
+./DataTypeOps.v
+./DataTypeProofs.v
+./GenericMachineEnv.v
+./SingleTransferCheck.v
+./LayerETH_layer.v
+./LayerCONTRACT.v
