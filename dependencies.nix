@@ -23,6 +23,7 @@ let dependencies = (with pkgs; [
     ocaml-ng.ocamlPackages_4_09.menhir
     ocaml-ng.ocamlPackages_4_09.zarith
     ncurses
+    git
     ]);
 in
 dependencies
