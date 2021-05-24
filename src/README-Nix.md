@@ -1,4 +1,4 @@
-# Nix instructions for DeepSEA
+# Nix instructions for DeepSEA Development
 
 For the non-Nix README, see [here](README.md).
 This README only describes how to use [Nix](https://nixos.org/guides/install-nix.html) to setup the dependencies.
