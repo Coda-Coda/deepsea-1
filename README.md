@@ -6,6 +6,8 @@ The code related to the FMBC 2021 Paper is (currently) only available in this re
 
 # Files particularly relevant to FMBC 2021 Paper
 
+## Paper: Using Coq to Enforce the Checks-Effects-Interactions Pattern in DeepSEA Smart Contracts
+
 [contracts/fmbc-2021-example/contract.ds](contracts/fmbc-2021-example/contract.ds) has the DeepSEA smart contract source code used in examples.
 
 [contracts/fmbc-2021-example/contract/](https://github.com/Coda-Coda/deepsea-1/tree/fmbc-2021/contracts/fmbc-2021-example) has the Coq files automatically generated from [contract.ds](contracts/fmbc-2021-example/contract.ds) by running [build.sh](contracts/fmbc-2021-example/build.sh) (in contracts/fmbc-2021-example/). It also has the [TransfersModellingExample.v](contracts/fmbc-2021-example/contract/TransfersModellingExample.v) file. To step through these files in Coq you should use [Coq 8.9.1](https://github.com/coq/coq/releases/tag/V8.9.1). To build all the files that are automatically generated you'll need all the DeepSEA dependencies. [Nix](https://nixos.org/) is recommended for this. Then run [build.sh](contracts/fmbc-2021-example/build.sh) from inside contracts/fmbc-2021-example/.
