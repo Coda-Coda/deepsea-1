@@ -5,6 +5,9 @@
 # You can also use opam (all OSes) for the dependencies instead (see src/README.md). In that case dsc may instead be called edsger.bc when built.
 nix-build
 nix-shell --run "
+    pushd ../../src/
+    make
+    popd
     dsc contract.ds coq
     cd contract
     coqdep -f _CoqProject > .coqdeps.d
