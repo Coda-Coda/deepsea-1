@@ -200,10 +200,10 @@ Section STEP.
       step (Returnstate retval (Kcall id f le k) ee d (g + gas_saveretval' 1))
          (State f Sskip k (optset id retval le) ee d g)
 
-  | step_transfer: forall f a a' v v' le d d' ee k g,
+  | step_transfer: forall f a a' v v' le d d' mes ee k g,
       eval_rvalue (call_cont_index k) me d ee le a (Vint a') ->
       eval_rvalue (call_cont_index k) me d ee le v (Vint v') ->
-      (me_transfer me) a' v' d = (Int256.one, d') ->
+      (me_transfer me) a' v' d mes = (Int256.one, d') ->
       step (State f (Stransfer a v) k le ee d (g + gas_transfer true a v 2))
            (State f Sskip k le ee d' g)
            

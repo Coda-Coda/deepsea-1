@@ -5207,7 +5207,7 @@ Context
   (caller: addr)
   (callvalue : int256)
   (initial_balances : addr -> int256)
-  (address_always_accepts_funds : addr -> bool).
+  (address_accepts_funds : machine_env_state global_abstract_data_type -> global_abstract_data_type -> addr -> addr -> int256 -> bool).
 
   Context {HmemOps: MemoryModelOps mem}.
   Context {memModelOps : MemoryModelOps mem}.
@@ -5218,7 +5218,7 @@ Context
   
 
   Definition me := 
-    GenericMachineEnv.generic_machine_env coinbase timestamp number blockhash chainid origin contract_address caller callvalue initial_balances address_always_accepts_funds.
+    GenericMachineEnv.generic_machine_env coinbase timestamp number blockhash chainid origin contract_address caller callvalue initial_balances address_accepts_funds.
 
 
     
@@ -5387,7 +5387,7 @@ Context
   (caller: addr)
   (callvalue : int256)
   (initial_balances : addr -> int256)
-  (address_always_accepts_funds : addr -> bool).
+  (address_accepts_funds : machine_env_state global_abstract_data_type -> global_abstract_data_type -> addr -> addr -> int256 -> bool).
 
   Context {HmemOps: MemoryModelOps mem}.
   Context {memModelOps : MemoryModelOps mem}.
@@ -5426,11 +5426,11 @@ Definition current_balances (initial_balances : addr -> int256)
     (a : addr) : int256 :=
     Int256.repr (current_balances_Z initial_balances successful_transfers a).
 
-Definition successful_transfer initial_balances current_successful_transfers recipient amount : bool := 
-  let balance := current_balances initial_balances current_successful_transfers in    
+Definition successful_transfer mes d recipient amount : bool := 
+  let balance := mes_balance mes d in    
         ((Int256.intval (balance contract_address)) - (Int256.intval amount) >=? 0)%Z
     && ((Int256.intval (balance recipient)) + (Int256.intval amount) <=? Int256.max_unsigned)%Z
-    && (address_always_accepts_funds recipient).
+    && (address_accepts_funds mes d contract_address recipient amount). (* This is part of the beginnings of modelling an external call. It is important that address_accepts_funds is passed sufficient information to be able to 'decide' whether the address would accept funds. As the address could be a contract this naturally includes essentially all information in machine_env, this is stored in `mes` (machine_env_state). Also the latest transfers are needed  to ensure the balances are up to date, this is passed in via `d` - which contains ETH_successful_transfers - `d` also holds the current contract state (which is also useful information to pass on, in theory). *)
 
 
 
@@ -5445,7 +5445,7 @@ Definition generic_machine_env
         me_number := number;
         me_balance d a := current_balances initial_balances (ETH_successful_transfers d) a;
         me_blockhash := blockhash;
-        me_transfer recipient amount d := if successful_transfer initial_balances (ETH_successful_transfers d) recipient amount then (Int256.one, d_with_transfer recipient amount d) else (Int256.zero, d);
+        me_transfer recipient amount d mes := if successful_transfer mes d recipient amount then (Int256.one, d_with_transfer recipient amount d) else (Int256.zero, d);
         (* Note that the way me_transfer has been defined above will only add a transaction to the ETH_successful_transfers list if the contract has sufficient balance to send the transaction,
            the recipient isn't so rich such that their balance being added to would cause an overflow, and if the `address_always_accepts_funds` function indicates they would accept the funds.
            
