@@ -59,20 +59,6 @@ at a later time.
 Section WITH_DATA.
 Context adata {data_ops: CompatDataOps adata}.
 
-Record machine_env_state : Type := mkMachineState {
-  mes_address : int256;  (* Todo: make it int160. *)
-  mes_origin : int256;   (* Todo: make it int160. *)                     
-  mes_caller : int256;
-  mes_callvalue : int256;
-  mes_coinbase : int256;
-  mes_timestamp : int256;
-  mes_number : int256;
-  mes_chainid : int256;
-  mes_selfbalance : forall (d: adata), int256;
-  mes_balance : forall (d: adata), int256 -> int256;   (* Todo: make it int160. *)
-  mes_blockhash : int256 -> int256;
-}.
-
 Record machine_env  : Type := mkmachine {
   me_address : int256;  (* Todo: make it int160. *)
   me_origin : int256;   (* Todo: make it int160. *)                     
@@ -88,28 +74,11 @@ Record machine_env  : Type := mkmachine {
 
   (* todo: this is bad because it doesn't deal with potential reentrancy. *)
   (* Returns an int representing success/failure, and the new abstract state. *)
-  me_transfer : forall (addr value: int256)(d: adata)(mes_before : machine_env_state), (int256 * adata);
+  me_transfer : forall (addr value: int256)(d: adata), (int256 * adata);
   (* addr, sig, value, args, prev_data, prev_storage, new_data, new_storage, success, retvals *)
   me_callmethod : val -> int -> val -> list val -> adata -> ext_env -> adata -> ext_env -> int256 -> list val -> Prop;
   me_log : forall (topics : list val) (args : list val), adata -> adata
 }.
-
-(* Get machine_env state. *)
-Definition get_mes (me : machine_env) : machine_env_state :=
-  mkMachineState
-    (me_address me)
-    (me_origin me)
-    (me_caller me)
-    (me_callvalue me)
-    (me_coinbase me)
-    (me_timestamp me)
-    (me_number me)
-    (me_chainid me)
-    (me_selfbalance me)
-    (me_balance me)
-    (me_blockhash me)
-.
-
 
 Definition me_query (me : machine_env) (d : adata) (q: state_query) : val :=
   match q with
@@ -197,18 +166,6 @@ Definition state_env := StateMap.t int256.
 *)
 
 End WITH_DATA.
-
-Arguments  mes_address {adata}.
-Arguments  mes_origin {adata}.
-Arguments  mes_caller {adata}.
-Arguments  mes_callvalue {adata}.
-Arguments  mes_coinbase {adata}.
-Arguments  mes_timestamp {adata}.
-Arguments  mes_number {adata}.
-Arguments  mes_chainid {adata}.
-Arguments  mes_selfbalance {adata}.
-Arguments  mes_balance {adata}.
-Arguments  mes_blockhash {adata}.
 
 Arguments  me_address {adata}.
 Arguments  me_origin {adata}.

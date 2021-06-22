@@ -895,7 +895,7 @@ Fixpoint synth_stmt_spec_opt {returns}(c : cmd_constr returns) dest tmp :
           me_transfer me
                       (synth_expr_spec me d tmp e1 (car wf) se)
                       (synth_expr_spec me d tmp e2 (cdr wf) se)
-                      d (get_mes GetHighData me) in
+                      d in
       if (Int256.eq success Int256.one)
       then put d'
       else mzero
