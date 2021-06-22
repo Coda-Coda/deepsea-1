@@ -5207,7 +5207,7 @@ Context
   (caller: addr)
   (callvalue : int256)
   (initial_balances : addr -> int256)
-  (address_accepts_funds : machine_env_state global_abstract_data_type -> global_abstract_data_type -> addr -> addr -> int256 -> bool).
+  (address_accepts_funds : GenericMachineEnv.machine_env_state -> global_abstract_data_type -> addr -> addr -> int256 -> bool).
 
   Context {HmemOps: MemoryModelOps mem}.
   Context {memModelOps : MemoryModelOps mem}.
@@ -5346,7 +5346,25 @@ This file defines a function `generic_machine_env` that can be used to build mac
     | _, _ -> ()
     ) fileDeclarations;
 
-  output_string stream ("\nModule GenericMachineEnv.\n\n");
+  output_string stream ("\nModule GenericMachineEnv.\n\n
+  
+  Record machine_env_state : Type := mkMachineState {
+  mes_address : int256;  (* Todo: make it int160. *)
+  mes_origin : int256;   (* Todo: make it int160. *)                     
+  mes_caller : int256;
+  mes_callvalue : int256;
+  mes_coinbase : int256;
+  mes_timestamp : int256;
+  mes_number : int256;
+  mes_chainid : int256;
+  mes_selfbalance : forall (d: global_abstract_data_type), int256;
+  mes_balance : forall (d: global_abstract_data_type), int256 -> int256;   (* Todo: make it int160. *)
+  mes_blockhash : int256 -> int256;
+}.
+
+\n\n
+    
+  ");
 
   output_string stream ("\n\nDefinition d_with_transfer adr amount (d : global_abstract_data_type) : global_abstract_data_type :=\n{|\n");
   List.iter (function
@@ -5387,7 +5405,7 @@ Context
   (caller: addr)
   (callvalue : int256)
   (initial_balances : addr -> int256)
-  (address_accepts_funds : machine_env_state global_abstract_data_type -> global_abstract_data_type -> addr -> addr -> int256 -> bool).
+  (address_accepts_funds : machine_env_state -> global_abstract_data_type -> addr -> addr -> int256 -> bool).
 
   Context {HmemOps: MemoryModelOps mem}.
   Context {memModelOps : MemoryModelOps mem}.
@@ -5432,8 +5450,6 @@ Definition successful_transfer mes d recipient amount : bool :=
     && ((Int256.intval (balance recipient)) + (Int256.intval amount) <=? Int256.max_unsigned)%Z
     && (address_accepts_funds mes d contract_address recipient amount). (* This is part of the beginnings of modelling an external call. It is important that address_accepts_funds is passed sufficient information to be able to 'decide' whether the address would accept funds. As the address could be a contract this naturally includes essentially all information in machine_env, this is stored in `mes` (machine_env_state). Also the latest transfers are needed  to ensure the balances are up to date, this is passed in via `d` - which contains ETH_successful_transfers - `d` also holds the current contract state (which is also useful information to pass on, in theory). *)
 
-
-
 Definition generic_machine_env 
                             : machine_env global_abstract_data_type
   := {| me_address := contract_address;
@@ -5445,7 +5461,20 @@ Definition generic_machine_env
         me_number := number;
         me_balance d a := current_balances initial_balances (ETH_successful_transfers d) a;
         me_blockhash := blockhash;
-        me_transfer recipient amount d mes := if successful_transfer mes d recipient amount then (Int256.one, d_with_transfer recipient amount d) else (Int256.zero, d);
+        me_transfer recipient amount d := let mes := {|
+            mes_address := contract_address;  (* Todo: make it int160. *)
+            mes_origin := origin;   (* Todo: make it int160. *)                     
+            mes_caller := caller;
+            mes_callvalue := callvalue;
+            mes_coinbase := coinbase;
+            mes_timestamp := timestamp;
+            mes_number := number;
+            mes_chainid := chainid;
+            mes_selfbalance d := current_balances initial_balances (ETH_successful_transfers d) contract_address;
+            mes_balance d a := current_balances initial_balances (ETH_successful_transfers d) a;
+            mes_blockhash := blockhash;
+        |} in
+          if successful_transfer mes d recipient amount then (Int256.one, d_with_transfer recipient amount d) else (Int256.zero, d);
         (* Note that the way me_transfer has been defined above will only add a transaction to the ETH_successful_transfers list if the contract has sufficient balance to send the transaction,
            the recipient isn't so rich such that their balance being added to would cause an overflow, and if the `address_always_accepts_funds` function indicates they would accept the funds.
            
