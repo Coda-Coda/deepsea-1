@@ -219,6 +219,7 @@ Section HValue.
   Inductive val : Type :=
   | Vunit: val
   | Vint: int256 -> val
+  | VZ : Z -> val
   | Vptr: lval -> val
   | Vhash: val -> val
   | Vhash2: val -> val -> val
@@ -238,6 +239,7 @@ Section HValue.
     match v with
     | LowValues.Vunit => Vunit
     | LowValues.Vint i => Vint i
+    | LowValues.VZ i => VZ i
     | LowValues.Vhash v => Vhash (OfLow v)
     | LowValues.Vhash2 v1 v2 => Vhash2 (OfLow v1) (OfLow v2)
     end.
@@ -246,6 +248,7 @@ Section HValue.
     match v with
     | Vunit => Some LowValues.Vunit
     | Vint i => Some (LowValues.Vint i)
+    | VZ i => Some (LowValues.VZ i)
     | Vhash v => option_map LowValues.Vhash (ToLowErr v) 
     | Vhash2 v1 v2 =>
       match ToLowErr v1, ToLowErr v2 with

@@ -202,7 +202,7 @@ Section STEP.
 
   | step_transfer: forall f a a' v v' le d d' ee k g,
       eval_rvalue (call_cont_index k) me d ee le a (Vint a') ->
-      eval_rvalue (call_cont_index k) me d ee le v (Vint v') ->
+      eval_rvalue (call_cont_index k) me d ee le v (VZ v') ->
       (me_transfer me) a' v' d = (Int256.one, d') ->
       step (State f (Stransfer a v) k le ee d (g + gas_transfer true a v 2))
            (State f Sskip k le ee d' g)

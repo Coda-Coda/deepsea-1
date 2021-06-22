@@ -128,6 +128,7 @@ Qed.
 Inductive val: Type :=
 | Vunit: val
 | Vint: int256 -> val
+| VZ : Z -> val
 | Vhash: val -> val
 | Vhash2: val -> val -> val
 .

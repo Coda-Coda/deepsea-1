@@ -5205,9 +5205,9 @@ Section Individual_Call_Context. (* like mstep *)
 Context 
   (contract_address : addr)
   (caller: addr)
-  (callvalue : int256)
-  (initial_balances : addr -> int256)
-  (address_accepts_funds : GenericMachineEnv.machine_env_state -> global_abstract_data_type -> addr -> addr -> int256 -> bool).
+  (callvalue : Z)
+  (initial_balances : addr -> Z)
+  (address_accepts_funds : GenericMachineEnv.machine_env_state -> global_abstract_data_type -> addr -> addr -> Z -> bool).
 
   Context {HmemOps: MemoryModelOps mem}.
   Context {memModelOps : MemoryModelOps mem}.
@@ -5352,13 +5352,13 @@ This file defines a function `generic_machine_env` that can be used to build mac
   mes_address : int256;  (* Todo: make it int160. *)
   mes_origin : int256;   (* Todo: make it int160. *)                     
   mes_caller : int256;
-  mes_callvalue : int256;
+  mes_callvalue : Z;
   mes_coinbase : int256;
   mes_timestamp : int256;
   mes_number : int256;
   mes_chainid : int256;
-  mes_selfbalance : forall (d: global_abstract_data_type), int256;
-  mes_balance : forall (d: global_abstract_data_type), int256 -> int256;   (* Todo: make it int160. *)
+  mes_selfbalance : forall (d: global_abstract_data_type), Z;
+  mes_balance : forall (d: global_abstract_data_type), int256 -> Z;   (* Todo: make it int160. *)
   mes_blockhash : int256 -> int256;
 }.
 
@@ -5403,9 +5403,9 @@ Section Individual_Call_Context. (* like mstep *)
 Context 
   (contract_address : addr)
   (caller: addr)
-  (callvalue : int256)
-  (initial_balances : addr -> int256)
-  (address_accepts_funds : machine_env_state -> global_abstract_data_type -> addr -> addr -> int256 -> bool).
+  (callvalue : Z)
+  (initial_balances : addr -> Z)
+  (address_accepts_funds : machine_env_state -> global_abstract_data_type -> addr -> addr -> Z -> bool).
 
   Context {HmemOps: MemoryModelOps mem}.
   Context {memModelOps : MemoryModelOps mem}.
@@ -5414,40 +5414,36 @@ Context
     GetHighData := global_abstract_data_type 
   }.
 
-Definition debits_from_contract
-(successful_transfers: list Transfer) :=
-List.fold_left (fun z t => (Int256.intval (amount t) - z)%Z)
-successful_transfers 0%Z.
 
-Definition credits_to_address (a : addr)
-(successful_transfers: list Transfer) :=
-List.fold_left (fun z t =>
-if Int256.eq (recipient t) a
-then (Int256.intval (amount t) + z)%Z
-else z)
-successful_transfers 0%Z.
-
-Definition current_balances_Z (initial_balances : addr -> int256)
-                              (successful_transfers : list Transfer)
-                              (a : addr) : Z :=
-    if Int256.eq a contract_address
-    then
-      Int256.intval (initial_balances a)
-    - debits_from_contract successful_transfers
-    + credits_to_address a successful_transfers (*Just in case the contract transfers to itself. *)
-    else 
-      Int256.intval (initial_balances a)
-    + credits_to_address a successful_transfers.
-
-Definition current_balances (initial_balances : addr -> int256)
-    (successful_transfers : list Transfer)
-    (a : addr) : int256 :=
-    Int256.repr (current_balances_Z initial_balances successful_transfers a).
+  Definition debits_from_contract
+  (successful_transfers: list Transfer) :=
+  List.fold_left (fun z t => ((amount t) - z)%Z)
+  successful_transfers 0%Z.
+  
+  Definition credits_to_address (a : addr)
+  (successful_transfers: list Transfer) :=
+  List.fold_left (fun z t =>
+  if Int256.eq (recipient t) a
+  then ((amount t) + z)%Z
+  else z)
+  successful_transfers 0%Z.
+  
+  Definition current_balances (initial_balances : addr -> Z)
+                                (successful_transfers : list Transfer)
+                                (a : addr) : Z :=
+      if Int256.eq a contract_address
+      then
+        (initial_balances a)
+      - debits_from_contract successful_transfers
+      + credits_to_address a successful_transfers (*Just in case the contract transfers to itself. *)
+      else 
+        (initial_balances a)
+      + credits_to_address a successful_transfers.
 
 Definition successful_transfer mes d recipient amount : bool := 
   let balance := mes_balance mes d in    
-        ((Int256.intval (balance contract_address)) - (Int256.intval amount) >=? 0)%Z
-    && ((Int256.intval (balance recipient)) + (Int256.intval amount) <=? Int256.max_unsigned)%Z
+        ((balance contract_address) - amount >=? 0)%Z
+    && ((balance recipient) + amount <=? Int256.max_unsigned)%Z
     && (address_accepts_funds mes d contract_address recipient amount). (* This is part of the beginnings of modelling an external call. It is important that address_accepts_funds is passed sufficient information to be able to 'decide' whether the address would accept funds. As the address could be a contract this naturally includes essentially all information in machine_env, this is stored in `mes` (machine_env_state). Also the latest transfers are needed  to ensure the balances are up to date, this is passed in via `d` - which contains ETH_successful_transfers - `d` also holds the current contract state (which is also useful information to pass on, in theory). *)
 
 Definition generic_machine_env 

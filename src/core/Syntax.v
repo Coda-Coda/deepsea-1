@@ -331,7 +331,7 @@ Section STMT_CONSTR.
                                               
   
                                                                 
-  | CCtransfer : expr_constr tint_U -> expr_constr tint_U -> cmd_constr void_unit_pair
+  | CCtransfer : expr_constr tint_U -> expr_constr tint_Z32 -> cmd_constr void_unit_pair
                                                               
   | CCyield : forall`{HyperTypeImpl tp},
     expr_constr tp -> cmd_constr (mk_hyper_type_pair tp)

@@ -117,6 +117,7 @@ Definition val_eq_dec : forall (v1 v2 :val), {v1=v2}+{v1<>v2}.
   decide equality.
   + apply Int256.eq_dec.
   + decide equality ; try apply Pos.eq_dec; try apply Int256.eq_dec; try apply IdentExtIndexed.eq.
+  + decide equality ; try apply Pos.eq_dec; try apply Int256.eq_dec; try apply IdentExtIndexed.eq. (* TODO-Daniel check/fix this line of the definition. *)
 Defined.
 
 Definition sem_binary_operation (op: binary_operation) (v1 :val) (t1:type) (v2 : val) (t2:type) : option val :=

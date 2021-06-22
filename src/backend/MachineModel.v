@@ -63,18 +63,18 @@ Record machine_env  : Type := mkmachine {
   me_address : int256;  (* Todo: make it int160. *)
   me_origin : int256;   (* Todo: make it int160. *)                     
   me_caller : int256;
-  me_callvalue : int256;
+  me_callvalue : Z;
   me_coinbase : int256;
   me_timestamp : int256;
   me_number : int256;
   me_chainid : int256;
-  me_selfbalance : forall (d: adata), int256;
-  me_balance : forall (d: adata), int256 -> int256;   (* Todo: make it int160. *)
+  me_selfbalance : forall (d: adata), Z;
+  me_balance : forall (d: adata), int256 -> Z;   (* Todo: make it int160. *)
   me_blockhash : int256 -> int256;
 
   (* todo: this is bad because it doesn't deal with potential reentrancy. *)
   (* Returns an int representing success/failure, and the new abstract state. *)
-  me_transfer : forall (addr value: int256)(d: adata), (int256 * adata);
+  me_transfer : forall (addr : int256) (value: Z) (d: adata), (int256 * adata);
   (* addr, sig, value, args, prev_data, prev_storage, new_data, new_storage, success, retvals *)
   me_callmethod : val -> int -> val -> list val -> adata -> ext_env -> adata -> ext_env -> int256 -> list val -> Prop;
   me_log : forall (topics : list val) (args : list val), adata -> adata
@@ -85,13 +85,13 @@ Definition me_query (me : machine_env) (d : adata) (q: state_query) : val :=
   | Qcall0 Baddress => Vint (me_address me)
   | Qcall0 Borigin => Vint (me_origin me)
   | Qcall0 Bcaller => Vint (me_caller me)
-  | Qcall0 Bcallvalue => Vint (me_callvalue me)
+  | Qcall0 Bcallvalue => VZ (me_callvalue me)
   | Qcall0 Bcoinbase => Vint (me_coinbase me)
   | Qcall0 Btimestamp => Vint (me_timestamp me)
   | Qcall0 Bnumber => Vint (me_number me)
   | Qcall0 Bchainid => Vint (me_chainid me)
-  | Qcall0 Bselfbalance => Vint (me_selfbalance me d)
-  | Qcall1 Bbalance (Vint addr) => Vint (me_balance me d addr)
+  | Qcall0 Bselfbalance => VZ (me_selfbalance me d)
+  | Qcall1 Bbalance (Vint addr) => VZ (me_balance me d addr)
   | Qcall1 Bbalance _ => Vunit (* ill-typed query. *)
   | Qcall1 Bblockhash (Vint n) => Vint (me_blockhash me n)
   | Qcall1 Bblockhash _ => Vunit (* ill-typed query. *)
