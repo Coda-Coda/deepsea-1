@@ -4,6 +4,7 @@ Require Import backend.MachineModel.
 Require Import GenericMachineEnv.
 
 
+(* This is useful in FunctionalCorrectness.v it branches based on if statements as well as on whether a transfer succeeds or fails (e.g. sender has insufficient balance, or recipient is a contract that reverts) *)
 Ltac deepsea_inversion :=
 (* Could also be called: inv_runStateT_branching_with_me_transfer_cases *)
   repeat (

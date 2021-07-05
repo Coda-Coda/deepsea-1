@@ -191,7 +191,7 @@ Qed.
 
 End GenericProofs.
 
-Ltac inv_runStateT_branching_with_me_transfer_cases :=
+Ltac deepsea_inversion :=
       repeat (
         try inv_runStateT_branching;
         let Case := fresh "SufficientFundsToTransferCase" in
@@ -765,7 +765,7 @@ Proof.
           2,3,4 : inversion H0; apply balance_backed_in_next_state with (d_after:=d_after); assumption.
           unfold balance_backed.
           intros.
-          inv_runStateT_branching_with_me_transfer_cases; subst.
+          deepsea_inversion; subst.
           - match goal with | H : (d_after, ps_after) = _ |- _ => inversion H end.
             subst. inversion H1.
           - rewrite Int256.eq_true in Heqb2. discriminate.
@@ -790,7 +790,7 @@ Proof.
           inv_runStateT_branching; subst.
           1,2 : inversion H0; apply balance_backed_in_next_state with (d_after:=d_after); assumption.
           inversion H0; subst.
-          inv_runStateT_branching_with_me_transfer_cases; subst.
+          deepsea_inversion; subst.
           simpl.
           all: simpl in SufficientFundsToTransferCase.
           - clear Heqb1.
