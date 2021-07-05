@@ -846,6 +846,69 @@ Qed.
 
 Print Assumptions sufficient_funds_safe.
 
+
+Program Lemma can_claim_back backer_addr d_before ps_before d_after ps_after backed_amount :
+  ReachableState d_before ps_before ->
+  backed_amount = Int256Tree.get_default 0 backer_addr (Crowdfunding_backers d_before) ->
+  (* Not funded *)
+  Crowdfunding_funded d_before = false ->
+  (* Balance is small: not reached the goal *)
+  ps_balance ps_before contract_address < (Crowdfunding_goal d_before) ->
+  (* Block number exceeds the set number *)
+  Int256.ltu (Crowdfunding_max_block d_before) (ps_number ps_before) = true ->
+  (* Can emit message from b *)
+  exists (f : FunctionCall) (callvalue : Z) (coinbase chainid : int256),
+    (d_after, ps_after) = execute_contract_call (CallFunction f backer_addr backer_addr callvalue coinbase chainid)
+      (resetTransfers d_before) ps_before _
+    ->
+    ps_balance ps_after backer_addr
+    = ps_balance ps_before backer_addr + backed_amount.
+Proof.
+  intros.
+  exists contractStep_claim.
+  exists 0. exists Int256.zero. exists Int256.zero.
+  intros.
+  unfold execute_contract_call in H4.
+  destruct ( noOverflowOrUnderflowInTransfer backer_addr contract_address 0
+  (ps_balance ps_before)).
+  + match goal with 
+    | H : context[runStateT ?X] |- _ => let C:= fresh "Case" in destruct (runStateT X) eqn:C; simpl in H end.
+    destruct p.
+    Transparent Crowdfunding_claim_opt. unfold Crowdfunding_claim_opt in Case.
+    deepsea_inversion; subst; simpl in *.
+    - rewrite H3 in Heqb. inversion Heqb.
+    - 
+
+
+
+  match goal with 
+      | H : context[if ?X then _ else _] |- _ => let C:= fresh "Case" in destruct X eqn:C; simpl in H end.
+  - simpl. 
+  destruct ( (Int256.eq backer_addr contract_address)) eqn:SCase; simpl in H3.
+    + exfalso. admit.
+    +   match goal with 
+    | H : context[runStateT ?X] |- _ => let C:= fresh "Case" in destruct X eqn:C; simpl in H end.
+      * simpl in H4.
+        destruct (Int256.ltu (Crowdfunding_max_block d_before)
+        (ps_number ps_before)) eqn:SSSCase. simpl in *.
+      
+      
+
+      destruct p.
+      deepsea_inversion.
+      inversion H4.
+      subst. 
+      simpl.
+  unfold noOverflowOrUnderflowInTransfer in H3.
+  simpl in H3.
+  subst.
+  simpl.
+
+
+
+  out (step_prot crowd_prot st bc m) = Some (Msg d crowd_addr b 0 ok_msg).
+Proof.
+
 End Blockchain_Model.
 
 End FunctionalCorrectness.
