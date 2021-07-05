@@ -4538,7 +4538,6 @@ Proof.
 Qed.\n")
     ) o.aObjectMethods;
 
-    output_string proofs "TODO-here";
     output_string proofs "\nEnd EdsgerGen.\n";
     output_string code "\nEnd EdsgerGen.\n";
     close_out proofs;
