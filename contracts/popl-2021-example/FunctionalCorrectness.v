@@ -27,6 +27,9 @@ Require Import GenericMachineEnv.
 
 Require Import Additions.Tactics.
 
+Require Import Maps.
+Import Maps.Int256Tree_Properties.
+
 Open Scope Z.
 
 
@@ -660,9 +663,9 @@ Qed.
 Definition Safe (P : global_abstract_data_type -> persistent_state -> Prop ) :=
    forall d ps, ReachableState d ps -> P d ps.
 
-Definition balance_backed (d : global_abstract_data_type) (ps : persistent_state) : Prop := 
+Definition balance_backed d ps : Prop := 
   (Crowdfunding_funded d) = false
-  -> Int256Tree_Properties.sum (Crowdfunding_backers d)
+  -> sum (Crowdfunding_backers d)
      <= (ps_balance ps (contract_address)).
 
 Lemma balance_backed_in_next_state : forall d_before d_after ps_before callvalue caller origin chainid coinbase,
