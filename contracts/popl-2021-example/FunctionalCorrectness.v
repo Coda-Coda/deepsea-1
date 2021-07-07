@@ -665,9 +665,8 @@ Definition Safe (P : global_abstract_data_type -> persistent_state -> Prop ) :=
 
 Definition balance_backed d ps : Prop := 
   (Crowdfunding_funded d) = false
-  -> (sum (Crowdfunding_backers d)
-     <= (ps_balance ps (contract_address))
-     /\ forall a, Int256Tree.get_default 0 a(Crowdfunding_backers d) >= 0).
+  -> sum (Crowdfunding_backers d)
+     <= (ps_balance ps (contract_address)).
 
 Lemma balance_backed_in_next_state : forall d_before d_after ps_before callvalue caller origin chainid coinbase,
      balance_backed d_before ps_before -> d_after = resetTransfers d_before -> (callvalue =? 0) = true -> negb (Int256.eq caller contract_address) = true -> balance_backed (resetTransfers d_before)
@@ -697,10 +696,7 @@ Proof.
   - unfold balance_backed. simpl. intros.
     unfold Int256Tree_Properties.sum. unfold Int256Tree.empty.
     unfold Int256Tree.fold1. simpl.
-    split.
-    + apply snapshot_balances_nonnegative_prf.
-    + intros. unfold Int256Tree.get_default, Int256Tree.get. simpl. unfold PTree.empty, Int256Indexed.index. destruct a.
-    unfold "!". destruct intval; lia.
+    apply snapshot_balances_nonnegative_prf.
   - destruct blockchain_action eqn:Case.
     + destruct c eqn:SCase.
       * unfold step in H0. simpl in H0. inversion H0. assumption.
@@ -748,11 +744,7 @@ Proof.
             rewrite Int256Tree_sum_set_value_initially_zero; [|assumption].
             rewrite Int256.eq_sym, SSSCase.
             rewrite <- Z.add_le_mono_r.
-            destruct H1.
-            split.
-              + assumption.
-              + admit.
- 
+            assumption.
         }
         {
           unfold step in H0. simpl in H0.
