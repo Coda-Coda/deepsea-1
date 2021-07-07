@@ -29,9 +29,9 @@ Require Import Additions.Tactics.
 
 Require Import Maps.
 Import Maps.Int256Tree_Properties.
+Import Maps.Int256Tree.
 
 Open Scope Z.
-
 
 Section GenericProofs.
 Lemma fold_snd_map : 
@@ -40,7 +40,7 @@ Lemma fold_snd_map :
   (fold_left (fun (a : B) (p : A * B) => f a (snd p))
    m x) = 
   (fold_left f
-  (map snd m) x).
+  (List.map snd m) x).
 Proof.
     intro.
     induction m.
@@ -59,7 +59,7 @@ forall (init : Z) (m : Int256Tree.t Z),
       (fold_left (fun (a : Z) (p : Int256Tree.elt * Z) => Z.add a (snd p))
       (Int256Tree.elements m) x) = 
       (fold_left Z.add
-      (map snd (Int256Tree.elements m)) x)).
+      (List.map snd (Int256Tree.elements m)) x)).
       {
         intros.
         apply fold_snd_map.
@@ -67,7 +67,7 @@ forall (init : Z) (m : Int256Tree.t Z),
     repeat rewrite H. clear H.
     rewrite <- fold_left_last.
     repeat rewrite fold_symmetric; try (intros; lia).
-    remember (map snd (Int256Tree.elements m)) as l.
+    remember (List.map snd (Int256Tree.elements m)) as l.
     clear Heql. clear m. generalize dependent l.
     induction l.
      - simpl. lia.
@@ -667,7 +667,7 @@ Definition balance_backed d ps : Prop :=
   (Crowdfunding_funded d) = false
   -> sum (Crowdfunding_backers d)
      <= (ps_balance ps (contract_address)) /\
-     (forall (k : Int256Tree.elt) (v : Z), Int256Tree.get k (Crowdfunding_backers d) = Some v -> v >= 0).
+     (forall k v, get k (Crowdfunding_backers d) = Some v -> v >= 0).
 
 Lemma balance_backed_in_next_state : forall d_before d_after ps_before callvalue caller origin chainid coinbase,
      balance_backed d_before ps_before -> d_after = resetTransfers d_before -> (callvalue =? 0) = true -> negb (Int256.eq caller contract_address) = true -> balance_backed (resetTransfers d_before)
