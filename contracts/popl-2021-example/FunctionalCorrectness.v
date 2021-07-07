@@ -666,7 +666,8 @@ Definition Safe (P : global_abstract_data_type -> persistent_state -> Prop ) :=
 Definition balance_backed d ps : Prop := 
   (Crowdfunding_funded d) = false
   -> sum (Crowdfunding_backers d)
-     <= (ps_balance ps (contract_address)).
+     <= (ps_balance ps (contract_address)) /\
+     (forall (k : Int256Tree.elt) (v : Z), Int256Tree.get k (Crowdfunding_backers d) = Some v -> v >= 0).
 
 Lemma balance_backed_in_next_state : forall d_before d_after ps_before callvalue caller origin chainid coinbase,
      balance_backed d_before ps_before -> d_after = resetTransfers d_before -> (callvalue =? 0) = true -> negb (Int256.eq caller contract_address) = true -> balance_backed (resetTransfers d_before)
@@ -696,7 +697,10 @@ Proof.
   - unfold balance_backed. simpl. intros.
     unfold Int256Tree_Properties.sum. unfold Int256Tree.empty.
     unfold Int256Tree.fold1. simpl.
+    split.
     apply snapshot_balances_nonnegative_prf.
+    + unfold Int256Tree.get_default, Int256Tree.get. simpl. unfold PTree.empty, Int256Indexed.index. destruct k.
+    unfold "!". destruct intval; intros; discriminate.
   - destruct blockchain_action eqn:Case.
     + destruct c eqn:SCase.
       * unfold step in H0. simpl in H0. inversion H0. assumption.
@@ -744,7 +748,21 @@ Proof.
             rewrite Int256Tree_sum_set_value_initially_zero; [|assumption].
             rewrite Int256.eq_sym, SSSCase.
             rewrite <- Z.add_le_mono_r.
-            assumption.
+            destruct H1.
+            split.
+            + assumption.
+            + intros.
+              destruct (Int256.eq k caller) eqn:SSCase.
+              apply Int256eq_true in SSCase. rewrite SSCase in H6.
+              rewrite Int256Tree.gss in H6.
+              inversion H6.
+              rewrite <- H8.
+              clear -H11.
+              unfold GenericMachineEnv.generic_machine_env in H11. simpl in H11.
+              now apply geb_ge in H11.
+              apply Int256eq_false in SSCase. 
+              rewrite Int256Tree.gso in H6 by assumption.
+              apply H4 in H6. assumption.
         }
         {
           unfold step in H0. simpl in H0.
@@ -815,8 +833,16 @@ Proof.
             rewrite Z.eqb_eq in H11.
             rewrite H11.
             repeat rewrite Z.add_0_r. repeat rewrite Z.sub_0_r.
-            apply Int256Tree_sum_minus.
-            assumption.
+            destruct H1.
+            split.
+            + apply Int256Tree_sum_minus. assumption.
+            + intros. destruct (Int256.eq k caller) eqn:SSCase.
+              * apply Int256eq_true in SSCase. rewrite SSCase in H3.
+                rewrite Int256Tree.gss in H3.
+                inversion H3. lia.
+              * apply Int256eq_false in SSCase. 
+                rewrite Int256Tree.gso in H3 by assumption.
+                apply H2 in H3. assumption.
           - rewrite Int256.eq_true in Heqb1. discriminate.
           - rewrite Int256.eq_false in Heqb1 by (unfold not; intros; discriminate). discriminate.
           - simpl in SSSCase1. inversion SSSCase1.
@@ -838,8 +864,8 @@ Proof.
       destruct (Int256.eq contract_address sender) eqn:SCase.
         * apply Int256eq_true in SCase. symmetry in SCase. contradiction.
         * destruct(Int256.eq contract_address recipient) eqn:SSCase.
-          -- apply Int256eq_true in SSCase. rewrite <- SSCase. lia.
-          -- assumption.
+          -- apply Int256eq_true in SSCase. rewrite <- SSCase. split; [|apply H1]. lia.
+          -- split; [|apply H1]. apply H1.
     + unfold step in H0. simpl in H0. inversion H0.
       assumption.
 Qed.
