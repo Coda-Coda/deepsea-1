@@ -908,19 +908,6 @@ Proof.
     + rewrite Z.add_0_r. apply Int256eq_true in SCase. now subst.
 Qed.
 
-Lemma reachable_state_implies_nonnegative_balances : forall d ps a, ReachableState d ps -> (ps_balance ps) a >= 0.
-Admitted.
-
-Lemma reachable_state_implies_non_overflowed : forall d ps a, ReachableState d ps -> (ps_balance ps) a <= Int256.max_unsigned.
-Admitted.
-
-(* Lemma no_overflow_in_0_transfer : forall a1 a2 balances, ReachableState 
-noOverflowOrUnderflowInTransfer a1 a2 0 balances = true.
-Proof.
-  intros.
-  unfold noOverflowOrUnderflowInTransfer.
-  rewrite Z.sub_0_r. rewrite Z.add_0_r.
-Abort. *)
 
 Program Lemma can_claim_back backer_addr d_before ps_before d_after ps_after backed_amount :
   ReachableState d_before ps_before ->
