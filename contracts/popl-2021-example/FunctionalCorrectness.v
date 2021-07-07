@@ -940,6 +940,10 @@ Program Lemma can_claim_back backer_addr d_before ps_before d_after ps_after bac
   ps_balance ps_before contract_address < (Crowdfunding_goal d_before) ->
   (* Block number exceeds the set number *)
   Int256.ltu (Crowdfunding_max_block d_before) (ps_number ps_before) = true ->
+  (* All balances are nonnegative beforehand *)
+  (forall a, ps_balance ps_before a >= 0) ->
+  (* All balances are not overflowing beforehand *)
+  (forall a, ps_balance ps_before a <= Int256.max_unsigned) ->
   (* Can emit message from b *)
   exists (f : FunctionCall) (callvalue : Z) (coinbase chainid : int256),
     (d_after, ps_after) = execute_contract_call (CallFunction f backer_addr backer_addr callvalue coinbase chainid)
@@ -951,7 +955,7 @@ Proof.
   exists contractStep_claim.
   exists 0. exists Int256.zero. exists Int256.zero.
   intros.
-  unfold execute_contract_call in H8.
+  unfold execute_contract_call in H10.
   destruct ( noOverflowOrUnderflowInTransfer backer_addr contract_address 0
   (ps_balance ps_before)) eqn:OverflowCase.
   - match goal with 
@@ -969,9 +973,9 @@ Proof.
         -- unfold GenericMachineEnv.current_balances in H0.
            rewrite Int256.eq_true in H0. unfold GenericMachineEnv.credits_to_address, GenericMachineEnv.debits_from_contract in H0. simpl in H0. rewrite Z.add_0_r, Z.sub_0_r in H0.
            unfold update_balances in H0.
-           apply (f_equal negb) in H13. rewrite Bool.negb_involutive in H13. simpl in H13. rewrite H13 in H0. rewrite Int256.eq_sym in H13. rewrite H13 in H0. rewrite Int256.eq_true in H0. rewrite Z.add_0_r in H0.
+           apply (f_equal negb) in H15. rewrite Bool.negb_involutive in H15. simpl in H15. rewrite H15 in H0. rewrite Int256.eq_sym in H15. rewrite H15 in H0. rewrite Int256.eq_true in H0. rewrite Z.add_0_r in H0.
            rewrite Z.leb_le in H0. lia.
-    + inversion H8.
+    + inversion H10.
       clear.
       simpl.
       reflexivity.
@@ -1034,20 +1038,20 @@ Proof.
              assert((GenericMachineEnv.current_balances contract_address
              (update_balances backer_addr contract_address 0
                 (ps_balance ps_before)) (ETH_successful_transfers g) backer_addr = ps_balance ps_before backer_addr)).
-                rewrite <- H10.
+                rewrite <- H12.
                 unfold GenericMachineEnv.current_balances, resetTransfers, update_balances, GenericMachineEnv.credits_to_address, GenericMachineEnv.debits_from_contract.
                 simpl.
                 repeat (match goal with | _:_ |- context[if ?X then _ else _] => destruct X; simpl; try rewrite Z.add_0_r, Z.sub_0_r; try reflexivity end).
 
-              rewrite H11 in SCase.
+              rewrite H13 in SCase.
               
-              rewrite <- H10 in SCase.
+              rewrite <- H12 in SCase.
               rewrite <- H0 in SCase.
               rewrite H4 in SCase.
 
               pose proof sufficient_funds_safe.
               unfold Safe in H12.
-              apply H12 in H.
+              apply H14 in H.
               unfold balance_backed in H.
               apply H in H5.
               
@@ -1077,7 +1081,7 @@ Proof.
                   simpl.
                   reflexivity.
                 }
-              rewrite <- H14 in SCase.
+              rewrite <- H16 in SCase.
 
               assert((forall (k : Int256Tree.elt) (v : Z), Int256Tree.get k (Crowdfunding_backers d_before) = Some v -> v >= 0) -> sum (Crowdfunding_backers d_before) <=
               ps_balance ps_before contract_address ->
@@ -1095,25 +1099,27 @@ Proof.
             }
 
             destruct H5.
-            pose proof (H15 H16 H5).
+            pose proof (H17 H18 H5).
 
-            rewrite H17 in SCase.
+            rewrite H19 in SCase.
 
             simpl in SCase.
             discriminate.
       * destruct (Int256.eq backer_addr contract_address) eqn:SCase.
         -- simpl in Case0. apply Int256eq_true in SCase. symmetry in SCase. contradiction.
         -- simpl in Case0. discriminate.
-  - pose proof reachable_state_implies_nonnegative_balances d_before ps_before backer_addr H.
-  pose proof reachable_state_implies_non_overflowed d_before ps_before contract_address H.
-  unfold noOverflowOrUnderflowInTransfer in OverflowCase.
-  rewrite Z.sub_0_r, Z.add_0_r in OverflowCase.
-  apply Z.ge_le in H9. 
-  rewrite <- Z.geb_le in H9. rewrite <- Z.leb_le in H10.
-  rewrite H9, H10 in OverflowCase.
-  simpl in OverflowCase.
-  discriminate.
+  - pose proof H8 backer_addr.
+    pose proof H9 contract_address.
+    unfold noOverflowOrUnderflowInTransfer in OverflowCase.
+    rewrite Z.sub_0_r, Z.add_0_r in OverflowCase.
+    apply Z.ge_le in H11. 
+    rewrite <- Z.geb_le in H11. rewrite <- Z.leb_le in H12.
+    rewrite H11, H12 in OverflowCase.
+    simpl in OverflowCase.
+    discriminate.
 Qed.
+
+Print Assumptions can_claim_back.
 
 End Blockchain_Model.
 
