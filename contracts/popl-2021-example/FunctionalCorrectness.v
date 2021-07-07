@@ -895,57 +895,6 @@ Proof.
   deepsea_inversion. assert(x = x). subst.
 Abort. *)
 
-  (* The _branching variant also destruct if-statements. *)
-  Ltac inv_None H  :=
-    lazymatch type of H with
-      | (runStateT (bind _ _) _ = None)    =>
-        let H1 := fresh H in
-        let H2 := fresh H in
-        apply (split_runStateT_curried H); intros ? ? H1 H2; clear H;
-        inv_runStateT1_branching H1;
-        inv_runStateT1_branching H2
-      | (runStateT (gets _) _   = None)     =>
-        apply (gets_osT2_curried H); intros; clear H
-      | (runStateT get _        = None)     =>
-        apply (get_osT2_curried H); intros; clear H
-      | (runStateT (ret _) _    = None)     =>
-        apply (ret_osT_curried H); intros; clear H
-      | (runStateT (modify _) _ = None)     =>
-        apply (modify_osT_curried H); intros; clear H
-      | (runStateT (put _) _    = None)     =>
-        apply (put_osT_curried H); intros; clear H
-      | (runStateT (guard _) _  = None)     =>
-        apply (guard_pure_osT2_curried H); intros; clear H
-      | (runStateT (if ?b then _ else _) _ = ret _) =>
-        destruct b eqn:?;
-        inv_runStateT1_branching H
-
-      (* And the same for Some instead of ret. They are definitionally
-         equal, but match differently, so we include patterns for  both.*)
-      | (runStateT (bind _ _) _ = Some (_, _))    =>
-        let H1 := fresh H in
-        let H2 := fresh H in
-        apply (split_runStateT_curried H); intros ? ? H1 H2; clear H;
-        inv_runStateT1_branching H1;
-        inv_runStateT1_branching H2
-      | (runStateT (gets _) _   = Some (_, _))     =>
-        apply (gets_osT2_curried H); intros; clear H
-      | (runStateT get _        = Some (_, _))     =>
-        apply (get_osT2_curried H); intros; clear H
-      | (runStateT (ret _) _    = Some (_, _))     =>
-        apply (ret_osT_curried H); intros; clear H
-      | (runStateT (modify _) _ = Some (_, _))     =>
-        apply (modify_osT_curried H); intros; clear H
-      | (runStateT (put _) _    = Some (_, _))     =>
-        apply (put_osT_curried H); intros; clear H
-      | (runStateT (guard _) _  = Some (_, _))     =>
-        apply (guard_pure_osT2_curried H); intros; clear H
-      | (runStateT (if ?b then _ else _) _ = Some  _) =>
-        destruct b eqn:?;
-        inv_runStateT1_branching H
-    | _ => idtac        
-    end.
-
 Lemma transfer_0_same : forall a1 a2 balances, update_balances a1 a2 0 balances = balances.
 Proof.
   intros.
