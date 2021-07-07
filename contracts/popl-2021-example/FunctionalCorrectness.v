@@ -946,11 +946,39 @@ Abort. *)
     | _ => idtac        
     end.
 
+Lemma transfer_0_same : forall a1 a2 balances, update_balances a1 a2 0 balances = balances.
+Proof.
+  intros.
+  apply FunctionalExtensionality.functional_extensionality. (* TODO consider whether using Functional Extensionality and the associated axiom is OK. *)
+  intros.
+  unfold update_balances.
+  destruct (Int256.eq a1 a2); try reflexivity.
+  destruct (Int256.eq x a1) eqn:Case.
+  - rewrite Z.sub_0_r. apply Int256eq_true in Case. now subst.
+  - destruct (Int256.eq x a2) eqn:SCase; try reflexivity.
+    + rewrite Z.add_0_r. apply Int256eq_true in SCase. now subst.
+Qed.
+
+Lemma reachable_state_implies_nonnegative_balances : forall d ps a, ReachableState d ps -> (ps_balance ps) a >= 0.
+Admitted.
+
+Lemma reachable_state_implies_non_overflowed : forall d ps a, ReachableState d ps -> (ps_balance ps) a <= Int256.max_unsigned.
+Admitted.
+
+(* Lemma no_overflow_in_0_transfer : forall a1 a2 balances, ReachableState 
+noOverflowOrUnderflowInTransfer a1 a2 0 balances = true.
+Proof.
+  intros.
+  unfold noOverflowOrUnderflowInTransfer.
+  rewrite Z.sub_0_r. rewrite Z.add_0_r.
+Abort. *)
 
 Program Lemma can_claim_back backer_addr d_before ps_before d_after ps_after backed_amount :
   ReachableState d_before ps_before ->
   backed_amount = Int256Tree.get_default 0 backer_addr
   (Crowdfunding_backers (resetTransfers d_before)) ->
+  (* Backer is not the contract itself *)
+  contract_address <> backer_addr ->
   (* Backed nonzero *)
   backed_amount > 0 ->
   (* Backer address will accept funds (e.g. is an EOA)*)
@@ -974,27 +1002,27 @@ Proof.
   exists contractStep_claim.
   exists 0. exists Int256.zero. exists Int256.zero.
   intros.
-  unfold execute_contract_call in H7.
+  unfold execute_contract_call in H8.
   destruct ( noOverflowOrUnderflowInTransfer backer_addr contract_address 0
-  (ps_balance ps_before)).
+  (ps_balance ps_before)) eqn:OverflowCase.
   - match goal with 
     | H : context[runStateT ?X] |- _ => let C:= fresh "Case" in destruct (runStateT X) eqn:C; simpl in H end.
     destruct p.
     Transparent Crowdfunding_claim_opt. unfold Crowdfunding_claim_opt in Case.
     deepsea_inversion; subst; simpl in *.
-    + rewrite H6 in Heqb. inversion Heqb.
+    + rewrite H7 in Heqb. inversion Heqb.
     + apply Bool.orb_prop in Heqb0.
       exfalso.
       destruct Heqb0.
-      * rewrite Z.eqb_eq in H0. rewrite H0 in H1. lia.
+      * rewrite Z.eqb_eq in H0. rewrite H0 in H2. lia.
       * apply Bool.orb_prop in H0. destruct H0.
-        -- rewrite H0 in H4. discriminate.
+        -- rewrite H0 in H5. discriminate.
         -- unfold GenericMachineEnv.current_balances in H0.
            rewrite Int256.eq_true in H0. unfold GenericMachineEnv.credits_to_address, GenericMachineEnv.debits_from_contract in H0. simpl in H0. rewrite Z.add_0_r, Z.sub_0_r in H0.
            unfold update_balances in H0.
-           apply (f_equal negb) in H12. rewrite Bool.negb_involutive in H12. simpl in H12. rewrite H12 in H0. rewrite Int256.eq_sym in H12. rewrite H12 in H0. rewrite Int256.eq_true in H0. rewrite Z.add_0_r in H0.
+           apply (f_equal negb) in H13. rewrite Bool.negb_involutive in H13. simpl in H13. rewrite H13 in H0. rewrite Int256.eq_sym in H13. rewrite H13 in H0. rewrite Int256.eq_true in H0. rewrite Z.add_0_r in H0.
            rewrite Z.leb_le in H0. lia.
-    + inversion H7.
+    + inversion H8.
       clear.
       simpl.
       reflexivity.
@@ -1052,27 +1080,27 @@ Proof.
                deepsea_inversion.
              unfold GenericMachineEnv.successful_transfer in SCase. simpl in SCase.
              unfold address_accepts_funds_guaranteed_for_contract in SCase.
-             rewrite H2 in SCase.
+             rewrite H3 in SCase.
              rewrite Int256.eq_true in SCase.
              assert((GenericMachineEnv.current_balances contract_address
              (update_balances backer_addr contract_address 0
                 (ps_balance ps_before)) (ETH_successful_transfers g) backer_addr = ps_balance ps_before backer_addr)).
-                rewrite <- H9.
+                rewrite <- H10.
                 unfold GenericMachineEnv.current_balances, resetTransfers, update_balances, GenericMachineEnv.credits_to_address, GenericMachineEnv.debits_from_contract.
                 simpl.
                 repeat (match goal with | _:_ |- context[if ?X then _ else _] => destruct X; simpl; try rewrite Z.add_0_r, Z.sub_0_r; try reflexivity end).
 
-              rewrite H10 in SCase.
+              rewrite H11 in SCase.
               
-              rewrite <- H9 in SCase.
+              rewrite <- H10 in SCase.
               rewrite <- H0 in SCase.
-              rewrite H3 in SCase.
+              rewrite H4 in SCase.
 
               pose proof sufficient_funds_safe.
-              unfold Safe in H11.
-              apply H11 in H.
+              unfold Safe in H12.
+              apply H12 in H.
               unfold balance_backed in H.
-              apply H in H4.
+              apply H in H5.
               
               assert(forall a, (update_balances backer_addr contract_address 0
               (ps_balance ps_before)) a = ps_balance ps_before a).
@@ -1084,64 +1112,59 @@ Proof.
                  apply Int256eq_true in SSSSCase. rewrite SSSSCase. now rewrite Z.add_0_r.
                  reflexivity.
 
-              unfold GenericMachineEnv.current_balances, resetTransfers, GenericMachineEnv.credits_to_address, GenericMachineEnv.debits_from_contract in SCase.
-              simpl in H12.
-              rewrite H12 in SCase.
-                 repeat (match goal with | _:_ |- context[if ?X then _ else _] => destruct X; simpl; try rewrite Z.add_0_r, Z.sub_0_r; try reflexivity end).
-                 .
+              unfold GenericMachineEnv.current_balances, GenericMachineEnv.credits_to_address, GenericMachineEnv.debits_from_contract in SCase.
+              simpl in SCase.
+              repeat rewrite Z.add_0_r in SCase. repeat rewrite Z.sub_0_r in SCase.
 
+              rewrite transfer_0_same in SCase.
+              rewrite Int256.eq_true in SCase.
 
-                rewrite H10 in SCase.
+              rewrite H0 in SCase.
 
-                rewrite H3 in SCase.
-                destruct (Int256.eq backer_addr backer_addr).
-                
-                
-             rewrite <- H8 in SCase. unfold update_balances, resetTransfers in SCase. simpl in SCase.
-             
-      *   
+              assert(Crowdfunding_backers d_before = Crowdfunding_backers (resetTransfers d_before)).
+                {
+                  unfold Crowdfunding_backers, resetTransfers.
+                  destruct d_before.
+                  simpl.
+                  reflexivity.
+                }
+              rewrite <- H14 in SCase.
 
-      
-    
-    
-    unfold Crowdfunding_claim_opt in Case. simpl in Case.
-      match goal with 
-      | H : context[runStateT ?X] |- _ => let C:= fresh "Case" in destruct (runStateT X) eqn:C; simpl in H end; clear Case.
-      * destruct p. deepsea_inversion. 
+              assert((forall (k : Int256Tree.elt) (v : Z), Int256Tree.get k (Crowdfunding_backers d_before) = Some v -> v >= 0) -> sum (Crowdfunding_backers d_before) <=
+              ps_balance ps_before contract_address ->
+              (ps_balance ps_before contract_address -
+          Int256Tree.get_default 0 backer_addr
+            (Crowdfunding_backers d_before) >=? 0) = true).
+            {
+              clear.
+              intros.
+              rewrite Z.geb_le.
+              
+              assert(Int256Tree.get_default 0 backer_addr (Crowdfunding_backers d_before) <= sum (Crowdfunding_backers d_before)).
+              apply sum_bound1; try assumption; try lia.
+              lia.
+            }
 
-      destruct ( runStateT (guard (negb (Int256.eq backer_addr contract_address)))
-      (resetTransfers d_before)) eqn:SCase.
-       
+            destruct H5.
+            pose proof (H15 H16 H5).
 
+            rewrite H17 in SCase.
 
-
-  match goal with 
-      | H : context[if ?X then _ else _] |- _ => let C:= fresh "Case" in destruct X eqn:C; simpl in H end.
-  - simpl. 
-  destruct ( (Int256.eq backer_addr contract_address)) eqn:SCase; simpl in H3.
-    + exfalso. admit.
-    +   match goal with 
-    | H : context[runStateT ?X] |- _ => let C:= fresh "Case" in destruct X eqn:C; simpl in H end.
-      * simpl in H4.
-        destruct (Int256.ltu (Crowdfunding_max_block d_before)
-        (ps_number ps_before)) eqn:SSSCase. simpl in *.
-      
-      
-
-      destruct p.
-      deepsea_inversion.
-      inversion H4.
-      subst. 
-      simpl.
-  unfold noOverflowOrUnderflowInTransfer in H3.
-  simpl in H3.
-  subst.
-  simpl.
-
-
-
-  out (step_prot crowd_prot st bc m) = Some (Msg d crowd_addr b 0 ok_msg).
-Proof.
+            simpl in SCase.
+            discriminate.
+      * destruct (Int256.eq backer_addr contract_address) eqn:SCase.
+        -- simpl in Case0. apply Int256eq_true in SCase. symmetry in SCase. contradiction.
+        -- simpl in Case0. discriminate.
+  - pose proof reachable_state_implies_nonnegative_balances d_before ps_before backer_addr H.
+  pose proof reachable_state_implies_non_overflowed d_before ps_before contract_address H.
+  unfold noOverflowOrUnderflowInTransfer in OverflowCase.
+  rewrite Z.sub_0_r, Z.add_0_r in OverflowCase.
+  apply Z.ge_le in H9. 
+  rewrite <- Z.geb_le in H9. rewrite <- Z.leb_le in H10.
+  rewrite H9, H10 in OverflowCase.
+  simpl in OverflowCase.
+  discriminate.
+Qed.
 
 End Blockchain_Model.
 

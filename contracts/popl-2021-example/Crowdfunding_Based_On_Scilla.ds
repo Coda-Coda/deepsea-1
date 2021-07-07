@@ -60,6 +60,7 @@ object Crowdfunding (ETH_object : { } ) : CrowdfundingSig {
     
     let donate () =
       assert(msg_sender <> this_address);
+      assert(msg_value >= 0);
       let bs = backers in
       let blk = block_number in
       let _max_block = max_block in
