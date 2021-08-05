@@ -91,7 +91,7 @@ Fixpoint synth_stmt_spec_opt_main (enable_reentrancy_tracking_flag : bool) {retu
       if synth_expr_spec me tmp e (car wf) se
       then synth_stmt_spec_opt_main enable_reentrancy_tracking_flag c_true  dest tmp (cadr wf) se
       else synth_stmt_spec_opt_main enable_reentrancy_tracking_flag c_false dest tmp (cddr wf) se
-  ) in fun wf se => (if enable_reentrancy_tracking_flag then if (synth_expr_spec me tmp e (car wf) se) then (reentrancy_tracking c_true ;; without_reentrancy_tracking wf se) else (reentrancy_tracking c_false ;; without_reentrancy_tracking wf se) else without_reentrancy_tracking wf se)
+    ) in if enable_reentrancy_tracking_flag then (fun wf se => reentrancy_tracking c ;; without_reentrancy_tracking wf se) else without_reentrancy_tracking
   | CCfor id_it id_end e1 e2 c3 =>
   let without_reentrancy_tracking :=(
     fun (wf : let tmp' := AList.set id_end int_Z32_pair tmp in
