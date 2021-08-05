@@ -19,6 +19,9 @@ The code related to the FMBC 2021 Paper is (currently) only available in this re
 
 [src/Edsger/coqgen.ml (starting line 2597)](https://github.com/Coda-Coda/deepsea-1/blob/fmbc-2021/src/Edsger/coqgen.ml#L2597) has the OCaml code which generates the proof obligations related to following the *Checks-Effects-Interactions Pattern* for each command. Obligations relating to calls to other functions within a smart contract (`CCcall`) are also facilitated by this `coqgen.ml` code. This file also has the tactic used to prove that the list of transfers is of length at most one. This tactic is generated from the code at [line 5249](https://github.com/Coda-Coda/deepsea-1/blob/fmbc-2021/src/Edsger/coqgen.ml#L5249) (see also the generated [SingleTransferCheck.v line 100](https://github.com/Coda-Coda/deepsea-1/blob/fmbc-2021/contracts/fmbc-2021-example/contract/SingleTransferCheck.v#L100)).
 
+
+[./ExperimentalSynthesisStmt-snippet.v](./ExperimentalSynthesisStmt-snippet.v) has the key definition relating to the alternative approach that makes use of the high level representation of the smart contract. This is the key aspect of this approach, however note that it is only a snippet (which can work, but is experimental). It would form a part of the SynthesisStmt.v file along with some other less relevant alterations. Feel free to get in touch if you are interested in further details.
+
 ----------
 
 # The DeepSEA Language
