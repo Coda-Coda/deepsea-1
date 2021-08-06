@@ -242,3 +242,33 @@ synth_stmt_spec_opt_main false c dest tmp.
 Definition synth_stmt_spec_opt_with_reentrancy_tracking {returns}(c : cmd_constr returns) dest tmp :
 synth_stmt_wellformed c dest tmp -> spec_env_t tmp -> DS (tp_ft returns) := 
 synth_stmt_spec_opt_main true c dest tmp.
+
+
+
+(* Also, the following two definitions (from different files) are relevant. 
+   standard_me_reentrancy_tracker below is used as the definition of me_reentrancy_safety_tracker. *)
+
+Inductive reentracy_safety_state :=
+  | Safe_no_reentrancy
+  | Safe_with_potential_reentrancy
+  | Unsafe
+.
+
+Definition standard_me_reentrancy_tracker := (fun tag d =>
+let safety_state_d := FixedSupplyToken__reentracy_safety_state d in    
+match safety_state_d with
+| Transfers.Safe_no_reentrancy => 
+  match tag with
+  | SafeEvenAfterReentrancy => d (* Still Safe_no_reentrancy *)
+  | OnlySafeBeforeReentrancy => d (* Still Safe_no_reentrancy *)
+  | AllowsReentrancy => d_with_new_safety_tag Transfers.Safe_with_potential_reentrancy d
+  end
+| Transfers.Safe_with_potential_reentrancy =>
+  match tag with
+  | SafeEvenAfterReentrancy => d (* Still Safe_with_potential_reentrancy *)
+  | OnlySafeBeforeReentrancy => d_with_new_safety_tag Transfers.Unsafe d
+  | AllowsReentrancy => d_with_new_safety_tag Transfers.Unsafe d
+  end
+| Transfers.Unsafe => d (* Still Unsafe *)
+end
+).
