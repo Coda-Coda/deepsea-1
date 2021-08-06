@@ -245,7 +245,7 @@ synth_stmt_spec_opt_main true c dest tmp.
 
 
 
-(* Also, the following three definitions (from different files) are relevant. 
+(* Also, the following three definitions (from other files) are relevant. 
    standard_me_reentrancy_tracker below is used as the definition of me_reentrancy_safety_tracker. *)
 
 Inductive reentrancy_safety_state :=
@@ -253,6 +253,12 @@ Inductive reentrancy_safety_state :=
   | Safe_with_potential_reentrancy
   | Unsafe
 .
+
+Definition d_with_new_safety_tag (tag : reentrancy_safety_state) (d : global_abstract_data_type) : global_abstract_data_type :=
+{|
+  ... (* This definition leaves all other fields of the record d unchanged. *)
+  FixedSupplyToken__reentrancy_safety_state := tag (* FixedSupplyToken is a reference to the name of a particular contract, this name would vary between contracts. *)
+|}.
 
 Definition standard_me_reentrancy_tracker := (fun tag d =>
 let safety_state_d := FixedSupplyToken__reentrancy_safety_state d in    
