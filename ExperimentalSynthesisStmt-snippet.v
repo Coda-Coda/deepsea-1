@@ -245,17 +245,17 @@ synth_stmt_spec_opt_main true c dest tmp.
 
 
 
-(* Also, the following two definitions (from different files) are relevant. 
+(* Also, the following three definitions (from different files) are relevant. 
    standard_me_reentrancy_tracker below is used as the definition of me_reentrancy_safety_tracker. *)
 
-Inductive reentracy_safety_state :=
+Inductive reentrancy_safety_state :=
   | Safe_no_reentrancy
   | Safe_with_potential_reentrancy
   | Unsafe
 .
 
 Definition standard_me_reentrancy_tracker := (fun tag d =>
-let safety_state_d := FixedSupplyToken__reentracy_safety_state d in    
+let safety_state_d := FixedSupplyToken__reentrancy_safety_state d in    
 match safety_state_d with
 | Transfers.Safe_no_reentrancy => 
   match tag with
