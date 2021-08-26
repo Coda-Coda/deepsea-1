@@ -144,6 +144,8 @@ rule token = parse
   | "^" { XOR }
   | "<<" { SHL }
   | ">>" { SHR }
+  | "(int)" { CAST_UINT_TO_INT }
+  | "(uint)" { CAST_INT_TO_UINT }
 
 and comment = parse
   | "(*" { incr comment_level; comment lexbuf }

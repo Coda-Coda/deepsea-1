@@ -106,6 +106,8 @@ let string_of_token = function
   | SHR          -> "SHR"
   | LIST         -> "LIST"
   | TRANSFERETH     -> "TRANSFERETH"
+  | CAST_UINT_TO_INT -> "CAST_UINT_TO_INT"
+  | CAST_INT_TO_UINT -> "CAST_INT_TO_UINT"
 
 let rec read_tokens buf =
   let token = Lexer.token buf in

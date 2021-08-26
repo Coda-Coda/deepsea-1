@@ -108,6 +108,7 @@ Definition gas_unop (o: unary_operation) : nat :=
   | Onotint => g_verylow
   | Oneg => gas_push + gas_binop Osub
   | Osha_1 => gas_sha_1
+  | Oidentity => 0
   end.
 
 (* TODO: look up the actual values *)

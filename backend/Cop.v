@@ -32,7 +32,8 @@ Inductive unary_operation : Type :=
   | Onotbool : unary_operation          (**r boolean negation ([!] in C) *)
   | Onotint : unary_operation           (**r integer complement ([~] in C) *)
   | Oneg : unary_operation              (**r opposite (unary [-]) *)
-  | Osha_1 : unary_operation.           (**r Keccak-256 hash. *)
+  | Osha_1 : unary_operation            (**r Keccak-256 hash. *)
+  | Oidentity : unary_operation.        (**r identity, used for casting int and uint. *)
 
 Inductive binary_operation : Type :=
   | Oadd : binary_operation             (**r addition (binary [+]) *)
@@ -65,6 +66,7 @@ Definition sem_unary_operation_int256 (op: unary_operation) (n: int256) : option
   | Onotint => Some (Int256.not n)
   | Oneg => Some (Int256.neg n)
   | Osha_1 => None (* handled elsewhere. *)
+  | Oidentity => Some n
   end.
 
 Definition sem_unary_operation (op: unary_operation) (v: val) (_:type) : option val :=

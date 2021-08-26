@@ -355,6 +355,8 @@ let gen_unop =
   | OPnot -> Onotbool
   | OPbitnot -> Onotint
   | OPbitneg -> Onotint
+  | OPCAST_UINT_TO_INT -> Oidentity
+  | OPCAST_INT_TO_UINT -> Oidentity
   | OPsha_1 -> Osha_1
              
 let gen_binop =

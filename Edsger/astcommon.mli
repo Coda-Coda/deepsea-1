@@ -44,6 +44,8 @@ type unop =
   | OPnot
   | OPbitnot
   | OPbitneg  (* ??? *)
+  | OPCAST_UINT_TO_INT
+  | OPCAST_INT_TO_UINT
   | OPsha_1
 
 type binop =

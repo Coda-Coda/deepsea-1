@@ -2,12 +2,14 @@ let show_unop = function
   | Cop.Onotbool -> "notbool"
   | Cop.Onotint  -> "notint"
   | Cop.Oneg     -> "neg"
+  | Cop.Oidentity -> "identity"
   | Cop.Osha_1   -> "sha_1"
 
 let show_unop_symb = function
   | Cop.Onotbool -> "!"
   | Cop.Onotint  -> "~"
   | Cop.Oneg     -> "-"
+  | Cop.Oidentity -> "id"
   | Cop.Osha_1   -> "sha1 "
 
 let show_binop = function

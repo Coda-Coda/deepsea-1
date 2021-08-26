@@ -158,6 +158,8 @@ let unop_type op t = match op, t.aTypeDesc with
   | OPneg, ATbuiltin Tuint -> Some t
   | OPnot, ATbuiltin Tbool -> Some t
   | OPbitnot, ATbuiltin Tuint -> Some t
+  | OPCAST_UINT_TO_INT, ATbuiltin Tuint -> Some tint_Z32
+  | OPCAST_INT_TO_UINT, ATbuiltin Tint -> Some tint_U
   | OPsha_1, ATbuiltin Thashvalue -> Some tint_hashvalue
   | OPsha_1, ATbuiltin Tuint -> Some tint_hashvalue
   | OPsha_1, ATbuiltin Taddress -> Some tint_hashvalue

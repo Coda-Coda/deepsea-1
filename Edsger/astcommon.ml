@@ -44,6 +44,8 @@ type unop =
   | OPnot
   | OPbitnot
   | OPbitneg  (* ??? *)
+  | OPCAST_UINT_TO_INT
+  | OPCAST_INT_TO_UINT
   | OPsha_1
 
 type binop =
@@ -109,6 +111,8 @@ let string_of_unop = function
   | OPnot -> "!"
   | OPbitnot -> "~"
   | OPbitneg -> "~"
+  | OPCAST_UINT_TO_INT -> "(int)"
+  | OPCAST_INT_TO_UINT -> "(uint)"
   | OPsha_1 -> "keccak256 "
 
 let string_of_binop = function

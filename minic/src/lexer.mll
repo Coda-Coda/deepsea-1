@@ -40,6 +40,8 @@ rule token = parse
   | "^" { XOR }
   | "<<" { SHL }
   | ">>" { SHR }
+  | "(int)" {CAST_UINT_TO_INT}
+  | "(uint)" {CAST_INT_TO_UINT}
   | "==" { EQ }
   | "!=" { NE }
   | "<" { LT }

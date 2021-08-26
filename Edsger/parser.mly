@@ -132,6 +132,9 @@ let cons_either_double_list e (l1, l2) = match e with
 %token CLONE
 %token TRANSFERETH
 
+%token CAST_UINT_TO_INT
+%token CAST_INT_TO_UINT
+
 %token AT
 %token ARROW
 %token ASSIGN
@@ -527,6 +530,8 @@ expression:
   | MINUS e=expression %prec prec_unary_prefix  {  mkexp_ ~loc:$sloc (PEun (OPneg, e)) }
   | BANG e=expression %prec prec_unary_prefix  {  mkexp_ ~loc:$sloc (PEun (OPnot, e)) }
   | BITNOT e=expression %prec prec_unary_prefix  {  mkexp_ ~loc:$sloc (PEun (OPbitnot, e)) }
+  | CAST_UINT_TO_INT e=expression %prec prec_unary_prefix  {  mkexp_ ~loc:$sloc (PEun (OPCAST_UINT_TO_INT, e)) }
+  | CAST_INT_TO_UINT e=expression %prec prec_unary_prefix  {  mkexp_ ~loc:$sloc (PEun (OPCAST_INT_TO_UINT, e)) }
   | e1=expression BARBAR e2=expression  {  mkexp_ ~loc:$sloc (PEbin (OPbitor, e1, e2 )) }
   | e1=expression XOR e2=expression  {  mkexp_ ~loc:$sloc (PEbin (OPxor, e1, e2 )) }
   | e1=expression BITAND e2=expression  {  mkexp_ ~loc:$sloc (PEbin (OPbitand, e1, e2 )) }

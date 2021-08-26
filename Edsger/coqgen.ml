@@ -1348,6 +1348,8 @@ let compcert_string_of_unop = function
   | OPnot -> "Onotbool"
   | OPbitnot -> "Onotint"
   | OPbitneg -> "Onotint"
+  | OPCAST_UINT_TO_INT -> "Oidentity"
+  | OPCAST_INT_TO_UINT -> "Oidentity"
   | OPsha_1 -> "Osha_1"
 
 let compcert_string_of_binop = function
@@ -1376,6 +1378,8 @@ let gallina_string_of_unop = function
   | OPnot -> "negb"
   | OPbitnot -> "Z.lnot"
   | OPbitneg -> "4294967296 -"
+  | OPCAST_UINT_TO_INT -> "Int256.unsigned"
+  | OPCAST_INT_TO_UINT -> "Int256.repr"
   | OPsha_1 -> "hashval_hash1"
 
 let gallina_string_of_binop_prefix = function

@@ -253,6 +253,8 @@ let rec int_of_p_expression = function
   | PEconstant (CONint n) -> n
   | PEun (OPneg, e) -> - int_of_p_expression e.p_expression_desc
   | PEun (OPbitnot, e) -> lnot (int_of_p_expression e.p_expression_desc)
+  | PEun (OPCAST_UINT_TO_INT, e) -> (int_of_p_expression e.p_expression_desc)
+  | PEun (OPCAST_INT_TO_UINT, e) -> (int_of_p_expression e.p_expression_desc)
   | PEbin (op, e1, e2) ->
     let n1 = int_of_p_expression e1.p_expression_desc in
     let n2 = int_of_p_expression e2.p_expression_desc in

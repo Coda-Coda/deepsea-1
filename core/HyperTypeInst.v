@@ -1,5 +1,6 @@
 Require Import ZArith.
 Require Import Znumtheory.
+Require Import Lia.
 Require Import backend.Values.HighValues.
 Require Import cclib.Integers.
 Require Import backend.AST.
@@ -752,6 +753,53 @@ Section HYPER_TYPE_UNSIGNED.
   Instance int_U_xor_passthrough : HyperBinaryPassthrough Oxor tint_U tint_U tint_U.
   
   
+  (**[int_U_cast_int_Z32]******************************************)
+  Global Instance int_U_cast_int_Z32_impl : HyperUnaryImpl Oidentity tint_U tint_Z32 :=
+    {
+      Hunary_cond ft := True;
+      Hunary_ocond := otrue1;
+      Hunary := Int256.unsigned
+    }.
+  Global Instance int_U_cast_int_Z32 : HyperUnaryOp Oidentity tint_U tint_Z32.
+    Proof.
+      esplit.
+      - (* Hunary_ocond_same *)
+        reflexivity.
+      - (* Int256.unsigned always returns a Z within bounds *)
+        intros.
+        simpl.
+        pose proof (Int256.unsigned_range f).
+        lia.
+      - (* Hunary_correct *)
+        simpl.
+        intros f v fc oc rel.
+        subst v. constructor. simpl. rewrite Int256.repr_unsigned. reflexivity.
+    Qed.
+
+
+    (**[int_Z32_cast_int_U]******************************************)
+  Global Instance int_Z32_cast_int_U_impl : HyperUnaryImpl Oidentity tint_Z32 tint_U :=
+  {
+    Hunary_cond f := -1 < f < Int256.zwordsize;
+    Hunary_ocond := oprop1 (fun f => -1 < f < Int256.zwordsize);
+    Hunary := Int256.repr
+  }.
+  Global Instance int_Z32_cast_int_U : HyperUnaryOp Oidentity tint_U tint_Z32.
+    Proof.
+      esplit.
+      - (* Hunary_ocond_same *)
+        reflexivity.
+      - (* f was assumed to be within bounds *)
+        intros.
+        simpl.
+        pose proof (Int256.unsigned_range f).
+        lia.
+      - (* Hunary_correct *)
+        simpl.
+        intros f v fc oc rel.
+        subst v. constructor. simpl. rewrite Int256.repr_unsigned. reflexivity.
+    Qed.
+
   Typeclasses Transparent tint_U.
   Definition int_U_pair := @mk_hyper_type_pair tint_U int_U_impl.
   Existing Instance int_U_impl.
@@ -788,6 +836,9 @@ Existing Instances
 Existing Instances
          int_U_notint_passthrough int_U_and_passthrough int_U_or_passthrough
          int_U_shl_passthrough int_U_shr_passthrough int_U_xor_passthrough.
+Existing Instances
+         int_U_cast_int_Z32 int_U_cast_int_Z32.
+
 Require Import backend.MachineModel.
 Section WITH_DATA.
 Context `{LayerSpec : LayerSpecClass}.
