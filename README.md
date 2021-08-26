@@ -16,10 +16,21 @@ This directory contains the OCaml parts of the DeepSEA compiler. For the
 time being, we do not include the sources for the parts that are written in
 Coq, but we ship the Ocaml files which were compiled from them.
 
-In order to build it, use opam to install the prerequisites, and then run make:
+In order to build it, use opam or Nix to install the prerequisites, and then run make:
 
 ```
 opam install .
 make edsger
 mv _build/default/Edsger/edsger.bc dsc
 ```
+
+OR
+
+```
+nix-shell
+make edsger
+mv _build/default/Edsger/edsger.bc dsc
+```
+
+
+To install the dependencies using Nix, run `nix-shell` from the root of the repository to install most dependencies without `opam` (install `npm` packages separately). Nix is a package manager available on Linux, macOS, and (via WSL) Windows. You can [get Nix here](https://nixos.org/guides/install-nix.html).
