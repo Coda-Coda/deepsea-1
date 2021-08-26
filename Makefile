@@ -1,3 +1,5 @@
+VFILES:=$(shell grep "^[^#].*.v" _CoqProject)
+
 core: core.make
 	make -f core.make
 
@@ -24,3 +26,9 @@ minicc.exe:
 	cd minic && dune build minicc.exe
 
 .PHONY: clean core edsger edsger.exe parser
+
+coqdoc: core
+	mkdir -p docs/coqdoc	
+	rm -f docs/coqdoc/*.html
+	coqdoc -R . DeepSpec $(VFILES) --toc -d docs/coqdoc --toc-depth 2 --html --interpolate --no-lib-name
+	cp docs/coqdoc/custom-coqdoc.css docs/coqdoc/coqdoc.css

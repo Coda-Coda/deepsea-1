@@ -8,3 +8,10 @@ core.make.conf
 *.merlin
 Edsger/parser.ml
 Edsger/parser.mli
+
+# Docs
+docs/*.pdf
+docs/*.html
+docs/coqdoc/*
+!docs/coqdoc/custom-coqdoc.css
+!docs/coqdoc/custom-coqdoc-css-licence
