@@ -1,6 +1,7 @@
 #!/bin/bash
 
-dsc=../binaries/MacOS/dsc
+# dsc=dsc # If dsc is on the path
+dsc=../_build/default/Edsger/edsger.bc
 
 if [[ ! -d  build ]]; then mkdir build; fi
 
