@@ -378,6 +378,8 @@ object AutomatedMarketMaker
     resultU
 }
 
+(* CUT *)
+
 layer signature AMMLibSig = {
   erc20Token0 : FixedERC20Interface;
   erc20Token1 : FixedERC20Interface;

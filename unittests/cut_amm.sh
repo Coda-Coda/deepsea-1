@@ -12,7 +12,7 @@ layer L = {
   o = LiquidityToken 
 }'
 
-amm_cut=$( gsed '/\(\* CUT \*\)/Q' "$amm")
+amm_cut=$( gsed -e '/\(\*[[:space:]]CUT[[:space:]]\*\)/Q' "$amm")
 
 echo "$amm_cut" "$fixed_supply_token" | tee erc20Token0.ds erc20Token1.ds >/dev/null
 echo "$amm_cut" "$liquidity_token" > liquidityToken.ds

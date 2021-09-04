@@ -13,6 +13,7 @@ pkgs.mkShell {
     ncurses
     git
     gnumake
+    (pkgs.writeShellScriptBin "gsed" "exec -a $0 ${gnused}/bin/sed $@")
     mkdocs
     ocaml-ng.ocamlPackages_4_09.core
     ocaml-ng.ocamlPackages_4_09.dune_2
