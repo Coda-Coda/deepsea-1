@@ -22,7 +22,7 @@ export async function runTest(chains: Chain[]) {
     liquidity_chain.getContractAddress(),
   ]
 
-  console.log(addresses.join(" "))
+  // console.log(addresses.join(" ")) // Commented out so that test output is identical between runs.
   execSync('echo ' + addresses.join(" ") + ' | ./replace_addresses.sh')
   await amm_chain.deployContract('./amm_with_addresses')
 

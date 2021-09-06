@@ -36,3 +36,12 @@ docs/*.html
 docs/coqdoc/*
 !docs/coqdoc/custom-coqdoc.css
 !docs/coqdoc/custom-coqdoc-css-licence
+
+# Unit tests
+unittests/node_modules
+unittests/build/
+amm_with_addresses.ds
+unittests/contracts/erc20Token0.ds
+unittests/contracts/erc20Token1.ds
+unittests/contracts/liquidityToken.ds
+unittests/test_output.log

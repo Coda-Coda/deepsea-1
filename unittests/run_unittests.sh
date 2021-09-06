@@ -14,4 +14,4 @@ for deepsea in ./contracts/*.ds; do
 done
 
 npm run tsc
-node build/tests.js
+node build/tests.js | tee test_output.log
