@@ -2,7 +2,8 @@
 
 set -x
 
-dsc='../binaries/MacOS/dsc'
+# dsc=dsc # If dsc is on the path
+dsc=../_build/default/Edsger/edsger.bc
 amm='contracts/amm.ds'
 amm_basename=$(basename $amm)
 amm_with_addresses=${amm_basename%.ds}_with_addresses.ds
