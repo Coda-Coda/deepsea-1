@@ -27,6 +27,10 @@ pkgs.mkShell {
     ocaml-ng.ocamlPackages_4_09.yojson
     ocaml-ng.ocamlPackages_4_09.menhir
     ocaml-ng.ocamlPackages_4_09.zarith
+    cargo # For conflux tests for ANT blockchain
+    openssl # For conflux tests for ANT blockchain
+    cmake # For conflux tests for ANT blockchain
+    pkg-config # For conflux tests for ANT blockchain
     ];
 
   shellHook = ''

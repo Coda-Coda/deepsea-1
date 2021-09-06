@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Set this to the location of the conflux repo.
-conflux=~/Documents/conflux-rust
+# Uses the first argument if provided, otherwise confluxDefault.
+confluxDefault=~/Documents/conflux-rust
+conflux="${1:-$confluxDefault}"
 
 cp ./tethys.toml $conflux/run
 genPrivateKey=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
