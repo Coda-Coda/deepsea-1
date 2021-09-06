@@ -19,6 +19,7 @@ export class ConfluxChain implements Chain {
       // defaultGas: 1000,
       // logger: this._logger,
       logger: logger,
+      networkId: 1029,
     })
 
     const genesisPrivateKey =

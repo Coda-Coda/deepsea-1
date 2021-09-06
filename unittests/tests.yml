@@ -4,7 +4,9 @@ address:
     expectSuccess: true
     name: init
   - args: []
-    expectValue: 0x000000000000000000000000000000000000efca
+    expectValue:
+      ethereum: 0x000000000000000000000000000000000000efca
+      conflux: "cfx:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaht3jgurt0adt"
     name: get
   - args: ["0xd115bffabbdd893a6f7cea402e7338643ced44a6"]
     expectSuccess: true

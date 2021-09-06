@@ -30,7 +30,12 @@ export async function runTest(chain: Chain) {
     chain.callMethod('get_blockhash_prev')
   ])
 
-  printTest("address", _address == chain.getContractAddress());
+  if (chain.constructor.name == "ConfluxChain") {
+    printTest("address", _address.slice(4).toLowerCase() == chain.getContractAddress().slice(18).toLowerCase());  // For Conflux. Removes "cfx:" and "CFX:TYPE.CONTRACT:" prefixes, respectively, before comparing.
+  }
+  else {
+    printTest("address", _address == chain.getContractAddress());
+  }
   printTest("origin", _origin == await chain.getAccountAddress());
   printTest("caller", _caller == await chain.getAccountAddress());
   printTest("callvalue", _callvalue == _value);
