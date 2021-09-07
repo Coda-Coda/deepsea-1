@@ -1,5 +1,9 @@
 language: nix
 
+branches:
+  only:
+  - main
+
 jobs:
   include:
     - stage: Build - make
