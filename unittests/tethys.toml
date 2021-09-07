@@ -37,7 +37,7 @@ mode = "dev"
 
 # Note that ``dev_block_interval_ms'' controls the mining rate in the dev mode.
 #
-dev_block_interval_ms = 250
+dev_block_interval_ms = 10
 
 # ----------------- Mining Configuration -----------------
 
