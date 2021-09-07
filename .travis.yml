@@ -1,0 +1,12 @@
+language: nix
+
+jobs:
+  include:
+    - stage: Build - make
+      script: nix-shell --run "make"
+    - stage: Build - make edsger
+      script: nix-shell --run "make edsger"
+    - stage: Unit tests
+      script: nix-shell --run "cd unittests; ./autorun_unittests.sh"
+    - stage: Integration tests
+      script: nix-shell --run "cd integration-tests; ./autorun_integration_tests.sh"
