@@ -45,3 +45,10 @@ unittests/contracts/erc20Token0.ds
 unittests/contracts/erc20Token1.ds
 unittests/contracts/liquidityToken.ds
 unittests/test_output.log
+
+# Integration tests
+integration-tests/*/_CoqProject
+integration-tests/test_summary.log
+integration-tests/*/*.log
+integration-tests/*/*/_CoqProject
+integration-tests/*/*/*.v
