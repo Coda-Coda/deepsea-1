@@ -50,5 +50,6 @@ unittests/test_output.log
 integration-tests/*/_CoqProject
 integration-tests/test_summary.log
 integration-tests/*/*.log
+!integration-tests/*/expected_summary.log
 integration-tests/*/*/_CoqProject
 integration-tests/*/*/*.v
