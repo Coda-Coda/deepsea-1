@@ -2,19 +2,21 @@
 
 npm install
 
-conflux=../../conflux-rust
+conflux_commit=3ea27d693c090cc99cb9f4096f8be1d0df83f265 # Pinned at v1.1.5
+conflux=../../conflux-rust-$conflux_commit
 
-if [ ! -d $conflux ]
+# If $conflux does not exist or is empty, then clone and build it.
+if [ ! -d "$conflux" ] || [ -z "$(ls -A "$conflux")" ];
 then
 pushd ../..
-git clone https://github.com/Conflux-Chain/conflux-rust.git
-cd conflux-rust
-git checkout v1.1.5
+git clone https://github.com/Conflux-Chain/conflux-rust.git "$conflux"
+cd "$conflux"
+git checkout $conflux_commit
 cargo build --release
 popd
 fi
 
-setsid sh -c "npm run ganache > /dev/null & ./start_conflux.sh $conflux > /dev/null" &
+setsid sh -c "npm run ganache > /dev/null & ./start_conflux.sh \"$conflux\" > /dev/null" &
 pgid=$!
 kill_subprocesses() {
     echo "Also killing subprocesses: ganache and conflux"
