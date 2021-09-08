@@ -8,9 +8,8 @@ conflux=../../conflux-rust-$conflux_commit
 # If $conflux does not exist or is empty, then clone and build it.
 if [ ! -d "$conflux" ] || [ -z "$(ls -A "$conflux")" ];
 then
-pushd ../..
 git clone https://github.com/Conflux-Chain/conflux-rust.git "$conflux"
-cd "$conflux"
+pushd "$conflux"
 git checkout $conflux_commit
 cargo build --release
 popd
