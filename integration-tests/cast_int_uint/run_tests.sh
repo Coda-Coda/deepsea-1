@@ -6,7 +6,7 @@ rm -f FunctionalCorrectness.glob
 
 # Compile to Coq Test
 echo "🛈  Compiling to Coq: dsc ... coq" 1>> test_summary.log
-./compile-for-coq.sh
+./compile_for_coq.sh
 if test -d "./cast_int_uint"; then
     echo " ✅ Test Passed" 1>> test_summary.log
 else
