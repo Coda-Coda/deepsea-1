@@ -898,14 +898,10 @@ Fixpoint synth_stmt_spec_opt {returns}(c : cmd_constr returns) dest tmp :
               synth_expr_wellformed tmp e2)
         se =>
       d <- get ;;
-      let (success , d') :=
-          me_transfer me
-                      (synth_expr_spec me d tmp e1 (car wf) se)
-                      (synth_expr_spec me d tmp e2 (cdr wf) se)
-                      d in
-      if (Int256.eq success Int256.one)
-      then put d'
-      else mzero
+      put (me_transfer me
+        (synth_expr_spec me d tmp e1 (car wf) se)
+        (synth_expr_spec me d tmp e2 (cdr wf) se)
+        d)
   | CCyield tp _ e =>
     fun wf se =>
       d <- get;;
