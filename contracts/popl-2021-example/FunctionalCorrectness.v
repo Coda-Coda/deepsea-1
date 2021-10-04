@@ -14,7 +14,6 @@ Require Import cclib.Maps.
 Require Import cclib.Integers.
 
 Require Import DataTypes.
-Require Import SingleTransferCheck.
 Require Import backend.MachineModel.
 
 Require Import DataTypes.
@@ -22,7 +21,6 @@ Import ListNotations.
 
 Require Import core.MemoryModel. 
 Require Import HyperTypeInst.
-Require Import SingleTransferCheck.
 Require Import GenericMachineEnv.
 
 Require Import Additions.Tactics.
@@ -313,6 +311,28 @@ Definition next_persistent_state (me : machine_env global_abstract_data_type) (d
     (me_blockhash me)
 .
 
+Context (coinbase timestamp number : int256) (blockhash : int256 -> int256)
+(chainid : int256) (origin caller : addr) 
+(callvalue : Z) (initial_balances : addr -> Z).
+
+Lemma Crowdfunding_claim_single_transfer : forall result d d',
+let me := GenericMachineEnv.generic_machine_env coinbase timestamp number blockhash chainid origin contract_address caller 
+callvalue initial_balances
+      in
+(External_action_info d = NoExternalAction) ->
+ runStateT (Crowdfunding_claim_opt me) d = Some (result, d') -> 
+ (External_action_info d' <> ErrorNotFollowingCEIP).
+ Proof.
+   Hint Unfold me_load.
+   intros.
+   Transparent Crowdfunding_claim_opt. unfold Crowdfunding_claim_opt in H0. 
+   inv_runStateT_branching. subst. rewrite H. simpl. discriminate.
+   subst. simpl in *. rewrite H. discriminate.
+   subst. simpl in *. rewrite H. discriminate.
+ Qed.
+
+   
+
 Definition execute_contract_call (* Note that this leaves blocknumber and timestamp UNCHANGED. Changes to these should be handled elsewhere. *)
    (call : ContractCall)
    (d_before : global_abstract_data_type)
@@ -361,33 +381,6 @@ match call with
     (d_before, ps_before) (* Revert due to overflow of contract_balance or insufficient funds in caller. *)
 end.
 
-Lemma OneTransferOnly : forall call d_before ps_before prf,
-  (ETH_successful_transfers d_before = [])
-  ->
-  let (d_after, ps_after) := (execute_contract_call call d_before ps_before prf) in
-  (length (ETH_successful_transfers d_after) <= 1)%nat.
-  Proof.
-    intros.
-    destruct call eqn:Case.
-    - simpl. rewrite H. auto.
-    - unfold execute_contract_call.
-      destruct (noOverflowOrUnderflowInTransfer caller
-      contract_address callvalue
-      (ps_balance ps_before)).
-      + destruct f eqn:SCase;
-      (simpl;
-      match goal with
-      | [ |- context[runStateT ?X ]] => destruct (runStateT X) eqn:SSCase end;
-      [ destruct p;
-        (try (apply SingleTransferCheck.Crowdfunding_donate_opt_single_transfer with (d:=d_before) (coinbase:=coinbase) (timestamp:=ps_timestamp ps_before) (number:=ps_number ps_before) (blockhash:=ps_blockhash ps_before) (chainid:=chainid) (origin:=origin) (contract_address:=contract_address) (caller:=caller) (callvalue:=callvalue) (initial_balances:=(update_balances caller contract_address callvalue (ps_balance ps_before))) (address_accepts_funds:=address_accepts_funds_guaranteed_for_contract) (result:=u); [assumption | apply SSCase]);
-        try (apply SingleTransferCheck.Crowdfunding_getFunds_opt_single_transfer with (d:=d_before) (coinbase:=coinbase) (timestamp:=ps_timestamp ps_before) (number:=ps_number ps_before) (blockhash:=ps_blockhash ps_before) (chainid:=chainid) (origin:=origin) (contract_address:=contract_address) (caller:=caller) (callvalue:=callvalue) (initial_balances:=(update_balances caller contract_address callvalue (ps_balance ps_before))) (address_accepts_funds:=address_accepts_funds_guaranteed_for_contract) (result:=u); [assumption | apply SSCase]);
-        try (apply SingleTransferCheck.Crowdfunding_claim_opt_single_transfer with (d:=d_before) (coinbase:=coinbase) (timestamp:=ps_timestamp ps_before) (number:=ps_number ps_before) (blockhash:=ps_blockhash ps_before) (chainid:=chainid) (origin:=origin) (contract_address:=contract_address) (caller:=caller) (callvalue:=callvalue) (initial_balances:=(update_balances caller contract_address callvalue (ps_balance ps_before))) (address_accepts_funds:=address_accepts_funds_guaranteed_for_contract) (result:=u); [assumption | apply SSCase]))
-      |
-        rewrite H; auto
-      ]).
-      + simpl. rewrite H. auto.
-Qed.
-
 Inductive BlockchainAction (ps_before : persistent_state) :=
   | contractExecution (c : ContractCall)
   | timePassing (block_count time_passing : int256)
@@ -404,6 +397,7 @@ Record StepInfo := {
 
 Definition resetTransfers (d : global_abstract_data_type) : global_abstract_data_type :=
   {|
+  External_action_info := External_action_info d;
   Crowdfunding_owner := Crowdfunding_owner d;
   Crowdfunding_max_block := Crowdfunding_max_block d;
   Crowdfunding_goal := Crowdfunding_goal d;
@@ -779,8 +773,8 @@ Proof.
           destruct p.
           Transparent Crowdfunding_getFunds_opt.
           unfold Crowdfunding_getFunds_opt in SSSCase.
-          inv_runStateT_branching; subst.
-          2,3,4 : inversion H0; apply balance_backed_in_next_state with (d_after:=d_after); assumption.
+          inv_runStateT_branching; subst. simpl in *. unfold d_before in *. unfold d_before_StepInfo in *. simpl in *. destruct s_before.
+          2,3,4 : inversion H0; apply balance_backed_in_next_state with (d_after:=d_after); try assumption.
           unfold balance_backed.
           intros.
           deepsea_inversion; subst.
