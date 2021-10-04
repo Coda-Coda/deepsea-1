@@ -1,7 +1,6 @@
 pushd ../../src/
 make
-popd
-pushd ../../
-nix-build
+make edsger
+cp ./_build/default/Edsger/edsger.bc ./_build/default/Edsger/dsc
 popd
 ./compile-for-coq
