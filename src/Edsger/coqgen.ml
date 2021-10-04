@@ -5499,9 +5499,27 @@ Definition generic_machine_env
         me_log _ _ d := d; (* TODO-Daniel what is the purpose of me_log? Is this a sufficient definition for now? *)
         me_chainid := chainid;
         me_selfbalance d := current_balances initial_balances (ETH_successful_transfers d) contract_address; (* Note that this form of getting selfbalance is also used in me_transfer's definition. *)
-        me_load d := d; (* WIP-Daniel *)
-        me_store d := d; (* WIP-Daniel *)
-        me_external_contract_call d := d (* WIP-Daniel *)
+        me_load d := update_External_action_info 
+            (match (External_action_info d) with
+              | NoExternalAction => NoExternalAction
+              | SomeExternalActionAndFollowingCEIP _ => ErrorNotFolllowingCEIP
+              | ErrorNotFolllowingCEIP => ErrorNotFolllowingCEIP
+              end)
+            d;
+        me_store d := update_External_action_info 
+            (match (External_action_info d) with
+              | NoExternalAction => NoExternalAction
+              | SomeExternalActionAndFollowingCEIP _ => ErrorNotFolllowingCEIP
+              | ErrorNotFolllowingCEIP => ErrorNotFolllowingCEIP
+              end)
+            d;
+        me_external_contract_call d c args := update_External_action_info 
+            (match (External_action_info d) with
+              | NoExternalAction => SomeExternalActionAndFollowingCEIP (External_contract_call c args)
+              | SomeExternalActionAndFollowingCEIP _ => ErrorNotFolllowingCEIP
+              | ErrorNotFolllowingCEIP => ErrorNotFolllowingCEIP
+              end)
+            d;
       |}.
 
 
