@@ -929,7 +929,7 @@ Inductive External_call_info :=
   | External_contract_call (external_contract_address : Z) (args : list External_contract_call_argument)
 .
 
-Inductive External_action_info :=
+Inductive External_action_info_type :=
   | NoExternalAction
   | SomeExternalActionAndFollowingCEIP (c : External_call_info)
   | ErrorNotFolllowingCEIP

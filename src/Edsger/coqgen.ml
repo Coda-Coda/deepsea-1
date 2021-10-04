@@ -4615,7 +4615,7 @@ let gen_global_abstract_data_type env final_layer fileDeclarations = function
 |}.\n";
 
     output_string out "Record global_abstract_data_type : Type := {\n";
-    output_string out "External_action_info : bool;\n";
+    output_string out "External_action_info : External_action_info_type;\n";
     iter_fields (fun _o f ->
         (* XXX: option for name mangling.
            Currently, if two object fields have the same name (anywhere in the entire system)
@@ -4653,7 +4653,7 @@ Definition update_External_action_info new_external_action_info (glabs_a : globa
 
     if has_fields then begin
     output_string out "\nDefinition init_global_abstract_data : global_abstract_data_type := {|\n";
-    output_string out "\n  External_action_info := false;\n";
+    output_string out "\n  External_action_info := NoExternalAction;\n";
     record_field_leftover := "\n  ";
     iter_fields (fun _o f ->
         (* XXX: option for name mangling *)
