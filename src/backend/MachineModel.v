@@ -77,7 +77,10 @@ Record machine_env  : Type := mkmachine {
   me_transfer : forall (addr : int256) (value: Z) (d: adata), (int256 * adata);
   (* addr, sig, value, args, prev_data, prev_storage, new_data, new_storage, success, retvals *)
   me_callmethod : val -> int -> val -> list val -> adata -> ext_env -> adata -> ext_env -> int256 -> list val -> Prop;
-  me_log : forall (topics : list val) (args : list val), adata -> adata
+  me_log : forall (topics : list val) (args : list val), adata -> adata;
+  me_load : forall (d : adata), adata;
+  me_store : forall (d : adata), adata;
+  me_external_contract_call : forall (d : adata), adata;
 }.
 
 Definition me_query (me : machine_env) (d : adata) (q: state_query) : val :=
@@ -182,3 +185,6 @@ Arguments  me_transfer {adata}.
 Arguments  me_callmethod {adata}.
 Arguments  me_query {adata}.
 Arguments me_log {adata}.
+Arguments me_load {adata}.
+Arguments me_store {adata}.
+Arguments me_external_contract_call {adata}.

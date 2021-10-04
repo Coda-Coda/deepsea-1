@@ -774,6 +774,9 @@ Definition ext_call_me (ext_contract : int256) := {|
   me_transfer := me_transfer me;
   me_callmethod := me_callmethod me;
   me_log := me_log me;
+  me_load := me_load me;
+  me_store := me_store me;
+  me_external_contract_call := me_external_contract_call me
 |}.
 Fixpoint synth_stmt_spec_opt {returns}(c : cmd_constr returns) dest tmp :
   synth_stmt_wellformed c dest tmp -> spec_env_t tmp -> DS (tp_ft returns) :=
@@ -789,12 +792,16 @@ Fixpoint synth_stmt_spec_opt {returns}(c : cmd_constr returns) dest tmp :
        let se' := SpecTree.set id htp spec1 se in
        (synth_stmt_spec_opt c2 dest _ (cddr wf) se'))
   | CCload tp _ e => fun wf se =>
-    d <- get;;
-    gets (synth_lexpr_spec me d tmp e wf se).(ltype_get)
+    d1 <- get;;
+    put (me_load me d1);;
+    d2 <- get;;
+    gets (synth_lexpr_spec me d2 tmp e wf se).(ltype_get)
   | CCstore _ _ el er => fun wf se =>
-    d <- get;;
-    let f := synth_expr_spec me d tmp er (cdr wf) se in
-    modify ((synth_lexpr_spec me d tmp el (car wf) se).(ltype_set) f)
+    d1 <- get;;
+    put (me_store me d1);;
+    d2 <- get;;
+    let f := synth_expr_spec me d2 tmp er (cdr wf) se in
+    modify ((synth_lexpr_spec me d2 tmp el (car wf) se).(ltype_set) f)
   | CCsequence _ c1 c2 =>
     fun (wf : synth_stmt_wellformed c1 dest tmp * synth_stmt_wellformed c2 dest tmp)
       se =>

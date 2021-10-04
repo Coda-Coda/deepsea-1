@@ -4609,6 +4609,9 @@ let gen_global_abstract_data_type env final_layer fileDeclarations = function
   me_transfer := me_transfer me;
   me_callmethod := me_callmethod me;
   me_log := me_log me;
+  me_load := me_load me;
+  me_store := me_store me;
+  me_external_contract_call := me_external_contract_call me
 |}.\n";
 
     output_string out "Record global_abstract_data_type : Type := {";
@@ -5481,7 +5484,10 @@ Definition generic_machine_env
         me_callmethod _ _ _ _ _ _ _ _ _ _ := False;
         me_log _ _ d := d; (* TODO-Daniel what is the purpose of me_log? Is this a sufficient definition for now? *)
         me_chainid := chainid;
-        me_selfbalance d := current_balances initial_balances (ETH_successful_transfers d) contract_address (* Note that this form of getting selfbalance is also used in me_transfer's definition. *)
+        me_selfbalance d := current_balances initial_balances (ETH_successful_transfers d) contract_address; (* Note that this form of getting selfbalance is also used in me_transfer's definition. *)
+        me_load d := d; (* WIP-Daniel *)
+        me_store d := d; (* WIP-Daniel *)
+        me_external_contract_call d := d (* WIP-Daniel *)
       |}.
 
 
