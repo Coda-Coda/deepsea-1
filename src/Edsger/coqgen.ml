@@ -4614,7 +4614,8 @@ let gen_global_abstract_data_type env final_layer fileDeclarations = function
   me_external_contract_call := me_external_contract_call me
 |}.\n";
 
-    output_string out "Record global_abstract_data_type : Type := {";
+    output_string out "Record global_abstract_data_type : Type := {\n";
+    output_string out "External_action_info : bool;\n";
     iter_fields (fun _o f ->
         (* XXX: option for name mangling.
            Currently, if two object fields have the same name (anywhere in the entire system)
@@ -4629,9 +4630,19 @@ let gen_global_abstract_data_type env final_layer fileDeclarations = function
     );
     output_string out "\n}.\n";
 
+    output_string out "\n
+Definition update_External_action_info new_external_action_info (glabs_a : global_abstract_data_type)
+  := Build_global_abstract_data_type new_external_action_info ";
+
+    iter_fields (fun o' f' ->
+		      output_string out ("(" ^ unmingledFieldName o' f' ^ " glabs_a) ")
+                   );
+        output_string out ".\n";
+
     iter_fields (fun o f ->
         output_string out ("Definition update_"  ^ unmingledFieldName o f ^ " glabs_b (glabs_a : global_abstract_data_type)\n");
         output_string out ("  := Build_global_abstract_data_type ");	
+        output_string out (" (External_action_info glabs_a) ");	
 	iter_fields (fun o' f' ->
                       if (o' = o && f' = f)
 		      then output_string out "glabs_b "
@@ -4641,7 +4652,8 @@ let gen_global_abstract_data_type env final_layer fileDeclarations = function
     );
 
     if has_fields then begin
-    output_string out "\nDefinition init_global_abstract_data : global_abstract_data_type := {|";
+    output_string out "\nDefinition init_global_abstract_data : global_abstract_data_type := {|\n";
+    output_string out "\n  External_action_info := false;\n";
     record_field_leftover := "\n  ";
     iter_fields (fun _o f ->
         (* XXX: option for name mangling *)
@@ -5369,6 +5381,7 @@ This file defines a function `generic_machine_env` that can be used to build mac
   ");
 
   output_string stream ("\n\nDefinition d_with_transfer adr amount (d : global_abstract_data_type) : global_abstract_data_type :=\n{|\n");
+  output_string stream ("  External_action_info := External_action_info d;\n");
   List.iter (function
   | i, ADlayer l ->
     List.iter (fun (_, o) ->
