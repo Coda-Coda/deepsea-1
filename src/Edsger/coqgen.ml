@@ -5283,28 +5283,13 @@ Definition generic_machine_env
         me_number := number;
         me_balance d a := current_balances initial_balances (ETH_successful_transfers d) a;
         me_blockhash := blockhash;
-        me_transfer recipient amount d := let mes := {|
-            mes_address := contract_address;  (* Todo: make it int160. *)
-            mes_origin := origin;   (* Todo: make it int160. *)                     
-            mes_caller := caller;
-            mes_callvalue := callvalue;
-            mes_coinbase := coinbase;
-            mes_timestamp := timestamp;
-            mes_number := number;
-            mes_chainid := chainid;
-            mes_selfbalance d := current_balances initial_balances (ETH_successful_transfers d) contract_address;
-            mes_balance d a := current_balances initial_balances (ETH_successful_transfers d) a;
-            mes_blockhash := blockhash;
-        |} in
-          if successful_transfer mes d recipient amount then (Int256.one, d_with_transfer recipient amount d) else (Int256.zero, d);
-        (* Note that the way me_transfer has been defined above will only add a transaction to the ETH_successful_transfers list if the contract has sufficient balance to send the transaction,
-           the recipient isn't so rich such that their balance being added to would cause an overflow, and if the `address_always_accepts_funds` function indicates they would accept the funds.
-           
-           The function from the context `address_always_accepts_funds` defines which addresses are assumed to always accept funds.
-           Currently, the Axiom `All_Addresses_Always_Accept_Funds` assumes that all addresses always accept funds. This axiom should be changed if it is not a reasonable assumption,
-           for example if an address rejecting funds is part of a model of what an attacker might do.
-           It is possible that the recipient might reject the funds (e.g. if the recipient is a 'smart contract' and the processing of receiving the transfer runs out of gas).
-        *)
+        me_transfer recipient amount d := update_External_action_info 
+            (match (External_action_info d) with
+              | NoExternalAction => SomeExternalActionAndFollowingCEIP (External_transfer recipient amount)
+              | SomeExternalActionAndFollowingCEIP _ => ErrorNotFolllowingCEIP
+              | ErrorNotFolllowingCEIP => ErrorNotFolllowingCEIP
+              end)
+            d;
         me_callmethod _ _ _ _ _ _ _ _ _ _ := False;
         me_log _ _ d := d; (* TODO-Daniel what is the purpose of me_log? Is this a sufficient definition for now? *)
         me_chainid := chainid;
