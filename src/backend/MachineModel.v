@@ -30,7 +30,7 @@ Inductive External_call_info :=
 Inductive External_action_info_type :=
   | NoExternalAction
   | SomeExternalActionAndFollowingCEIP (c : External_call_info)
-  | ErrorNotFolllowingCEIP
+  | ErrorNotFollowingCEIP
 .
 
 

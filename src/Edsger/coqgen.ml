@@ -5286,8 +5286,8 @@ Definition generic_machine_env
         me_transfer recipient amount d := update_External_action_info 
             (match (External_action_info d) with
               | NoExternalAction => SomeExternalActionAndFollowingCEIP (External_transfer recipient amount)
-              | SomeExternalActionAndFollowingCEIP _ => ErrorNotFolllowingCEIP
-              | ErrorNotFolllowingCEIP => ErrorNotFolllowingCEIP
+              | SomeExternalActionAndFollowingCEIP _ => ErrorNotFollowingCEIP
+              | ErrorNotFollowingCEIP => ErrorNotFollowingCEIP
               end)
             d;
         me_callmethod _ _ _ _ _ _ _ _ _ _ := False;
@@ -5297,22 +5297,22 @@ Definition generic_machine_env
         me_load d := update_External_action_info 
             (match (External_action_info d) with
               | NoExternalAction => NoExternalAction
-              | SomeExternalActionAndFollowingCEIP _ => ErrorNotFolllowingCEIP
-              | ErrorNotFolllowingCEIP => ErrorNotFolllowingCEIP
+              | SomeExternalActionAndFollowingCEIP _ => ErrorNotFollowingCEIP
+              | ErrorNotFollowingCEIP => ErrorNotFollowingCEIP
               end)
             d;
         me_store d := update_External_action_info 
             (match (External_action_info d) with
               | NoExternalAction => NoExternalAction
-              | SomeExternalActionAndFollowingCEIP _ => ErrorNotFolllowingCEIP
-              | ErrorNotFolllowingCEIP => ErrorNotFolllowingCEIP
+              | SomeExternalActionAndFollowingCEIP _ => ErrorNotFollowingCEIP
+              | ErrorNotFollowingCEIP => ErrorNotFollowingCEIP
               end)
             d;
         me_external_contract_call d c args := update_External_action_info 
             (match (External_action_info d) with
               | NoExternalAction => SomeExternalActionAndFollowingCEIP (External_contract_call c args)
-              | SomeExternalActionAndFollowingCEIP _ => ErrorNotFolllowingCEIP
-              | ErrorNotFolllowingCEIP => ErrorNotFolllowingCEIP
+              | SomeExternalActionAndFollowingCEIP _ => ErrorNotFollowingCEIP
+              | ErrorNotFollowingCEIP => ErrorNotFollowingCEIP
               end)
             d;
       |}.
