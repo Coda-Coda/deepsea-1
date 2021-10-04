@@ -17,6 +17,23 @@ Require Import backend.Values.HighValues.
 Require Import backend.Environments.ExtEnv.
 Require Import backend.AbstractData.
 
+Inductive External_contract_call_argument :=
+  | External_contract_call_int_argument (n : Z)
+  | External_contract_call_bool_argument (bool : Z)
+.
+
+Inductive External_call_info :=
+  | External_transfer (recipient amount : Z)
+  | External_contract_call (external_contract_address : Z) (args : list External_contract_call_argument)
+.
+
+Inductive External_action_info_type :=
+  | NoExternalAction
+  | SomeExternalActionAndFollowingCEIP (c : External_call_info)
+  | ErrorNotFolllowingCEIP
+.
+
+
 (* Defines the set of builtin expressions in the EVM. 
    They are split into datatypes based on the number of arguments they take.
 *)
@@ -80,7 +97,7 @@ Record machine_env  : Type := mkmachine {
   me_log : forall (topics : list val) (args : list val), adata -> adata;
   me_load : forall (d : adata), adata;
   me_store : forall (d : adata), adata;
-  me_external_contract_call : forall (d : adata), adata;
+  me_external_contract_call : forall (d : adata) (external_contract_address : Z) (args : list External_contract_call_argument), adata;
 }.
 
 Definition me_query (me : machine_env) (d : adata) (q: state_query) : val :=

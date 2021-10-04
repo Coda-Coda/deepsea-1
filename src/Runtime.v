@@ -918,19 +918,3 @@ Ltac CEI_auto_BA :=
 
 (* CEI_auto_AB and BA are intended to be used to generate the PRIMrst_before/after_A/B entries in 
   _prim entries, later used in higher level cmd_constr_CEI_pattern_prf goals. *)
-
-Inductive External_contract_call_argument :=
-  | External_contract_call_int_argument (n : Z)
-  | External_contract_call_bool_argument (bool : Z)
-.
-
-Inductive External_call_info :=
-  | External_transfer (recipient amount : Z)
-  | External_contract_call (external_contract_address : Z) (args : list External_contract_call_argument)
-.
-
-Inductive External_action_info_type :=
-  | NoExternalAction
-  | SomeExternalActionAndFollowingCEIP (c : External_call_info)
-  | ErrorNotFolllowingCEIP
-.
