@@ -23,8 +23,8 @@ Inductive External_contract_call_argument :=
 .
 
 Inductive External_call_info :=
-  | External_transfer (recipient amount : Z)
-  | External_contract_call (external_contract_address : Z) (args : list External_contract_call_argument)
+  | External_transfer (recipient : int256) (amount : Z)
+  | External_contract_call (external_contract_address : int256) (args : list External_contract_call_argument)
 .
 
 Inductive External_action_info_type :=
@@ -97,7 +97,7 @@ Record machine_env  : Type := mkmachine {
   me_log : forall (topics : list val) (args : list val), adata -> adata;
   me_load : forall (d : adata), adata;
   me_store : forall (d : adata), adata;
-  me_external_contract_call : forall (d : adata) (external_contract_address : Z) (args : list External_contract_call_argument), adata;
+  me_external_contract_call : forall (d : adata) (external_contract_address : int256) (args : list External_contract_call_argument), adata;
 }.
 
 Definition me_query (me : machine_env) (d : adata) (q: state_query) : val :=
