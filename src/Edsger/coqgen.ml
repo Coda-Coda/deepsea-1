@@ -4716,6 +4716,7 @@ Definition update_External_action_info new_external_action_info (glabs_a : globa
 
     if has_fields then begin
         output_string out ("Opaque");
+        output_string out (" External_action_info");
         iter_fields (fun o f ->
 	    output_string out (" "^ unmingledFieldName o f ^" update_"^ unmingledFieldName o f ));
         output_string out (".\n")
