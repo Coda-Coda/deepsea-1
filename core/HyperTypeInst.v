@@ -879,6 +879,13 @@ Instance builtin0_number_impl : HyperBuiltin0Impl tint_U
 Instance builtin0_number : HyperBuiltin0 builtin0_number_impl.
 constructor; reflexivity.
 Qed.
+
+Instance builtin0_selfbalance_impl : HyperBuiltin0Impl tint_U
+  := Build_HyperBuiltin0Impl tint_U me_selfbalance Bselfbalance.
+Instance builtin0_selfbalance : HyperBuiltin0 builtin0_selfbalance_impl.
+constructor; reflexivity.
+Qed.
+
 Instance builtin1_balance_impl : HyperBuiltin1Impl tint_U tint_U
   := Build_HyperBuiltin1Impl tint_U tint_U me_balance Bbalance.
 Instance builtin1_balance : HyperBuiltin1 builtin1_balance_impl.
