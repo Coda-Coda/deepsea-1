@@ -2589,6 +2589,27 @@ Section OBJECT_" ^ i ^ "_DEFINITION.
     @apply_param_func " ^ method_full_name ^ ".(FC_params) _
                       (" ^ method_full_name ^ "_opt) args.
 
+(* CEI stands for Checks Effects Interactions (pattern) and the definitions below are used
+    to keep track of the safe situations in which a primitive can be called. See also
+    cmd_constr_CEI_pattern_prf in Syntax.v and for the tactic definitions see Runtime.v *)
+    
+Lemma " ^ method_full_name ^ "_CEI_AB : { rsts | function_constr_CEI_pattern_prf (fst rsts) " ^ method_full_name ^ " (snd rsts)}.
+Proof.
+  unfold " ^ method_full_name ^ ".
+  CEI_auto_AB. (* If this tactic fails then it indicates that a strict version of the Checks-Effects-Interactions pattern was not followed in the function: " ^ method_full_name ^ ". *)
+Defined.
+
+Lemma " ^ method_full_name ^ "_CEI_BA : { rsts | function_constr_CEI_pattern_prf (fst rsts) " ^ method_full_name ^ " (snd rsts)}.
+Proof.
+  unfold " ^ method_full_name ^ ".
+  CEI_auto_BA.
+Defined.
+
+Definition " ^ method_full_name ^ "_CEI_rsts_before_A := fst (proj1_sig " ^ method_full_name ^ "_CEI_AB).
+Definition " ^ method_full_name ^ "_CEI_rsts_after_A := snd (proj1_sig " ^ method_full_name ^ "_CEI_AB).
+Definition " ^ method_full_name ^ "_CEI_rsts_before_B := fst (proj1_sig " ^ method_full_name ^ "_CEI_BA).
+Definition " ^ method_full_name ^ "_CEI_rsts_after_B := snd (proj1_sig " ^ method_full_name ^ "_CEI_BA).
+
   Definition " ^ method_full_name ^ "_prim := {|
     PRIMident := ident_" ^ o.aObjectName ^ "_" ^ m.aMethodName ^ ";
     (* PRIMcc := AST.cc_default; *)
@@ -2597,6 +2618,10 @@ Section OBJECT_" ^ i ^ "_DEFINITION.
     PRIMpure := " ^ string_of_bool is_pure ^ ";
     PRIMargt_marker := " ^ method_full_name ^ ".(FC_params);
     PRIMret_marker := " ^ method_full_name ^ ".(FC_returns);
+    PRIMrst_before_A := " ^ method_full_name ^ "_CEI_rsts_before_A;
+    PRIMrst_after_A := " ^ method_full_name ^ "_CEI_rsts_after_A;
+    PRIMrst_before_B := " ^ method_full_name ^ "_CEI_rsts_before_B;
+    PRIMrst_after_B := " ^ method_full_name ^ "_CEI_rsts_after_B;
     PRIMcond := fun _ _ _ => True;
     (* PRIMsem := " ^ method_full_name ^ "_spec_hlist; *)
     PRIMsem_opt := " ^ method_full_name ^ "_spec_hlist_opt
