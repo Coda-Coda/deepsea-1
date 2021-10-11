@@ -3,6 +3,8 @@
 # Arg 1 - takes the file to be compiled (full path). If not supplied, the .ds file to be compiled should be in the current directory (and the only .ds file in the directory).
 # Note, coqc must be on the path (if using opam, eval $(opam env) may need to be run, or possibly added to this script along with a relevant opam switch ...)
 
+set -e
+
 if [ -z "$1" ]
 then
     FILEBASENAME="`ls *.ds`" # Assume compile_for_coq is called from the directory containing the contract.ds file (and only one such file). May want to remove this if having multiple contracts in this repo.

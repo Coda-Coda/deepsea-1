@@ -6,8 +6,8 @@ rm -f FunctionalCorrectness.glob
 
 # Compile to Coq Test
 echo "🛈  Compiling to Coq: dsc ... coq" 1>> test_summary.log
-./compile_for_coq.sh
-if test -d "./cast_int_uint"; then
+./compile_for_coq.sh; compilationExitCode=$?
+if [ $compilationExitCode -eq 0 ]; then
     echo " ✅ Test Passed" 1>> test_summary.log
 else
     echo " ❌ Test FAILED" 1>> test_summary.log
@@ -19,9 +19,9 @@ fi
 # Compile Functional Correcteness Test
 coqdep -f _CoqProject > .coqdeps.d
 coq_makefile -f _CoqProject -o core.make 
-make -f core.make
 echo "🛈  FunctionalCorrectness.v Compilation Test" 1>> test_summary.log
-if test -f "./FunctionalCorrectness.vo"; then
+make -f core.make; FCcompilationExitCode=$?
+if [ $FCcompilationExitCode -eq 0 ]; then
     echo " ✅ Test Passed" 1>> test_summary.log
 else
     echo " ❌ Test FAILED" 1>> test_summary.log
