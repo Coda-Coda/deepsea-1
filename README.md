@@ -4,6 +4,9 @@ The code related to the FMBC 2021 Paper is (currently) only available in this re
 
 ----------
 
+There is a **minor correction and improvement** relating to ensuring that a contract reading a balance doesn't occur when it would break the Checks-Effects-Interaction pattern. Please read the details [here](Comment-on-balance-checking.md).
+
+----------
 # Files particularly relevant to FMBC 2021 Paper
 
 ## Paper: Using Coq to Enforce the Checks-Effects-Interactions Pattern in DeepSEA Smart Contracts
