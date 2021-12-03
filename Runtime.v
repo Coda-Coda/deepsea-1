@@ -898,27 +898,9 @@ Ltac CEI_auto :=
   .
 
 (* CEI_auto_states_A tries to solve a CEI goal by trying the pairs of states shown below. *)
-Ltac CEI_auto_states_A := 
+Ltac CEIP_solve := 
   solve [
-      (simpl; exists (Safe_no_reentrancy, Safe_no_reentrancy); CEI_auto)
+      (simpl; exists (Safe_with_potential_reentrancy, Safe_with_potential_reentrancy); CEI_auto) (* It is important that this is tried first because of the way CCCEIPcall1 and CCCEIPcall2 are written. *)
+    | (simpl; exists (Safe_no_reentrancy, Safe_no_reentrancy); CEI_auto)
     | (simpl; exists (Safe_no_reentrancy, Safe_with_potential_reentrancy); CEI_auto)
   ].
-
-(* CEI_auto_states_B tries to solve a CEI goal by trying the pairs of states shown below. *)
-Ltac CEI_auto_states_B := 
-  solve [
-      (simpl; exists (Safe_with_potential_reentrancy, Safe_with_potential_reentrancy); CEI_auto)
-  ].
-
-(* CEI_auto_AB tries to solve a CEI goal by first trying the pairs of states from CEI_auto_states_A
-     then CEI_auto_states_B. *)
-Ltac CEI_auto_AB :=
-  solve [CEI_auto_states_A | CEI_auto_states_B].
-
-(* CEI_auto_BA tries to solve a CEI goal by first trying the pairs of states from CEI_auto_states_B
-     then CEI_auto_states_A. *)
-Ltac CEI_auto_BA :=
-  solve [CEI_auto_states_B | CEI_auto_states_A].
-
-(* CEI_auto_AB and BA are intended to be used to generate the PRIMrst_before/after_A/B entries in 
-  _prim entries, later used in higher level cmd_constr_CEI_pattern_prf goals. *)

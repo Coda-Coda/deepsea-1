@@ -201,7 +201,7 @@ Inductive checks_effects_interactions_pattern_state :=
     PRIMpure  : bool;                 
     PRIMargt_marker : type_marker argt;
     PRIMret_marker : type_marker ret;
-    (* PRIMrst_before/after_A/B relate to reentrancy tracking using the Checks Effects 
+    (* PRIMrst_before/after/B relate to reentrancy tracking using the Checks Effects 
     Interactions pattern. They represent the safe state(s) the prim can be executed
     in and the resulting checks_effects_interactions_pattern_state afterwards.
     In particular they should be one of the following:
@@ -221,10 +221,8 @@ Inductive checks_effects_interactions_pattern_state :=
 
     The relevant values are filled in automatically.
       *)
-      PRIMrst_before_A : checks_effects_interactions_pattern_state;
-      PRIMrst_after_A : checks_effects_interactions_pattern_state;
-      PRIMrst_before_B : checks_effects_interactions_pattern_state;
-      PRIMrst_after_B : checks_effects_interactions_pattern_state;
+      PRIMrst_before : checks_effects_interactions_pattern_state;
+      PRIMrst_after : checks_effects_interactions_pattern_state;
 
     (* PRIMsem_opt, the "monadic" version, combines PRIMcond and PRIMsem into one thing.
        There is a verification condition below saying that they must be equivalent;
@@ -563,7 +561,6 @@ Fixpoint contains_balance_read
   end%type.
 
 Inductive cmd_constr_CEI_pattern_prf :
-
 (*  Abbreviations:
       CEI = Checks-Effects-Interactions (pattern)
       cmd = command
@@ -574,8 +571,7 @@ Inductive cmd_constr_CEI_pattern_prf :
       c1 = command 1
       rst = reentrancy safety state
       e = expression
-  *)
-
+*)
   forall ret,
     checks_effects_interactions_pattern_state -> cmd_constr ret -> checks_effects_interactions_pattern_state -> Prop :=
     (* In the type of cmd_constr_CEI_pattern_prf, the first occurance of checks_effects_interactions_pattern_state corresponds to the checks_effects_interactions_pattern_state before executing the command, and the last checks_effects_interactions_pattern_state corresponds to the checks_effects_interactions_pattern_state after executing the command. *)
@@ -697,15 +693,17 @@ forall {rst} r id_it id_end id_dest e1 e2 c3 c4 c5,
 (* With "fold", similarly to "for" and "first" we assume all the commands (which may be looped) result in rst (and start from rst). So the overall fold is only safe if started from rst and will result in a rst state. *)
 | CCCEIPcall1 :
     forall {rst1} {rst2} r argt prim arg,
-      rst1 = prim.(PRIMrst_before_A argt r) -> rst2 = prim.(PRIMrst_after_A argt r) -> cmd_constr_CEI_pattern_prf r rst1 (CCcall prim arg) rst2
+      rst1 = prim.(PRIMrst_before argt r) -> rst2 = prim.(PRIMrst_after argt r) -> cmd_constr_CEI_pattern_prf r rst1 (CCcall prim arg) rst2
 | CCCEIPcall2 :
-    forall {rst1} {rst2} r argt prim arg (IHprim : @primitive_prf _ _ argt r prim),
-      rst1 = prim.(PRIMrst_before_B argt r)-> rst2 = prim.(PRIMrst_after_B argt r) -> cmd_constr_CEI_pattern_prf r rst1 (CCcall prim arg) rst2
+    forall r argt prim arg,
+      cmd_constr_CEI_pattern_prf r Safe_with_potential_reentrancy (CCcall prim arg) Safe_with_potential_reentrancy
+      -> cmd_constr_CEI_pattern_prf r Safe_no_reentrancy (@CCcall LayerSpec argt r prim arg) Safe_no_reentrancy
     (* "call" should result in the same rst as the primitive being called, and be safe to call in the same circumstances as the primitive is called.
-        The primitives will have automatically generated fields rst_before/after_A/B to describe the safe ways in which prim can be called. *)
-(* | CCCEIPcall_ext : 
-        (* Note: this should be similar to CCCEIPtransfer and also to CCPcall_ext *)
-*)
+        The primitives will have automatically generated fields rst_before/after to describe the safe ways in which prim can be called.
+        Since having before and after of Safe_with_potential_reentrancy implies having a before and after of Safe_no_reentrancy this is 
+        captured here in CCCEIPcall2 so that it is not necessary to capture both options within the prim rst_before/after fields, rather just Safe_with_potential_reentrancy (before and after)
+        in the primitive rst_before/after fields and this rule will capture the possibility that the prim is safe for Safe_no_reentrancy
+        (before and after) as well. This simplifies the situation somewhat. *)
 | CCCEIPyield1 :
   forall `{ht : HyperType tp} e,
     contains_balance_read e = true ->
