@@ -182,9 +182,9 @@ Section STMT_CONSTR.
   Defined.
 
 
-Inductive checks_effects_interactions_pattern_state :=
-  | Safe_no_reentrancy
-  | Safe_with_potential_reentrancy.
+Inductive CEIP_color :=
+  | CEIP_green
+  | CEIP_orange.
 
   (*  The underlay interface for a primitive is a Coq Prop, a relation from memory etc to the final value.
       But we want a Coq function. So the primitive record contains the function.
@@ -201,28 +201,28 @@ Inductive checks_effects_interactions_pattern_state :=
     PRIMpure  : bool;                 
     PRIMargt_marker : type_marker argt;
     PRIMret_marker : type_marker ret;
-    (* PRIMrst_before/after/B relate to reentrancy tracking using the Checks Effects 
+    (* PRIMceip_color_before/after/B relate to reentrancy tracking using the Checks Effects 
     Interactions pattern. They represent the safe state(s) the prim can be executed
-    in and the resulting checks_effects_interactions_pattern_state afterwards.
+    in and the resulting CEIP_color afterwards.
     In particular they should be one of the following:
       
       When a prim has only safe commands:
-      Safe_no_reentrancy, Safe_no_reentrancy
-      Safe_with_potential_reentrancy, Safe_with_potential_reentrancy
+      CEIP_green, CEIP_green
+      CEIP_orange, CEIP_orange
       
       When a prim has commands only safe before reentrancy:
-      Safe_no_reentrancy, Safe_no_reentrancy
-      Safe_no_reentrancy, Safe_no_reentrancy (repeated)
+      CEIP_green, CEIP_green
+      CEIP_green, CEIP_green (repeated)
       
 
       When a prim has a command that introduces reentrancy:
-      Safe_no_reentrancy, Safe_with_potential_reentrancy
-      Safe_no_reentrancy, Safe_with_potential_reentrancy (repeated)
+      CEIP_green, CEIP_orange
+      CEIP_green, CEIP_orange (repeated)
 
     The relevant values are filled in automatically.
       *)
-      PRIMrst_before : checks_effects_interactions_pattern_state;
-      PRIMrst_after : checks_effects_interactions_pattern_state;
+      PRIMceip_color_before : CEIP_color;
+      PRIMceip_color_after : CEIP_color;
 
     (* PRIMsem_opt, the "monadic" version, combines PRIMcond and PRIMsem into one thing.
        There is a verification condition below saying that they must be equivalent;
@@ -534,7 +534,7 @@ Section CONSTR_PRF.
   
 End CONSTR_PRF.
 
-Section CEIP_PRF.
+Section CEIP.
   Context `{HM : HyperMem}.
 
 Fixpoint contains_balance_read
@@ -560,196 +560,194 @@ Fixpoint contains_balance_read
     (contains_balance_read el) || (contains_balance_read er)
   end%type.
 
-Inductive cmd_constr_CEI_pattern_prf :
-(*  Abbreviations:
-      CEI = Checks-Effects-Interactions (pattern)
-      cmd = command
+Inductive CEIP_prf :
+(**  Abbreviations:
+      CEIP = Checks-Effects-Interactions Pattern
       prf = proof
-      CCCEIP___ = Command Constructor Check Effects Interactions (pattern) Proof ___
       r = return type (of the command)
       r1 = return type 1
       c1 = command 1
-      rst = reentrancy safety state
+      color = reentrancy safety state
       e = expression
 *)
   forall ret,
-    checks_effects_interactions_pattern_state -> cmd_constr ret -> checks_effects_interactions_pattern_state -> Prop :=
-    (* In the type of cmd_constr_CEI_pattern_prf, the first occurance of checks_effects_interactions_pattern_state corresponds to the checks_effects_interactions_pattern_state before executing the command, and the last checks_effects_interactions_pattern_state corresponds to the checks_effects_interactions_pattern_state after executing the command. *)
-| CCCEIPskip :
-    forall {rst},
-      cmd_constr_CEI_pattern_prf _ rst CCskip rst
-      (* "skip" leaves rst unchaged *)
-| CCCEIPlet :
-    forall {rst1} {rst2} {rst3} r `{ht : HyperType tp} id c1 c2,
-      cmd_constr_CEI_pattern_prf (mk_hyper_type_pair tp) rst1 c1 rst2 ->
-      cmd_constr_CEI_pattern_prf r rst2 c2 rst3 ->
-      cmd_constr_CEI_pattern_prf r rst1 (CClet id c1 c2) rst3
-      (* "let" leaves rst as the rst from running c1 then c2 *)
-| CCCEIPload : 
+    CEIP_color -> cmd_constr ret -> CEIP_color -> Prop :=
+    (* In the type of CEIP_prf, the first occurance of CEIP_color corresponds to the CEIP_color before executing the command, and the last CEIP_color corresponds to the CEIP_color after executing the command. *)
+| CEIP_skip :
+    forall {color},
+      CEIP_prf _ color CCskip color
+      (* "skip" leaves color unchaged *)
+| CEIP_let :
+    forall {color1} {color2} {color3} r `{ht : HyperType tp} id c1 c2,
+      CEIP_prf (mk_hyper_type_pair tp) color1 c1 color2 ->
+      CEIP_prf r color2 c2 color3 ->
+      CEIP_prf r color1 (CClet id c1 c2) color3
+      (* "let" leaves color as the color from running c1 then c2 *)
+| CEIP_load : 
     forall `{ht : HyperType tp} e,
-      cmd_constr_CEI_pattern_prf _ Safe_no_reentrancy (CCload e) Safe_no_reentrancy
-      (* "load" can only be run safely from Safe_no_reentrancy, and leaves it rst as Safe_no_reentrancy *)
+      CEIP_prf _ CEIP_green (CCload e) CEIP_green
+      (* "load" can only be run safely from CEIP_green, and leaves it color as CEIP_green *)
       (* Note that e might contain a balance read, but there is no need to check in addition because load is already only safe in the same situation as a balance read is. *)
-| CCCEIPstore :
+| CEIP_store :
     forall `{ht : HyperType tp} el er,
-      cmd_constr_CEI_pattern_prf _ Safe_no_reentrancy (CCstore el er) Safe_no_reentrancy
-      (* "store" can only be run safely from Safe_no_reentrancy, and leaves it rst as Safe_no_reentrancy *)
+      CEIP_prf _ CEIP_green (CCstore el er) CEIP_green
+      (* "store" can only be run safely from CEIP_green, and leaves it color as CEIP_green *)
       (* Note that e might contain a balance read, but there is no need to check in addition because store is already only safe in the same situation as a balance read is. *)
-| CCCEIPsequence :
-    forall {rst1} {rst2} {rst3} r (c1 : cmd_constr void_unit_pair) (c2 : cmd_constr r),
-      cmd_constr_CEI_pattern_prf void_unit_pair rst1 c1 rst2 ->
-      cmd_constr_CEI_pattern_prf r rst2 c2 rst3 ->
-      cmd_constr_CEI_pattern_prf r rst1 (CCsequence c1 c2) rst3
-      (* "sequence" leaves rst as the rst from running c1 then c2 *)      
+| CEIP_sequence :
+    forall {color1} {color2} {color3} r (c1 : cmd_constr void_unit_pair) (c2 : cmd_constr r),
+      CEIP_prf void_unit_pair color1 c1 color2 ->
+      CEIP_prf r color2 c2 color3 ->
+      CEIP_prf r color1 (CCsequence c1 c2) color3
+      (* "sequence" leaves color as the color from running c1 then c2 *)      
 
 (* "ifthenelse" is split into the five allowable cases (rather than using a match statement) to simplify the type-checking. *)
 (* Here we assume the worst case scenario, I guess it would be nice to be able to analyse the truth value of e here. *)
-(* "ifthenelse" leaves rst as the rst from assuming the worst case scenario out of the commands in the branches *)
-| CCCEIPifthenelse1 : (* Safe_no_reentrancy Safe_no_reentrancy Safe_no_reentrancy *)
+(* "ifthenelse" leaves color as the color from assuming the worst case scenario out of the commands in the branches *)
+| CEIP_ifthenelse1 : (* CEIP_green CEIP_green CEIP_green *)
   forall r e c_true c_false,
-    cmd_constr_CEI_pattern_prf r Safe_no_reentrancy c_true Safe_no_reentrancy ->
-    cmd_constr_CEI_pattern_prf r Safe_no_reentrancy c_false Safe_no_reentrancy ->
-    cmd_constr_CEI_pattern_prf r Safe_no_reentrancy (CCifthenelse e c_true c_false) Safe_no_reentrancy
-| CCCEIPifthenelse2 : (* Safe_no_reentrancy Safe_with_potential_reentrancy Safe_no_reentrancy *)
+    CEIP_prf r CEIP_green c_true CEIP_green ->
+    CEIP_prf r CEIP_green c_false CEIP_green ->
+    CEIP_prf r CEIP_green (CCifthenelse e c_true c_false) CEIP_green
+| CEIP_ifthenelse2 : (* CEIP_green CEIP_orange CEIP_green *)
   forall r e c_true c_false,
-    cmd_constr_CEI_pattern_prf r Safe_no_reentrancy c_true Safe_with_potential_reentrancy ->
-    cmd_constr_CEI_pattern_prf r Safe_no_reentrancy c_false Safe_no_reentrancy ->
-    cmd_constr_CEI_pattern_prf r Safe_no_reentrancy (CCifthenelse e c_true c_false) Safe_with_potential_reentrancy      
-| CCCEIPifthenelse3 : (* Safe_no_reentrancy Safe_no_reentrancy Safe_with_potential_reentrancy *)
+    CEIP_prf r CEIP_green c_true CEIP_orange ->
+    CEIP_prf r CEIP_green c_false CEIP_green ->
+    CEIP_prf r CEIP_green (CCifthenelse e c_true c_false) CEIP_orange      
+| CEIP_ifthenelse3 : (* CEIP_green CEIP_green CEIP_orange *)
   forall r e c_true c_false,
-    cmd_constr_CEI_pattern_prf r Safe_no_reentrancy c_true Safe_no_reentrancy ->
-    cmd_constr_CEI_pattern_prf r Safe_no_reentrancy c_false Safe_with_potential_reentrancy ->
-    cmd_constr_CEI_pattern_prf r Safe_no_reentrancy (CCifthenelse e c_true c_false) Safe_with_potential_reentrancy      
-| CCCEIPifthenelse4 : (* Safe_no_reentrancy Safe_with_potential_reentrancy Safe_with_potential_reentrancy *)
+    CEIP_prf r CEIP_green c_true CEIP_green ->
+    CEIP_prf r CEIP_green c_false CEIP_orange ->
+    CEIP_prf r CEIP_green (CCifthenelse e c_true c_false) CEIP_orange      
+| CEIP_ifthenelse4 : (* CEIP_green CEIP_orange CEIP_orange *)
   forall r e c_true c_false,
-    cmd_constr_CEI_pattern_prf r Safe_no_reentrancy c_true Safe_with_potential_reentrancy ->
-    cmd_constr_CEI_pattern_prf r Safe_no_reentrancy c_false Safe_with_potential_reentrancy ->
-    cmd_constr_CEI_pattern_prf r Safe_no_reentrancy (CCifthenelse e c_true c_false) Safe_with_potential_reentrancy      
-| CCCEIPifthenelse5 : (* Safe_with_potential_reentrancy Safe_with_potential_reentrancy Safe_with_potential_reentrancy *)
+    CEIP_prf r CEIP_green c_true CEIP_orange ->
+    CEIP_prf r CEIP_green c_false CEIP_orange ->
+    CEIP_prf r CEIP_green (CCifthenelse e c_true c_false) CEIP_orange      
+| CEIP_ifthenelse5 : (* CEIP_orange CEIP_orange CEIP_orange *)
   forall r e c_true c_false,
     contains_balance_read e = false ->
-    cmd_constr_CEI_pattern_prf r Safe_with_potential_reentrancy c_true Safe_with_potential_reentrancy ->
-    cmd_constr_CEI_pattern_prf r Safe_with_potential_reentrancy c_false Safe_with_potential_reentrancy ->
-    cmd_constr_CEI_pattern_prf r Safe_with_potential_reentrancy (CCifthenelse e c_true c_false) Safe_with_potential_reentrancy      
-| CCCEIPfor1 :
+    CEIP_prf r CEIP_orange c_true CEIP_orange ->
+    CEIP_prf r CEIP_orange c_false CEIP_orange ->
+    CEIP_prf r CEIP_orange (CCifthenelse e c_true c_false) CEIP_orange      
+| CEIP_for1 :
 forall id_it id_end e1 e2 c,
   contains_balance_read e1 || contains_balance_read e2 = true ->
-  cmd_constr_CEI_pattern_prf _ Safe_no_reentrancy c Safe_no_reentrancy ->
-  cmd_constr_CEI_pattern_prf _ Safe_no_reentrancy (CCfor id_it id_end e1 e2 c) Safe_no_reentrancy
+  CEIP_prf _ CEIP_green c CEIP_green ->
+  CEIP_prf _ CEIP_green (CCfor id_it id_end e1 e2 c) CEIP_green
   (* This is slightly overly restrictive, for example a for loop that actually only loops once and contains a transferEth call will not be allowed. *)
-(* "for" probably loops through c many times, so to be safe we assume it can only be run safely if c is a command which results in rst (and starts from rst). Then the loop as a whole is only safe if started from rst and will result in a rst state. *)
-| CCCEIPfor2 :
-forall {rst} id_it id_end e1 e2 c,
+(* "for" probably loops through c many times, so to be safe we assume it can only be run safely if c is a command which results in color (and starts from color). Then the loop as a whole is only safe if started from color and will result in a color state. *)
+| CEIP_for2 :
+forall {color} id_it id_end e1 e2 c,
   contains_balance_read e1 = false ->
   contains_balance_read e2 = false ->
-  cmd_constr_CEI_pattern_prf _ rst c rst ->
-  cmd_constr_CEI_pattern_prf _ rst (CCfor id_it id_end e1 e2 c) rst
+  CEIP_prf _ color c color ->
+  CEIP_prf _ color (CCfor id_it id_end e1 e2 c) color
   (* This is slightly overly restrictive, for example a for loop that actually only loops once and contains a transferEth call will not be allowed. *)
-(* "for" probably loops through c many times, so to be safe we assume it can only be run safely if c is a command which results in rst (and starts from rst). Then the loop as a whole is only safe if started from rst and will result in a rst state. *)
-| CCCEIPfirst1 :
+(* "for" probably loops through c many times, so to be safe we assume it can only be run safely if c is a command which results in color (and starts from color). Then the loop as a whole is only safe if started from color and will result in a color state. *)
+| CEIP_first1 :
     forall r id_it id_end id_dest e1 e2 c3 c4 c5,
       contains_balance_read e1 || contains_balance_read e2 = true ->
-      cmd_constr_CEI_pattern_prf int_bool_pair Safe_no_reentrancy c3 Safe_no_reentrancy ->
-      cmd_constr_CEI_pattern_prf r Safe_no_reentrancy c4 Safe_no_reentrancy ->
-      cmd_constr_CEI_pattern_prf r Safe_no_reentrancy c5 Safe_no_reentrancy ->
-      cmd_constr_CEI_pattern_prf r Safe_no_reentrancy
+      CEIP_prf int_bool_pair CEIP_green c3 CEIP_green ->
+      CEIP_prf r CEIP_green c4 CEIP_green ->
+      CEIP_prf r CEIP_green c5 CEIP_green ->
+      CEIP_prf r CEIP_green
                     (CCfirst id_it id_end id_dest e1 e2 c3 c4 c5)
-                    Safe_no_reentrancy
-            (* Slightly over-restrictive, like for. Also the command that executes when the loop exits could move rst from Safe_no_reentrancy to Safe_with_potential_reentrancy, but this, being overly restrictive would not allow that (fairly unlikely) situation. *)
-      (* With "first", similarly to "for" we assume all the commands (which may be looped) result in rst (and start from rst). So the overall first-loop is only safe if started from rst and will result in a rst state. *)
-| CCCEIPfirst2 :
-forall {rst} r id_it id_end id_dest e1 e2 c3 c4 c5,
+                    CEIP_green
+            (* Slightly over-restrictive, like for. Also the command that executes when the loop exits could move color from CEIP_green to CEIP_orange, but this, being overly restrictive would not allow that (fairly unlikely) situation. *)
+      (* With "first", similarly to "for" we assume all the commands (which may be looped) result in color (and start from color). So the overall first-loop is only safe if started from color and will result in a color state. *)
+| CEIP_first2 :
+forall {color} r id_it id_end id_dest e1 e2 c3 c4 c5,
   contains_balance_read e1 = false ->
   contains_balance_read e2 = false ->
-  cmd_constr_CEI_pattern_prf int_bool_pair rst c3 rst ->
-  cmd_constr_CEI_pattern_prf r rst c4 rst ->
-  cmd_constr_CEI_pattern_prf r rst c5 rst ->
-  cmd_constr_CEI_pattern_prf r rst
+  CEIP_prf int_bool_pair color c3 color ->
+  CEIP_prf r color c4 color ->
+  CEIP_prf r color c5 color ->
+  CEIP_prf r color
                 (CCfirst id_it id_end id_dest e1 e2 c3 c4 c5)
-                rst
-        (* Slightly over-restrictive, like for. Also the command that executes when the loop exits could move rst from Safe_no_reentrancy to Safe_with_potential_reentrancy, but this, being overly restrictive would not allow that (fairly unlikely) situation. *)
-  (* With "first", similarly to "for" we assume all the commands (which may be looped) result in rst (and start from rst). So the overall first-loop is only safe if started from rst and will result in a rst state. *)
-| CCCEIPfold1 :
+                color
+        (* Slightly over-restrictive, like for. Also the command that executes when the loop exits could move color from CEIP_green to CEIP_orange, but this, being overly restrictive would not allow that (fairly unlikely) situation. *)
+  (* With "first", similarly to "for" we assume all the commands (which may be looped) result in color (and start from color). So the overall first-loop is only safe if started from color and will result in a color state. *)
+| CEIP_fold1 :
   forall `{ht : HyperType tp} id_it id_end id_recur id_dest e1 e2 e3 c,
     contains_balance_read e1 || contains_balance_read e2 || contains_balance_read e3 = true ->
-    cmd_constr_CEI_pattern_prf _ Safe_no_reentrancy c Safe_no_reentrancy ->
-    cmd_constr_CEI_pattern_prf _
-      Safe_no_reentrancy
+    CEIP_prf _ CEIP_green c CEIP_green ->
+    CEIP_prf _
+      CEIP_green
       (CCfold id_it id_end id_recur id_dest e1 e2 e3 c)
-      Safe_no_reentrancy
-      (* Similarly to CCCEIPfor, this is overly restrictive. *)
-  (* With "fold", similarly to "for" and "first" we assume all the commands (which may be looped) result in rst (and start from rst). So the overall fold is only safe if started from rst and will result in a rst state. *)
-| CCCEIPfold2 :
-  forall `{ht : HyperType tp} {rst} id_it id_end id_recur id_dest e1 e2 e3 c,
+      CEIP_green
+      (* Similarly to CEIP_for, this is overly restrictive. *)
+  (* With "fold", similarly to "for" and "first" we assume all the commands (which may be looped) result in color (and start from color). So the overall fold is only safe if started from color and will result in a color state. *)
+| CEIP_fold2 :
+  forall `{ht : HyperType tp} {color} id_it id_end id_recur id_dest e1 e2 e3 c,
     contains_balance_read e1 = false ->
     contains_balance_read e2 = false ->
     contains_balance_read e3 = false ->
-    cmd_constr_CEI_pattern_prf _ rst c rst ->
-    cmd_constr_CEI_pattern_prf _
-      rst
+    CEIP_prf _ color c color ->
+    CEIP_prf _
+      color
       (CCfold id_it id_end id_recur id_dest e1 e2 e3 c)
-      rst
-      (* Similarly to CCCEIPfor, this is overly restrictive. *)
-(* With "fold", similarly to "for" and "first" we assume all the commands (which may be looped) result in rst (and start from rst). So the overall fold is only safe if started from rst and will result in a rst state. *)
-| CCCEIPcall1 :
-    forall {rst1} {rst2} r argt prim arg,
-      rst1 = prim.(PRIMrst_before argt r) -> rst2 = prim.(PRIMrst_after argt r) -> cmd_constr_CEI_pattern_prf r rst1 (CCcall prim arg) rst2
-| CCCEIPcall2 :
+      color
+      (* Similarly to CEIP_for, this is overly restrictive. *)
+(* With "fold", similarly to "for" and "first" we assume all the commands (which may be looped) result in color (and start from color). So the overall fold is only safe if started from color and will result in a color state. *)
+| CEIP_call1 :
+    forall {color1} {color2} r argt prim arg,
+      color1 = prim.(PRIMceip_color_before argt r) -> color2 = prim.(PRIMceip_color_after argt r) -> CEIP_prf r color1 (CCcall prim arg) color2
+| CEIP_call2 :
     forall r argt prim arg,
-      cmd_constr_CEI_pattern_prf r Safe_with_potential_reentrancy (CCcall prim arg) Safe_with_potential_reentrancy
-      -> cmd_constr_CEI_pattern_prf r Safe_no_reentrancy (@CCcall LayerSpec argt r prim arg) Safe_no_reentrancy
-    (* "call" should result in the same rst as the primitive being called, and be safe to call in the same circumstances as the primitive is called.
-        The primitives will have automatically generated fields rst_before/after to describe the safe ways in which prim can be called.
-        Since having before and after of Safe_with_potential_reentrancy implies having a before and after of Safe_no_reentrancy this is 
-        captured here in CCCEIPcall2 so that it is not necessary to capture both options within the prim rst_before/after fields, rather just Safe_with_potential_reentrancy (before and after)
-        in the primitive rst_before/after fields and this rule will capture the possibility that the prim is safe for Safe_no_reentrancy
+      CEIP_prf r CEIP_orange (CCcall prim arg) CEIP_orange
+      -> CEIP_prf r CEIP_green (@CCcall LayerSpec argt r prim arg) CEIP_green
+    (* "call" should result in the same color as the primitive being called, and be safe to call in the same circumstances as the primitive is called.
+        The primitives will have automatically generated fields color_before/after to describe the safe ways in which prim can be called.
+        Since having before and after of CEIP_orange implies having a before and after of CEIP_green this is 
+        captured here in CEIP_call2 so that it is not necessary to capture both options within the prim color_before/after fields, rather just CEIP_orange (before and after)
+        in the primitive color_before/after fields and this rule will capture the possibility that the prim is safe for CEIP_green
         (before and after) as well. This simplifies the situation somewhat. *)
-| CCCEIPyield1 :
+| CEIP_yield1 :
   forall `{ht : HyperType tp} e,
     contains_balance_read e = true ->
-      cmd_constr_CEI_pattern_prf _ Safe_no_reentrancy (CCyield e) Safe_no_reentrancy
+      CEIP_prf _ CEIP_green (CCyield e) CEIP_green
     (* If a balance is read in the expression "yield" is only safe before potential reentrancy. *)
-| CCCEIPyield2 :
-  forall {rst} `{ht : HyperType tp} e,
+| CEIP_yield2 :
+  forall {color} `{ht : HyperType tp} e,
     contains_balance_read e = false ->
-    cmd_constr_CEI_pattern_prf _ rst (CCyield e) rst
-    (* "yield" retains the current rst as long as the expression does not read a balance. *)
-| CCCEIPconstr :
+    CEIP_prf _ color (CCyield e) color
+    (* "yield" retains the current color as long as the expression does not read a balance. *)
+| CEIP_constr :
     forall `{ht : HyperType tp} fld_ids fld_tps el flds constr,
-      cmd_constr_CEI_pattern_prf _ Safe_no_reentrancy (CCconstr fld_ids fld_tps el flds constr) Safe_no_reentrancy
-      (* "constr" assigns to storage so can only be called if Safe_no_reentrancy, and does not introduce the possiblity of reentrancy itself. *)
-| CCCEIPtransfer :
+      CEIP_prf _ CEIP_green (CCconstr fld_ids fld_tps el flds constr) CEIP_green
+      (* "constr" assigns to storage so can only be called if CEIP_green, and does not introduce the possiblity of reentrancy itself. *)
+| CEIP_transfer :
     forall e1 e2,
-      cmd_constr_CEI_pattern_prf _ Safe_no_reentrancy (CCtransfer e1 e2) Safe_with_potential_reentrancy
-      (* What this is all about, "transfer" can only be called in a Safe_no_reentrancy state and DOES introduce potential reentrancy. *)
-| CCCEIPassert :
-    forall {rst1} {rst2} c,
-      cmd_constr_CEI_pattern_prf _ rst1 c rst2 -> cmd_constr_CEI_pattern_prf _ rst1 (CCassert c) rst2
-    (* "assert" results in the same rst (and can be called safely in the same situations as) the command c *)
-| CCCEIPdeny :
-    forall {rst1} {rst2} c,
-      cmd_constr_CEI_pattern_prf _ rst1 c rst2 -> cmd_constr_CEI_pattern_prf _ rst1 (CCdeny c) rst2
-  (* "deny" results in the same rst (and can be called safely in the same situations as) the command c *)
-| CCCEIPpanic :
-    forall {rst} `{ht : HyperType},
-      cmd_constr_CEI_pattern_prf _ rst (CCpanic tp) rst
-  (* "panic" retains the current rst *)
-| CCCEIPrespec :
-    forall {rst1} {rst2} r tmp' c spec,
-      cmd_constr_CEI_pattern_prf r rst1 c rst2 -> 
-      cmd_constr_CEI_pattern_prf r rst1 (CCrespec tmp' c spec) rst2
-  (* "respec" results in the same rst (and can be called safely in the same situations as) the command c *)
-| CCCEIPrespec_opt : 
-    forall {rst1} {rst2} r tmp' c spec,
-      cmd_constr_CEI_pattern_prf r rst1 c rst2 -> 
-      cmd_constr_CEI_pattern_prf r rst1 (CCrespec_opt tmp' c spec) rst2
-  (* "respec_opt" results in the same rst (and can be called safely in the same situations as) the command c *)
+      CEIP_prf _ CEIP_green (CCtransfer e1 e2) CEIP_orange
+      (* What this is all about, "transfer" can only be called in a CEIP_green state and DOES introduce potential reentrancy. *)
+| CEIP_assert :
+    forall {color1} {color2} c,
+      CEIP_prf _ color1 c color2 -> CEIP_prf _ color1 (CCassert c) color2
+    (* "assert" results in the same color (and can be called safely in the same situations as) the command c *)
+| CEIP_deny :
+    forall {color1} {color2} c,
+      CEIP_prf _ color1 c color2 -> CEIP_prf _ color1 (CCdeny c) color2
+  (* "deny" results in the same color (and can be called safely in the same situations as) the command c *)
+| CEIP_panic :
+    forall {color} `{ht : HyperType},
+      CEIP_prf _ color (CCpanic tp) color
+  (* "panic" retains the current color *)
+| CEIP_respec :
+    forall {color1} {color2} r tmp' c spec,
+      CEIP_prf r color1 c color2 -> 
+      CEIP_prf r color1 (CCrespec tmp' c spec) color2
+  (* "respec" results in the same color (and can be called safely in the same situations as) the command c *)
+| CEIP_respec_opt : 
+    forall {color1} {color2} r tmp' c spec,
+      CEIP_prf r color1 c color2 -> 
+      CEIP_prf r color1 (CCrespec_opt tmp' c spec) color2
+  (* "respec_opt" results in the same color (and can be called safely in the same situations as) the command c *)
 .
 
-Definition function_constr_CEI_pattern_prf 
-    (rst_before : checks_effects_interactions_pattern_state)
+Definition CEIP_function_prf 
+    (color_before : CEIP_color)
     (f : function_constr)
-    (rst_after : checks_effects_interactions_pattern_state) :=
-       cmd_constr_CEI_pattern_prf f.(FC_returns) rst_before f.(FC_body) rst_after.
+    (color_after : CEIP_color) :=
+       CEIP_prf f.(FC_returns) color_before f.(FC_body) color_after.
 
-End CEIP_PRF.
+End CEIP.

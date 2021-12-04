@@ -861,46 +861,46 @@ Qed.
 
 (* Tactics related to reentrancy tracking using the Checks Effects Interactions Pattern: *)
 
-(* CEI_auto tries to solve a goal of the form 
-   cmd_constr_CEI_pattern_prf ____ rst_before _____ rst_after
+(* CEIP_auto tries to solve a goal of the form 
+   CEIP_prf ____ color_before _____ color_after
 *)
-Ltac CEI_auto :=
+Ltac CEIP_auto :=
   repeat (
   reflexivity
 + typeclasses eauto 
-+ eapply CCCEIPskip
-+ eapply CCCEIPlet 
-+ eapply CCCEIPload  
-+ eapply CCCEIPstore 
-+ eapply CCCEIPsequence 
-+ eapply CCCEIPifthenelse1 
-+ eapply CCCEIPifthenelse2 
-+ eapply CCCEIPifthenelse3 
-+ eapply CCCEIPifthenelse4 
-+ eapply CCCEIPifthenelse5 
-+ eapply CCCEIPfor1
-+ eapply CCCEIPfor2 
-+ eapply CCCEIPfirst1 
-+ eapply CCCEIPfirst2 
-+ eapply CCCEIPfold1
-+ eapply CCCEIPfold2 
-+ eapply CCCEIPcall1 
-+ eapply CCCEIPcall2 
-+ eapply CCCEIPyield1
-+ eapply CCCEIPyield2  
-+ eapply CCCEIPconstr 
-+ eapply CCCEIPtransfer 
-+ eapply CCCEIPassert 
-+ eapply CCCEIPdeny 
-+ eapply CCCEIPpanic 
-+ eapply CCCEIPrespec 
-+ eapply CCCEIPrespec_opt)
-  .
++ eapply CEIP_skip
++ eapply CEIP_let 
++ eapply CEIP_load  
++ eapply CEIP_store 
++ eapply CEIP_sequence 
++ eapply CEIP_ifthenelse1 
++ eapply CEIP_ifthenelse2 
++ eapply CEIP_ifthenelse3 
++ eapply CEIP_ifthenelse4 
++ eapply CEIP_ifthenelse5 
++ eapply CEIP_for1
++ eapply CEIP_for2 
++ eapply CEIP_first1 
++ eapply CEIP_first2 
++ eapply CEIP_fold1
++ eapply CEIP_fold2 
++ eapply CEIP_call1 
++ eapply CEIP_call2 
++ eapply CEIP_yield1
++ eapply CEIP_yield2  
++ eapply CEIP_constr 
++ eapply CEIP_transfer 
++ eapply CEIP_assert 
++ eapply CEIP_deny 
++ eapply CEIP_panic 
++ eapply CEIP_respec 
++ eapply CEIP_respec_opt)
+.
 
-(* CEI_auto_states_A tries to solve a CEI goal by trying the pairs of states shown below. *)
-Ltac CEIP_solve := 
+(* verify_checks_effects_interactions_pattern tries to solve a CEI goal by trying the pairs of states shown below in order. *)
+Ltac verify_checks_effects_interactions_pattern := 
   solve [
-      (simpl; exists (Safe_with_potential_reentrancy, Safe_with_potential_reentrancy); CEI_auto) (* It is important that this is tried first because of the way CCCEIPcall1 and CCCEIPcall2 are written. *)
-    | (simpl; exists (Safe_no_reentrancy, Safe_no_reentrancy); CEI_auto)
-    | (simpl; exists (Safe_no_reentrancy, Safe_with_potential_reentrancy); CEI_auto)
+      (simpl; exists (CEIP_orange, CEIP_orange); CEIP_auto) (* It is important that this is tried first because of the way CEIP_call1 and CEIP_call2 are written. *)
+    | (simpl; exists (CEIP_green, CEIP_green); CEIP_auto)
+    | (simpl; exists (CEIP_green, CEIP_orange); CEIP_auto)
   ].

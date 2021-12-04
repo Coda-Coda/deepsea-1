@@ -2591,16 +2591,16 @@ Section OBJECT_" ^ i ^ "_DEFINITION.
 
 (* CEI stands for Checks Effects Interactions (pattern) and the definitions below are used
     to keep track of the safe situations in which a primitive can be called. See also
-    cmd_constr_CEI_pattern_prf in Syntax.v and for the tactic definitions see Runtime.v *)
+    CEIP_prf in Syntax.v and for the tactic definitions see Runtime.v *)
     
-Lemma " ^ method_full_name ^ "_follows_CEIP : { rsts | function_constr_CEI_pattern_prf (fst rsts) " ^ method_full_name ^ " (snd rsts)}.
+Lemma " ^ method_full_name ^ "_follows_CEIP : { rsts | CEIP_function_prf (fst rsts) " ^ method_full_name ^ " (snd rsts)}.
 Proof.
   unfold " ^ method_full_name ^ ".
-  CEIP_solve. (* If this tactic fails then it indicates that a strict version of the Checks-Effects-Interactions pattern was not followed in the function: " ^ method_full_name ^ ". *)
+  verify_checks_effects_interactions_pattern. (* If this tactic fails then it indicates that a strict version of the Checks-Effects-Interactions pattern was not followed in the function: " ^ method_full_name ^ ". *)
 Defined.
 
-Definition " ^ method_full_name ^ "_CEI_rst_before := fst (proj1_sig " ^ method_full_name ^ "_follows_CEIP).
-Definition " ^ method_full_name ^ "_CEI_rst_after := snd (proj1_sig " ^ method_full_name ^ "_follows_CEIP).
+Definition " ^ method_full_name ^ "_CEIP_color_before := fst (proj1_sig " ^ method_full_name ^ "_follows_CEIP).
+Definition " ^ method_full_name ^ "_CEIP_color_after := snd (proj1_sig " ^ method_full_name ^ "_follows_CEIP).
 
   Definition " ^ method_full_name ^ "_prim := {|
     PRIMident := ident_" ^ o.aObjectName ^ "_" ^ m.aMethodName ^ ";
@@ -2610,8 +2610,8 @@ Definition " ^ method_full_name ^ "_CEI_rst_after := snd (proj1_sig " ^ method_f
     PRIMpure := " ^ string_of_bool is_pure ^ ";
     PRIMargt_marker := " ^ method_full_name ^ ".(FC_params);
     PRIMret_marker := " ^ method_full_name ^ ".(FC_returns);
-    PRIMrst_before := " ^ method_full_name ^ "_CEI_rst_before;
-    PRIMrst_after := " ^ method_full_name ^ "_CEI_rst_after;
+    PRIMceip_color_before := " ^ method_full_name ^ "_CEIP_color_before;
+    PRIMceip_color_after := " ^ method_full_name ^ "_CEIP_color_after;
     PRIMcond := fun _ _ _ => True;
     (* PRIMsem := " ^ method_full_name ^ "_spec_hlist; *)
     PRIMsem_opt := " ^ method_full_name ^ "_spec_hlist_opt
