@@ -31,7 +31,7 @@ rm -rf "$FILENAMENOEXT" # You may want to remove this line if you do not wish th
 cd "$FILENAMENOEXT"
 
 coqdep -f _CoqProject > .coqdeps.d
-coq_makefile -f _CoqProject -o core.make 
+coq_makefile -arg "-quiet" -f _CoqProject -o core.make 
 
 make -f core.make
 

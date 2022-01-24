@@ -18,7 +18,7 @@ fi
 
 # Compile Functional Correcteness Test
 coqdep -f _CoqProject > .coqdeps.d
-coq_makefile -f _CoqProject -o core.make 
+coq_makefile -arg "-quiet" -f _CoqProject -o core.make 
 echo "🛈  FunctionalCorrectness.v Compilation Test" 1>> test_summary.log
 make -f core.make; FCcompilationExitCode=$?
 if [ $FCcompilationExitCode -eq 0 ]; then
