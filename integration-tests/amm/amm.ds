@@ -45,6 +45,7 @@ object LiquidityToken : ERC20Interface {
     let bal0 = balances[address(0x0)] in
     let totalSupply = _totalSupply in
     let resultU = totalSupply - bal0 in
+    transferEth(msg_sender, msg_value);
     resultU
 
   let balanceOf tokenOwner =
@@ -100,6 +101,7 @@ object FixedSupplyToken : FixedERC20Interface {
     let bal0 = balances[address(0x0)] in
     let totalSupply = _totalSupply in
     let resultU = totalSupply - bal0 in
+    transferEth(msg_sender, msg_value);
     resultU
 
   let balanceOf tokenOwner =
@@ -136,6 +138,7 @@ object FixedSupplyToken : FixedERC20Interface {
 (* this AMM supports ERC20 tokens, ETH can be incorporated as WETH for trading *)
 object signature AMMInterface = {
   constructor : unit -> unit;
+  CEIP_test : unit -> unit;
   (* swap : int * int * address -> unit; *)
 
   coarsed simpleSwap0 : address -> int; (* transfer token0 to amm, results number of token1 swapped *)
@@ -361,6 +364,10 @@ object AutomatedMarketMaker
     let resultU = (numerator / denominator) + 1 in
     resultU
 
+  let CEIP_test () =
+    let totalSupply = erc20Token0.totalSupply() in
+    _reserve1 := 0;
+    ()
 }
 
 layer signature AMMLibSig = {
