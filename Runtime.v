@@ -861,6 +861,32 @@ Qed.
 
 (* Tactics related to reentrancy tracking using the Checks Effects Interactions Pattern: *)
 
+Section CEIP_solving.
+Context `{LayerSpec : LayerSpecClass}.
+
+(* TODO-Daniel, change name of combined_if to something more permanent. *)
+Lemma combined_if : forall ret e c1 c2 col1 col1' col2 col2' col3 col3',
+CEIP_prf ret col1 c1 col1' ->
+CEIP_prf ret col2 c2 col2' -> 
+   ((col1=CEIP_green /\ col1'=CEIP_green /\ col2=CEIP_green /\ col2'=CEIP_green /\ col3=CEIP_green /\ col3'=CEIP_green)
+\/  (col1=CEIP_green /\ col1'=CEIP_orange /\ col2=CEIP_green /\ col2'=CEIP_green /\ col3=CEIP_green /\ col3'=CEIP_orange)
+\/  (col1=CEIP_green /\ col1'=CEIP_green /\ col2=CEIP_green /\ col2'=CEIP_orange /\ col3=CEIP_green /\ col3'=CEIP_orange)
+\/  (col1=CEIP_green /\ col1'=CEIP_orange /\ col2=CEIP_green /\ col2'=CEIP_orange /\ col3=CEIP_green /\ col3'=CEIP_orange)
+\/  (contains_balance_read e = false /\ col1=CEIP_orange /\ col1'=CEIP_orange /\ col2=CEIP_orange /\ col2'=CEIP_orange /\ col3=CEIP_orange /\ col3'=CEIP_orange))
+-> CEIP_prf ret col3 (CCifthenelse e c1 c2) col3'.
+Proof.
+  intros.
+  destruct H1 as [|[|[|[|]]]]. 
+    1,2,3,4: destruct H1 as [Hcol1 [Hcol1' [Hcol2 [Hcol2' [Hcol3 Hcol3']]]]]; subst.
+    5: destruct H1 as [Hbalance_read [Hcol1 [Hcol1' [Hcol2 [Hcol2' [Hcol3 Hcol3']]]]]]; subst.
+  - apply CEIP_ifthenelse1; assumption.
+  - apply CEIP_ifthenelse2; assumption.
+  - apply CEIP_ifthenelse3; assumption.
+  - apply CEIP_ifthenelse4; assumption.
+  - apply CEIP_ifthenelse5; assumption.
+Qed. 
+
+
 (* CEIP_auto tries to solve a goal of the form 
    CEIP_prf ____ color_before _____ color_after
 *)
@@ -904,3 +930,5 @@ Ltac verify_checks_effects_interactions_pattern :=
     | (simpl; exists (CEIP_green, CEIP_green); CEIP_auto)
     | (simpl; exists (CEIP_green, CEIP_orange); CEIP_auto)
   ].
+
+End CEIP_solving.
