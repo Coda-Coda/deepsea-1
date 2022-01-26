@@ -892,7 +892,7 @@ End CEIP_combined_if.
    CEIP_prf ____ color_before _____ color_after
 *)
 Ltac CEIP_auto :=
-  repeat (
+  do 99999 ((
   reflexivity
 + typeclasses eauto 
 + eapply CEIP_skip
@@ -900,11 +900,11 @@ Ltac CEIP_auto :=
 + eapply CEIP_load  
 + eapply CEIP_store 
 + eapply CEIP_sequence 
-+ eapply CEIP_ifthenelse1 
-+ eapply CEIP_ifthenelse2 
-+ eapply CEIP_ifthenelse3 
-+ eapply CEIP_ifthenelse4 
-+ eapply CEIP_ifthenelse5 
++ eapply CEIP_ifthenelse1 (* Consider replacing these 5 with: + eapply combined_if *)
++ eapply CEIP_ifthenelse2
++ eapply CEIP_ifthenelse3
++ eapply CEIP_ifthenelse4
++ eapply CEIP_ifthenelse5
 + eapply CEIP_for1
 + eapply CEIP_for2 
 + eapply CEIP_first1 
@@ -921,7 +921,7 @@ Ltac CEIP_auto :=
 + eapply CEIP_deny 
 + eapply CEIP_panic 
 + eapply CEIP_respec 
-+ eapply CEIP_respec_opt)
++ eapply CEIP_respec_opt); simpl)
 .
 
 (* verify_checks_effects_interactions_pattern tries to solve a CEI goal by trying the pairs of states shown below in order. *)
