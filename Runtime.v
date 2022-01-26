@@ -861,7 +861,7 @@ Qed.
 
 (* Tactics related to reentrancy tracking using the Checks Effects Interactions Pattern: *)
 
-Section CEIP_solving.
+Section CEIP_combined_if.
 Context `{LayerSpec : LayerSpecClass}.
 
 (* TODO-Daniel, change name of combined_if to something more permanent. *)
@@ -886,6 +886,7 @@ Proof.
   - apply CEIP_ifthenelse5; assumption.
 Qed. 
 
+End CEIP_combined_if.
 
 (* CEIP_auto tries to solve a goal of the form 
    CEIP_prf ____ color_before _____ color_after
@@ -930,5 +931,3 @@ Ltac verify_checks_effects_interactions_pattern :=
     | (simpl; exists (CEIP_green, CEIP_green); CEIP_auto)
     | (simpl; exists (CEIP_green, CEIP_orange); CEIP_auto)
   ].
-
-End CEIP_solving.
