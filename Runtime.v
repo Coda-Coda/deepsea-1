@@ -891,38 +891,62 @@ End CEIP_combined_if.
 (* CEIP_auto tries to solve a goal of the form 
    CEIP_prf ____ color_before _____ color_after
 *)
+
 Ltac CEIP_auto :=
-  do 99999 ((
-  reflexivity
-+ typeclasses eauto 
-+ eapply CEIP_skip
-+ eapply CEIP_let 
-+ eapply CEIP_load  
-+ eapply CEIP_store 
-+ eapply CEIP_sequence 
-+ eapply CEIP_ifthenelse1 (* Consider replacing these 5 with: + eapply combined_if *)
-+ eapply CEIP_ifthenelse2
-+ eapply CEIP_ifthenelse3
-+ eapply CEIP_ifthenelse4
-+ eapply CEIP_ifthenelse5
-+ eapply CEIP_for1
-+ eapply CEIP_for2 
-+ eapply CEIP_first1 
-+ eapply CEIP_first2 
-+ eapply CEIP_fold1
-+ eapply CEIP_fold2 
-+ eapply CEIP_call1 
-+ eapply CEIP_call2 
-+ eapply CEIP_yield1
-+ eapply CEIP_yield2  
-+ eapply CEIP_constr 
-+ eapply CEIP_transfer 
-+ eapply CEIP_assert 
-+ eapply CEIP_deny 
-+ eapply CEIP_panic 
-+ eapply CEIP_respec 
-+ eapply CEIP_respec_opt); simpl)
-.
+  simpl;
+  solve [ reflexivity
+        | typeclasses eauto 
+        | eapply CEIP_skip
+        | eapply CEIP_let ; CEIP_auto
+        | eapply CEIP_load  ; CEIP_auto
+        | eapply CEIP_store ; CEIP_auto
+        | eapply CEIP_sequence ; CEIP_auto
+        | eapply combined_if ; CEIP_auto (* Consider replacing these 5 with: + eapply combined_if *)
+        | eapply CEIP_for1; CEIP_auto
+        | eapply CEIP_for2 ; CEIP_auto
+        | eapply CEIP_first1 ; CEIP_auto
+        | eapply CEIP_first2 ; CEIP_auto
+        | eapply CEIP_fold1; CEIP_auto
+        | eapply CEIP_fold2 ; CEIP_auto
+        | eapply CEIP_call1 ; CEIP_auto
+        | eapply CEIP_call2 ; CEIP_auto
+        | eapply CEIP_yield1; CEIP_auto
+        | eapply CEIP_yield2  ; CEIP_auto
+        | eapply CEIP_constr ; CEIP_auto
+        | eapply CEIP_transfer ; CEIP_auto
+        | eapply CEIP_assert ; CEIP_auto
+        | eapply CEIP_deny ; CEIP_auto
+        | eapply CEIP_panic ; CEIP_auto
+        | eapply CEIP_respec ; CEIP_auto
+        | eapply CEIP_respec_opt; CEIP_auto
+        | match goal with
+          | [ _ : _ |- 
+                (          
+                    _ = CEIP_green /\
+                    _ = CEIP_green /\
+                    _ = CEIP_green /\
+                    _ = CEIP_green /\ _ = CEIP_green /\ _ = CEIP_green \/
+                    _ = CEIP_green /\
+                    _ = CEIP_orange /\
+                    _ = CEIP_green /\
+                    _ = CEIP_green /\ _ = CEIP_green /\ _ = CEIP_orange \/
+                    _ = CEIP_green /\
+                    _ = CEIP_green /\
+                    _ = CEIP_green /\
+                    _ = CEIP_orange /\ _ = CEIP_green /\ _ = CEIP_orange \/
+                    _ = CEIP_green /\
+                    _ = CEIP_orange /\
+                    _ = CEIP_green /\
+                    _ = CEIP_orange /\ _ = CEIP_green /\ _ = CEIP_orange \/
+                    _ = false /\
+                    _ = CEIP_orange /\
+                    _ = CEIP_orange /\
+                    _ = CEIP_orange /\
+                    _ = CEIP_orange /\ _ = CEIP_orange /\ _ = CEIP_orange
+              )
+          ] => eauto 7
+          end
+  ].
 
 (* verify_checks_effects_interactions_pattern tries to solve a CEI goal by trying the pairs of states shown below in order. *)
 Ltac verify_checks_effects_interactions_pattern := 
