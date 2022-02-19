@@ -944,7 +944,7 @@ Ltac CEIP_auto :=
                     _ = CEIP_orange /\
                     _ = CEIP_orange /\ _ = CEIP_orange /\ _ = CEIP_orange
               )
-          ] => eauto 10
+          ] => tauto
           end
   ].
 
