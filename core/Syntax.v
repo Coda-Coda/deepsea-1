@@ -728,16 +728,13 @@ forall {color} r id_it id_end id_dest e1 e2 c3 c4 c5,
     forall {color1} {color2} c,
       CEIP_prf _ color1 c color2 -> CEIP_prf _ color1 (CCdeny c) color2
   (* "deny" results in the same color (and can be called safely in the same situations as) the command c *)
-| CEIP_panic :
-    forall {color} `{ht : HyperType},
-      CEIP_prf _ color (CCpanic tp) color
-  (* "panic" can be either green green or orange orange (this is wrong) *)
-| CEIP_respec :
+(* | CEIP_panic : *) (* Unclear how best to handle this case. A safe way is to have no rule for CEIP_panic, this does cause issues when using the "address(0x10032) <:" syntax in layer definitions, related to respec_opt (at least)  *)
+| CEIP_respec : (* Similarly to respec_opt, below,  *)
     forall {color1} {color2} r tmp' c spec,
       CEIP_prf r color1 c color2 -> 
       CEIP_prf r color1 (CCrespec tmp' c spec) color2
   (* "respec" results in the same color (and can be called safely in the same situations as) the command c *)
-| CEIP_respec_opt : 
+| CEIP_respec_opt : (* This rule likely needs revision. Currently `c` would be (CCpanic _returnType_) which does not give sufficient information to determine if the CEIP is being followed. *)
     forall {color1} {color2} r tmp' c spec,
       CEIP_prf r color1 c color2 -> 
       CEIP_prf r color1 (CCrespec_opt tmp' c spec) color2

@@ -916,7 +916,6 @@ Ltac CEIP_auto :=
         | eapply CEIP_transfer ; CEIP_auto
         | eapply CEIP_assert ; CEIP_auto
         | eapply CEIP_deny ; CEIP_auto
-        | eapply CEIP_panic ; CEIP_auto
         | eapply CEIP_respec ; CEIP_auto
         | eapply CEIP_respec_opt; CEIP_auto
         | match goal with
