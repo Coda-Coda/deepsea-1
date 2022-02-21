@@ -1,6 +1,2 @@
 🛈  Compiling to Coq: dsc ... coq
- ✅ Test Passed
-🛈  FunctionalCorrectness.v Compilation Test
- ✅ Test Passed
-🛈  FunctionalCorrectness.v Top Level Axioms Test
- ✅ Test Passed (no axioms at the top level)
+ ❌ Test FAILED
