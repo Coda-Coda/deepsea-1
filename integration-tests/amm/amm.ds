@@ -370,9 +370,9 @@ layer signature AMMLibSig = {
 }
 
 layer AMMLIB : [{}] AMMLibSig = {
-  erc20Token0 = address(0x10033) <: FixedSupplyToken;
-  erc20Token1 = address(0x10032) <: (clone FixedSupplyToken); (* cloned an object *)
-  liquidityToken = address(0x10031) <: LiquidityToken;
+  erc20Token0 = FixedSupplyToken;
+  erc20Token1 = (clone FixedSupplyToken); (* cloned an object *)
+  liquidityToken = LiquidityToken;
 }
 
 layer signature AMMSig = {
@@ -380,7 +380,7 @@ layer signature AMMSig = {
 }
 
 layer AMM : [AMMLibSig] AMMSig = {
-  amm = address(0x10030) <: AutomatedMarketMaker
+  amm = AutomatedMarketMaker
 }
 
 layer COMPLETE = AMM @ AMMLIB
