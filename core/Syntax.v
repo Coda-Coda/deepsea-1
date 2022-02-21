@@ -731,7 +731,7 @@ forall {color} r id_it id_end id_dest e1 e2 c3 c4 c5,
 | CEIP_panic :
     forall {color} `{ht : HyperType},
       CEIP_prf _ color (CCpanic tp) color
-  (* "panic" retains the current color *)
+  (* "panic" can be either green green or orange orange (this is wrong) *)
 | CEIP_respec :
     forall {color1} {color2} r tmp' c spec,
       CEIP_prf r color1 c color2 -> 
