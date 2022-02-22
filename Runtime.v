@@ -861,11 +861,10 @@ Qed.
 
 (* Tactics related to reentrancy tracking using the Checks Effects Interactions Pattern: *)
 
-Section CEIP_combined_if.
+Section CEIP_helpers.
 Context `{LayerSpec : LayerSpecClass}.
 
-(* TODO-Daniel, change name of combined_if to something more permanent. *)
-Lemma combined_if : forall ret e c1 c2 col1 col1' col2 col2' col3 col3',
+Lemma CEIP_ifthenelse_helper : forall ret e c1 c2 col1 col1' col2 col2' col3 col3',
 CEIP_prf ret col1 c1 col1' ->
 CEIP_prf ret col2 c2 col2' -> 
    ((col1=CEIP_green /\ col1'=CEIP_green /\ col2=CEIP_green /\ col2'=CEIP_green /\ col3=CEIP_green /\ col3'=CEIP_green)
@@ -886,7 +885,7 @@ Proof.
   - apply CEIP_ifthenelse5; assumption.
 Qed. 
 
-End CEIP_combined_if.
+End CEIP_helpers.
 
 (* CEIP_auto tries to solve a goal of the form 
    CEIP_prf ____ color_before _____ color_after
@@ -901,7 +900,7 @@ Ltac CEIP_auto :=
         | eapply CEIP_load  ; CEIP_auto
         | eapply CEIP_store ; CEIP_auto
         | eapply CEIP_sequence ; CEIP_auto
-        | eapply combined_if ; CEIP_auto (* Consider replacing these 5 with: + eapply combined_if *)
+        | eapply CEIP_ifthenelse_helper ; CEIP_auto
         | eapply CEIP_for1; CEIP_auto
         | eapply CEIP_for2 ; CEIP_auto
         | eapply CEIP_first1 ; CEIP_auto
