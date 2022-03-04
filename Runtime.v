@@ -909,6 +909,7 @@ Ltac CEIP_auto :=
         | eapply CEIP_fold2 ; CEIP_auto
         | eapply CEIP_call1 ; CEIP_auto
         | eapply CEIP_call2 ; CEIP_auto
+        | eapply CEIP_callmethod ; CEIP_auto
         | eapply CEIP_yield1; CEIP_auto
         | eapply CEIP_yield2  ; CEIP_auto
         | eapply CEIP_constr ; CEIP_auto

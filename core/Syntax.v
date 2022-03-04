@@ -702,6 +702,13 @@ forall {color} r id_it id_end id_dest e1 e2 c3 c4 c5,
         captured here in CEIP_call2 so that it is not necessary to capture both options within the prim color_before/after fields, rather just CEIP_orange (before and after)
         in the primitive color_before/after fields and this rule will capture the possibility that the prim is safe for CEIP_green
         (before and after) as well. This simplifies the situation somewhat. *)
+| CEIP_callmethod :
+    forall {color1} {color2} r argt ext_addr prim arg,
+    CEIP_prf r color1 (CCcall prim arg) color2 ->
+    CEIP_prf r color1 (@CCcallmethod LayerSpec argt r ext_addr prim arg) color2
+    (* CCcallmethod involves calling a method of another contract whose definition is exactly known.
+       For the sake of CEIP-checking, we can consider the external contract like a lower layer of the same contract.
+       So, the CEIP-checking rules for CCcall apply.*)
 | CEIP_yield1 :
   forall `{ht : HyperType tp} e,
     contains_balance_read e = true ->
