@@ -5,13 +5,8 @@
 
 set -e
 
-if [ -z "$1" ]
-then
-    FILEBASENAME="`ls *.ds`" # Assume compile-for-coq is called from the directory containing the contract.ds file (and only one such file). May want to remove this if having multiple contracts in this repo.
-else
-    FILEBASENAME=`basename $1`
-    cd `dirname $1`
-fi
+FILEBASENAME=`basename $1`
+cd `dirname $1`
 
 FILENAMENOEXT="${FILEBASENAME%.*}"
 FILEEXT="${FILEBASENAME##*.}"
