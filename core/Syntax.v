@@ -326,9 +326,9 @@ Inductive CEIP_color :=
     cmd_constr (mk_hyper_type_pair tp)                     
   | CCcall : forall {argt ret},
     primitive argt ret -> expr_constr_list argt -> cmd_constr ret
-                                              
-  
-                                                                
+  | CCcallmethod : forall {argt ret},
+    int256 -> (* the address of the external object/contract to call *)
+    primitive argt ret -> expr_constr_list argt -> cmd_constr ret                                              
   | CCtransfer : expr_constr tint_U -> expr_constr tint_U -> cmd_constr void_unit_pair
                                                               
   | CCyield : forall`{HyperTypeImpl tp},

@@ -135,6 +135,7 @@ Section STMT_FUNC.
       synth_stmt_pure c3 && synth_stmt_pure c4 && synth_stmt_pure c5
     | CCfold tp _ id_it id_end id_recur id_dest e1 e2 e3 c4 => true
     | CCcall argt ret prim args => prim.(PRIMpure)
+    | CCcallmethod argt ret address prim args => true (* TODO for now leaving same as CCpanic, but will need to be implemented properly, used for an external call involving respec or respec_opt. *)
     | CCtransfer _ _ => true                                           
     
     | CCyield tp _ e => true
@@ -195,7 +196,7 @@ Section STMT_FUNC.
       (synth_expr_wellformed tmp e1 * (synth_expr_wellformed tmp e2 *
        (synth_expr_wellformed tmp e3 * synth_stmt_wellformed c4 id_dest tmp''')))
     | CCcall argt ret prim args => fold_synth_expr_wellformed tmp args
-    
+    | CCcallmethod argt ret addr prim args => True (* TODO for now leaving same as CCpanic, but will need to be implemented properly, used for an external call involving respec or respec_opt. *)
     | CCconstr _ _ _ _ el flds _ =>
       synth_lexpr_wellformed tmp el * fold_synth_expr_wellformed tmp flds
     | CCtransfer e1 e2 =>
@@ -243,7 +244,7 @@ Section STMT_FUNC.
       (id_it, tint) :: (id_end, tint) :: (id_recur, unpair_ty tp) ::
         (id_dest, unpair_ty tp) :: synth_stmt_locals c4 id_dest tmp'''
     | CCcall argt ret prim args => nil
-    
+    | CCcallmethod argt ret addr prim args => nil (* TODO for now leaving same as CCpanic, but will need to be implemented properly, used for an external call involving respec or respec_opt. *)
     | CCtransfer _ _ => nil
     | CCconstr _ _ _ _ _ _ _ => nil
     | CCyield tp _ e => nil
@@ -345,7 +346,8 @@ Section STMT_FUNC.
                           None in
       Scall return_tmp prim.(PRIMident) 
                        (HList_map_nodep synth_expr_htp args)
-    
+    | CCcallmethod argt ret addr prim args =>
+      Srevert (* TODO for now leaving same as CCpanic, but will need to be implemented properly, used for an external call involving respec or respec_opt. *)
     | CCtransfer e1 e2 => 
       Stransfer (synth_expr_expr tmp e1) (synth_expr_expr tmp e2)
                                        
@@ -878,7 +880,8 @@ Fixpoint synth_stmt_spec_opt {returns}(c : cmd_constr returns) dest tmp :
     fun wf se =>
       let argv := map2_synth_expr_spec args se wf in
       prim.(PRIMsem_opt) argv me
-  
+  | CCcallmethod argt ret addr prim args =>
+    fun _ _ => mzero (* TODO for now leaving same as CCpanic, but will need to be implemented properly, used for an external call involving respec or respec_opt. *)
   | CCtransfer e1 e2 =>
     fun (wf : synth_expr_wellformed tmp e1 *
               synth_expr_wellformed tmp e2)
@@ -1150,7 +1153,8 @@ Proof. Admitted.
            m)
     | CCcall argt ret prim args => fun wf se _ =>
       fold_expr_constr_list_cond args wf se
-    
+    | CCcallmethod argt ret addr prim args => fun wf se _ =>
+      True (* TODO for now leaving same as CCpanic, but will need to be implemented properly, used for an external call involving respec or respec_opt. *)
     | CCyield tp _ e => fun wf se _ => oProp1 (synth_expr_ocond me tmp e wf) se
     | CCconstr _ _ _ _ el flds _ =>
       fun (wf : synth_lexpr_wellformed tmp el * fold_synth_expr_wellformed tmp flds)
@@ -1411,7 +1415,7 @@ Proof. Admitted.
              (SpecTree.set id_it int_Z32_pair n initial_se))
            m)
     | CCcall argt ret prim args => fun _ _ _ => True
-    
+    | CCcallmethod argt ret addr prim args => fun _ _ _ => True (* TODO for now leaving same as CCpanic, but will need to be implemented properly, used for an external call involving respec or respec_opt. *)
     | CCtransfer _ _ => fun _ _ _ => True
     | CCyield tp _ e => fun _ _ _ => True
     | CCconstr _ _ _ _ el flds _ =>
@@ -1663,7 +1667,8 @@ Proof. Admitted.
          synth_stmt_ret_cond c5 dest _ (cdddddr wf)
            (SpecTree.set id_it int_Z32_pair bound
              (SpecTree.set id_end int_Z32_pair bound se)) m))
-    
+    | CCcallmethod argt ret addr prim args => 
+      fun _ _ _ => True (* TODO for now leaving same as CCpanic, but will need to be implemented properly, used for an external call involving respec or respec_opt. *)
     | CCrespec _ tmp' c spec =>
       fun (wf : ((tmp ~~~ tmp') * (synth_stmt_pure c ~~~ true)) *
                 synth_stmt_wellformed c dest tmp) se m =>

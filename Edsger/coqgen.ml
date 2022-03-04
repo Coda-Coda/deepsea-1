@@ -1927,16 +1927,15 @@ let output_command env out base_layer obj method_full_name =
       | Some addr -> 
         (* this should be CCrespec *)
 
-        (* (CCrespec_opt (@AList.empty hyper_type_pair) (CCpanic tint_Z32)
-        (fun me se =>
-        (FixedSupplyToken_balanceOf_opt (me_address me) (ext_call_me me (Int256.repr 65587))))). *)
         
         output_string out ("(CCrespec_opt\n" ^ ind);
         output_tmp_env out ind 0 c.aCmdEnv;
         output_string out ("\n" ^ ind);
-        (try 
-        output_string out ("(CCpanic " ^ (List.find (fun m -> m.aMethodName = f) o.aObjectMethods).aMethodType.aMethodReturnType.aTypePairIdent ^ ")")
-        with Not_found -> ());
+        output_string out ("(CCcallmethod (Int256.repr ");
+        output_string out ((Backend.BinNumsExt.numstring2decimalstring addr) ^ ") ");
+        output_string out (ident_of_primitive base_layer s f ^ "\n" ^ ind);
+        output_args ("  " ^ ind) es;
+        output_char out ')';
         output_string out ("\n" ^ ind);
         output_string out ("(fun me se => (");
         (* output_string out "(@bind _ (@Monad_DS GlobalLayerSpec) _ _ get (fun d => put (execStateT ("; *)
@@ -2011,7 +2010,7 @@ let output_command env out base_layer obj method_full_name =
       output_string out ("(CCrespec\n" ^ ind);
       output_tmp_env out ind 0 c.aCmdEnv;
       output_string out ("\n" ^ ind);
-      output_string out ("(CCpanic " ^ c.aCmdType.aTypePairIdent ^ ")");
+      output_string out ("(CCpanic " ^ c.aCmdType.aTypePairIdent ^ ")"); (* TODO - does this break things when using the trusted Coq compilation pathway? *)
       output_string out ("\n" ^ ind);
       output_string out "(fun se => @ret _ (@Monad_DS GlobalLayerSpec) _ ht_default (*XXX(output_command | ACmatch when pure)*))";
       output_char out ')'
@@ -2151,7 +2150,7 @@ let output_command env out base_layer obj method_full_name =
       output_string out ("(CCrespec_opt\n" ^ ind);
       output_tmp_env out ind 0 c.aCmdEnv;
       output_string out ("\n" ^ ind);
-      output_string out ("(CCpanic " ^ c.aCmdType.aTypePairIdent ^ ")");
+      output_string out ("(CCpanic " ^ c.aCmdType.aTypePairIdent ^ ")"); (* TODO - does this break things when using the trusted Coq compilation pathway? *)
       output_string out ("\n" ^ ind);
       output_string out ("(fun se => ");
       begin match dest with
@@ -2167,7 +2166,7 @@ let output_command env out base_layer obj method_full_name =
       output_string out ("(CCrespec_opt\n" ^ ind);
       output_tmp_env out ind 0 c.aCmdEnv;
       output_string out ("\n" ^ ind);
-      output_string out ("(CCpanic " ^ c.aCmdType.aTypePairIdent ^ ")");
+      output_string out ("(CCpanic " ^ c.aCmdType.aTypePairIdent ^ ")"); (* TODO - does this break things when using the trusted Coq compilation pathway? *)
       output_string out ("\n" ^ ind);
       output_string out ("(fun se => @bind _ (@Monad_DS GlobalLayerSpec) _ _ get (fun d =>");
       output_string out ("\n" ^ ind);
