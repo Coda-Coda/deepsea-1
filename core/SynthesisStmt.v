@@ -347,7 +347,7 @@ Section STMT_FUNC.
       Scall return_tmp prim.(PRIMident) 
                        (HList_map_nodep synth_expr_htp args)
     | CCcallmethod argt ret addr prim args =>
-      Srevert (* TODO for now leaving same as CCpanic, but will need to be implemented properly, used for an external call involving respec or respec_opt. *)
+      Srevert (* TODO This especially needs to be handled properly. For now leaving same as CCpanic, but will need to be implemented properly, used for an external call involving respec or respec_opt. *)
     | CCtransfer e1 e2 => 
       Stransfer (synth_expr_expr tmp e1) (synth_expr_expr tmp e2)
                                        
