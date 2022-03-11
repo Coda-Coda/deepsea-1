@@ -3,6 +3,7 @@ Please note: this is an **unofficial** fork of https://github.com/certikfoundati
 The repo contains some code related to the DeepSEA POPL 2022 Paper (yet to be submitted) which is (currently) only available in this repository and not in CertiK's version.
 
 # Note: this is a work in progress
+The proof in [./contracts/popl-2021-example/FunctionalCorrectness.v](./contracts/popl-2021-example/FunctionalCorrectness.v) is still a work in progress, especially in its handling of the possibility of reentrancy when `transferEth` is called. Further work is underway in a private version of this repository.
 
 # The DeepSEA Language
 
