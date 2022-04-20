@@ -10,6 +10,8 @@ Leroy, X., Blazy, S., Kästner, D., Schommer, B., Pister, M., & Ferdinand, C. (2
 
 The authors greatly appreciate the work of the INRIA CompCert research project which aided the research presented in this paper.
 
+See also: https://compcert.org/
+
 ----------
 There is a **minor correction and improvement** relating to ensuring that a contract reading a balance doesn't occur when it would break the Checks-Effects-Interaction pattern. Please read the details [here](Comment-on-balance-checking.md).
 
