@@ -4,9 +4,17 @@ The code related to the FMBC 2021 Paper is (currently) only available in this re
 
 ----------
 
+**Correction - Additional Reference:**
+
+Leroy, X., Blazy, S., Kästner, D., Schommer, B., Pister, M., & Ferdinand, C. (2016, January). CompCert-a formally verified optimizing compiler. In ERTS 2016: Embedded Real Time Software and Systems, 8th European Congress.
+
+The authors greatly appreciate the work of the INRIA CompCert research project which aided the research presented in this paper.
+
+----------
 There is a **minor correction and improvement** relating to ensuring that a contract reading a balance doesn't occur when it would break the Checks-Effects-Interaction pattern. Please read the details [here](Comment-on-balance-checking.md).
 
 ----------
+
 # Files particularly relevant to FMBC 2021 Paper
 
 ## Paper: Using Coq to Enforce the Checks-Effects-Interactions Pattern in DeepSEA Smart Contracts
