@@ -1,8 +1,8 @@
-# Contributor Licence Agreement (v1.0)
+# Contributor Licence Agreement (v1.1)
 
 Thank you for your interest in contributing to this repository!
 
-To make this agreement effective, please follow the instructions at https://github.com/Coda-Coda/deepsea-1/issues/1.
+To make this agreement effective, please follow the instructions at https://github.com/Coda-Coda/deepsea-1/issues/3.
 
 "Contribution" means any original work of authorship, including any original modifications or additions to an existing work of authorship, submitted by you to this repository, in which you own the Copyright.
 
