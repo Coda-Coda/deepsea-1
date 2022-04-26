@@ -1,16 +1,12 @@
 # The DeepSEA Language
 
-You can download a zip file from the [releases
-page](https://github.com/CertiKFoundation/deepsea/releases). Please see the [DeepSEA language reference](https://github.com/CertiKFoundation/deepsea/blob/master/DeepSEA%20language%20reference.pdf) for installation and usage instructions.  
+This codebase **may only be used for educational, research, personal or evaluation purposes, and not for commercial use**.
+This is because the DeepSEA compiler includes files taken and modified from CompCert, so it is developed pursuant to the CompCert licence. Please see the [CompCert licence](./CompCert-LICENSE.txt) for the full details. You may also wish to look at the [INRIA CompCert research project website](https://compcert.org) or the [CompCert GitHub repository](https://github.com/AbsInt/CompCert).  
 
-The zip file includes pre-built binaries for Linux (Ubuntu) and MacOS. Since they use some system libraries, it is possible that they will not work on every version of Linux or MacOS. It is also easy to build the binaries from source yourself, following the instructions in the `src` directory.
+[The Shentu Chain webpage](https://www.shentu.technology/technology#deepsea)
+has more information about the DeepSEA project, and there are blog posts [An Introduction to DeepSEA](https://certik.io/blog/technology/an-introduction-to-deepsea) and [How DeepSEA Works](https://certik.io/blog/technology/how-deepsea-works-with-an-example-token-contact/).
 
-[The project page at the CertiK website](https://certik.io/research/deepsea/)
-has more information about the DeepSEA project, including the blog posts [An Introduction to DeepSEA](https://certik.io/blog/technology/an-introduction-to-deepsea) and [How DeepSEA Works](https://certik.io/blog/technology/how-deepsea-works-with-an-example-token-contact/).  
-
-The DeepSEA compiler includes files taken and modified from CompCert, so it is developed pursuant to the CompCert licence. In particular, it may only be used for educational, research, personal or evaluation purposes, and not for commercial use.
-
-Please let us know what you think! Feedback can be sent to deepsea@certik.org. 
+Please let us know what you think! Feedback can be sent to deepsea@certik.org or for feedback specific to this fork, feel free to [raise an issue](https://github.com/Coda-Coda/deepsea-1/issues/new). 
 
 
 -----
