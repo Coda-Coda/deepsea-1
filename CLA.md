@@ -1,4 +1,4 @@
-# Contributor Licence Agreement (v1.2)
+# Contributor Licence Agreement (v1.3)
 
 Thank you for your interest in contributing to this repository!
 
@@ -8,7 +8,7 @@ To make this agreement effective, please follow the instructions at https://gith
 
 ## CompCert Licence
 
-You as the contributor retain the Copyright related to your Contributions but you do agree to licence all Contributions under the [CompCert Licence](./CompCert-LICENSE.txt) while noting that this does not prevent you from also licencing these Contributions differently elsewhere as long as doing so does not breach the [CompCert Licence](./CompCert-LICENSE.txt).
+You as the contributor retain the Copyright related to your Contributions but you do agree to licence all Contributions under the [CompCert Licence](./CompCert-LICENSE.txt) while noting that this does not prevent you from also licencing these Contributions differently (either elsewhere, or indicated clearly within this repository as a dual-licence option or similar) as long as doing so does not breach the [CompCert Licence](./CompCert-LICENSE.txt).
 
 -----
 
