@@ -4,6 +4,9 @@ The CompCert verified compiler is Copyright by Institut National de
 Recherche en Informatique et en Automatique (INRIA) and
 AbsInt Angewandte Informatik GmbH.
 
+Contributions to this fork Copyright (c) Coda-Coda/deepsea-1 contributors
+(see CONTRIBUTORS file and CLA file).
+
 The CompCert verified compiler is distributed under the terms of the
 INRIA Non-Commercial License Agreement given below or under the terms
 of a Software Usage Agreement of AbsInt Angewandte Informatik GmbH.

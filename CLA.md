@@ -1,4 +1,4 @@
-# Contributor Licence Agreement (v1.1)
+# Contributor Licence Agreement (v1.2)
 
 Thank you for your interest in contributing to this repository!
 
