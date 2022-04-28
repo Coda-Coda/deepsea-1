@@ -4,6 +4,7 @@ type unary_operation =
 | Onotint
 | Oneg
 | Osha_1
+| Oidentity
 
 type binary_operation =
 | Oadd
