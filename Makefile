@@ -8,13 +8,13 @@ clean: core.make
 core.make: _CoqProject
 	coq_makefile -f _CoqProject -o core.make
 
-edsger: Edsger/parser.ml
+edsger: parser
 	cd Edsger && dune build edsger.bc
 
-edsger.exe: Edsger/parser.ml
+edsger.exe: parser
 	cd Edsger && dune build edsger.exe
 
-Edsger/parser.ml: Edsger/config.h Edsger/parser.mly Edsger/make_parser.sh
+parser: Edsger/config.h Edsger/parser.mly Edsger/make_parser.sh
 	cd Edsger && ./make_parser.sh
 
 minicc:
@@ -23,4 +23,4 @@ minicc:
 minicc.exe:
 	cd minic && dune build minicc.exe
 
-.PHONY: clean core edsger edsger.exe
+.PHONY: clean core edsger edsger.exe parser
