@@ -8,29 +8,7 @@ let pkgs = import (
 pkgs.mkShell {
   name = "DeepSEA-env";
   buildInputs = with pkgs; [ 
-    coq_8_9
-    nodejs
-    ncurses
-    git
-    gnumake
-    (pkgs.writeShellScriptBin "gsed" "exec -a $0 ${gnused}/bin/sed $@")
-    mkdocs
-    ocaml-ng.ocamlPackages_4_09.core
-    ocaml-ng.ocamlPackages_4_09.dune_2
-    ocaml-ng.ocamlPackages_4_09.ocaml
-    ocaml-ng.ocamlPackages_4_09.findlib
-    ocaml-ng.ocamlPackages_4_09.utop
-    ocaml-ng.ocamlPackages_4_09.cryptokit
-    ocaml-ng.ocamlPackages_4_09.ocamlbuild
-    ocaml-ng.ocamlPackages_4_09.cppo
-    ocaml-ng.ocamlPackages_4_09.ocaml_extlib
-    ocaml-ng.ocamlPackages_4_09.yojson
-    ocaml-ng.ocamlPackages_4_09.menhir
-    ocaml-ng.ocamlPackages_4_09.zarith
-    cargo # For conflux tests for ANT blockchain
-    openssl # For conflux tests for ANT blockchain
-    cmake # For conflux tests for ANT blockchain
-    pkg-config # For conflux tests for ANT blockchain
+    (import ./dependencies.nix)
     ];
 
   shellHook = ''
