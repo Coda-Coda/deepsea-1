@@ -1,6 +1,6 @@
 # The DeepSEA Language
 
-This codebase **may only be used for educational, research, personal or evaluation purposes, and not for commercial use**.
+This codebase **may only be used for educational, research or evaluation purposes, and not for commercial use**.
 This is because the DeepSEA compiler includes files taken and modified from CompCert, so it is developed pursuant to the CompCert licence. Please see the [CompCert licence](./CompCert-LICENSE.txt) for the full details. You may also wish to look at the [INRIA CompCert research project website](https://compcert.org) or the [CompCert GitHub repository](https://github.com/AbsInt/CompCert).  
 
 [The Shentu Chain webpage](https://www.shentu.technology/technology#deepsea)
