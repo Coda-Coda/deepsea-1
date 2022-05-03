@@ -5,10 +5,17 @@ let pkgs = import (
   sha256 = "00iiypj3l8gc295syv00m1f21n8m1hw9rvgxjwjnpdnr1nnwjq5d";
 }) {}; in
 
+let dependencies = (import ./dependencies.nix); in
+
 pkgs.mkShell {
   name = "DeepSEA-env";
   buildInputs = with pkgs; [ 
-    (import ./dependencies.nix)
+      dependencies.other
+      dependencies.proving
+      dependencies.dsc
+      dependencies.documentation
+      dependencies.unittests
+      dependencies.conflux-unittests    
     ];
 
   shellHook = ''

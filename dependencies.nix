@@ -5,15 +5,18 @@ let pkgs = import (
   sha256 = "00iiypj3l8gc295syv00m1f21n8m1hw9rvgxjwjnpdnr1nnwjq5d";
 }) {}; in
 
-(with pkgs;
-  [
-    coq_8_9
-    nodejs
-    ncurses
-    git
+{
+  other = (with pkgs; [
     gnumake
+    git
+    ncurses
     (pkgs.writeShellScriptBin "gsed" "exec -a $0 ${gnused}/bin/sed $@")
-    mkdocs
+  ]);
+  proving = (with pkgs; [
+    coq_8_9
+  ]);
+  dsc = (with pkgs; [
+    # For dsc/Edsger
     ocaml-ng.ocamlPackages_4_09.core
     ocaml-ng.ocamlPackages_4_09.dune_2
     ocaml-ng.ocamlPackages_4_09.ocaml
@@ -26,9 +29,17 @@ let pkgs = import (
     ocaml-ng.ocamlPackages_4_09.yojson
     ocaml-ng.ocamlPackages_4_09.menhir
     ocaml-ng.ocamlPackages_4_09.zarith
-    cargo # For conflux tests for ANT blockchain
-    openssl # For conflux tests for ANT blockchain
-    cmake # For conflux tests for ANT blockchain
-    pkg-config # For conflux tests for ANT blockchain
-  ]
-)
+    ]);
+  documentation = (with pkgs; 
+    [ mkdocs ]);
+  unittests = (with pkgs; [
+    nodejs
+  ]);
+  conflux-unittests = (with pkgs; [
+    # For conflux tests for the ANT blockchain
+    cargo 
+    openssl
+    cmake
+    pkg-config
+  ]);
+}
