@@ -5147,59 +5147,70 @@ This file defines a function `contract_model` that can be used to build machine 
     ) fileDeclarations;
 
   output_string stream ("\nModule ContractModel.\n\n
-Section Block_Context. (* like bstep *)
-(* 'Forall Blocks:' *)
-Context
-  (coinbase : int256)
-  (timestamp : int256)
-  (number : int256)
-  (blockhash : int256 -> int256)
-  (chainid : int256).
 
-Section Nested_Calls_Context.
-(* 'Forall calls from EoA:' *)
-Context
-  (origin: int256).
+Definition wei := int256.
+Definition addr := int256.
 
-Section Individual_Call_Context. (* like mstep *)
+Section Contract_Call_Context.
+Context (contract_address : addr).
+Record BlockchainState := mkBlockchainState {
+  timestamp : int256;
+  block_number : int256;
+  balance : addr -> wei;
+  blockhash : int256 -> int256;
+  contract_state : global_abstract_data_type
+}.
+Record CallContext := mkCallContext
+  {
+    origin : addr;
+    caller : addr;
+    callvalue : wei;
+    coinbase : int256;
+    chainid : int256
+  }.
 (* 'Forall function calls: '*)
-Context 
-  (contract_address : int256)
-  (caller: int256)
-  (callvalue : int256)
-  (balances_at_start_of_call : int256 -> int256).
+Context (blockchain_state : BlockchainState).
+Context (call_context : CallContext).
 
   Context {HmemOps: MemoryModelOps mem}.
   Context {memModelOps : MemoryModelOps mem}.
-  Instance GlobalLayerSpec : LayerSpecClass := {
-    memModelOps := memModelOps;
-    GetHighData := global_abstract_data_type 
-  }.
+
+Delimit Scope int256_scope with int256.
+Infix \"+\" := Int256.add : int256_scope.
+Infix \"-\" := Int256.sub : int256_scope.
+Infix \"=?\" := Int256.eq (at level 70, no associativity) : int256_scope.
+
+Open Scope int256.
+Definition update_balances sender recipient amount balances : (addr -> wei) :=
+  (* Here the balances are updated without checking for overflows. Overflow checks must be done elsewhere. *)
+  fun a => 
+  if sender =? recipient then balances a else
+    if a =? sender then (balances sender) - amount else
+     if a =? recipient then (balances recipient) + amount
+      else balances a.
+Close Scope int256.
 
 Definition make_machine_env : machine_env global_abstract_data_type
-  := {| me_address := contract_address;
-        me_origin := origin;
-        me_caller := caller;
-        me_callvalue := callvalue;
-        me_coinbase := coinbase; 
-        me_timestamp := timestamp;
-        me_number := number;
+  := 
+     let balances_during_call := (update_balances (caller call_context) contract_address (callvalue call_context) (balance blockchain_state)) in
+     {| me_address := contract_address;
+        me_origin := (origin call_context);
+        me_caller := (caller call_context);
+        me_callvalue := (callvalue call_context);
+        me_coinbase := (coinbase call_context); 
+        me_timestamp := (timestamp blockchain_state);
+        me_number := (block_number blockchain_state);
         (* For me_balance and me_selfbalance, the assumption here is that the Checks-Effects-Interaction pattern is followed, so there are no balance reads after a transfer has occured. *)
-        me_balance a := balances_at_start_of_call a;
-        me_selfbalance := balances_at_start_of_call contract_address;
-        me_blockhash := blockhash;
+        me_balance := balances_during_call;
+        me_selfbalance := balances_during_call contract_address;
+        me_blockhash := (blockhash blockchain_state);
         me_transfer recipient amount d := (Int256.one, update_Outgoing_transfer_recipient_and_amount (Some (recipient, amount)) d);
         me_callmethod _ _ _ _ _ _ _ _ _ _ := False;
         me_log _ _ d := d; (* TODO-Daniel what is the purpose of me_log? Is this a sufficient definition for now? *)
-        me_chainid := chainid;
+        me_chainid := (chainid call_context);
       |}.
 
-
-End Individual_Call_Context.
-
-End Nested_Calls_Context.
-
-End Block_Context.
+End Contract_Call_Context.
 
   ");
 
