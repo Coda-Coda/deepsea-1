@@ -140,9 +140,9 @@ Proof.
     }
 
     assert (l := Int256Tree_Properties.sum_bound2 H8 Hnonnegative Hbound).    
-    apply Zle_lt_trans with (Int256Tree.get_default 0 a0 (balances g0) + Int256Tree.get_default 0 (MachineModel.me_caller me) (balances g0)).
+    apply Z.le_lt_trans with (Int256Tree.get_default 0 a0 (balances g0) + Int256Tree.get_default 0 (MachineModel.me_caller me) (balances g0)).
     omega.
-    apply Zle_lt_trans with 100000.
+    apply Z.le_lt_trans with 100000.
     rewrite Zplus_comm.
     exact l.
     omega.
@@ -225,9 +225,9 @@ Proof.
     assert (l := Int256Tree_Properties.sum_bound2 H12 Hnonnegative Hbound).
 
 
-    apply Zle_lt_trans with (Int256Tree.get_default 0 a0 (balances g0) + Int256Tree.get_default 0 a1 (balances g0)).
+    apply Z.le_lt_trans with (Int256Tree.get_default 0 a0 (balances g0) + Int256Tree.get_default 0 a1 (balances g0)).
     omega.
-    apply Zle_lt_trans with 100000.
+    apply Z.le_lt_trans with 100000.
     exact l.
     omega.
 Qed.

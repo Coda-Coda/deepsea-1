@@ -176,72 +176,87 @@ Section HYPER_TYPE_BOOL.
   Proof. Admitted.
   Global Instance int_bool_notbool_passthrough
       : HyperUnaryPassthrough Onotbool tint_bool tint_bool.
-  
+  Qed.
   Global Instance int_bool_or_impl
       : HyperBinaryImpl Oor tint_bool tint_bool tint_bool := {
     Hbinary_cond f f' := True;
     Hbinary_ocond := otrue2;
     Hbinary := orb
   }.
-  Global Instance int_bool_or
+  Global Program Instance int_bool_or
      : HyperBinaryOp Oor tint_bool tint_bool tint_bool := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Global Instance int_bool_or_passthrough
       : HyperBinaryPassthrough Oor tint_bool tint_bool tint_bool.
-  
+  Qed.
   Global Instance int_bool_xor_impl
       : HyperBinaryImpl Oxor tint_bool tint_bool tint_bool := {
     Hbinary_cond f f' := True;
     Hbinary_ocond := otrue2;
     Hbinary := xorb
   }.
-  Global Instance int_bool_xor
+  Global Program Instance int_bool_xor
       : HyperBinaryOp Oxor tint_bool tint_bool tint_bool := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Global Instance int_bool_xor_passthrough
       : HyperBinaryPassthrough Oxor tint_bool tint_bool tint_bool.
-  
+  Qed.  
   Global Instance int_bool_and_impl
       : HyperBinaryImpl Oand tint_bool tint_bool tint_bool := {
     Hbinary_cond f f' := True;
     Hbinary_ocond := otrue2;
     Hbinary := andb
   }.
-  Global Instance int_bool_and
+  Global Program Instance int_bool_and
       : HyperBinaryOp Oand tint_bool tint_bool tint_bool := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Global Instance int_bool_and_passthrough
       : HyperBinaryPassthrough Oand tint_bool tint_bool tint_bool.
-  
+  Qed.  
   Global Instance int_bool_eq_impl
       : HyperBinaryImpl Oeq tint_bool tint_bool tint_bool := {
     Hbinary_cond f f' := True;
     Hbinary_ocond := otrue2;
     Hbinary f f' := negb (xorb f f')
   }.
-  Global Instance int_bool_eq
+  Global Program Instance int_bool_eq
       : HyperBinaryOp Oeq tint_bool tint_bool tint_bool := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Global Instance int_bool_eq_passthrough
       : HyperBinaryPassthrough Oeq tint_bool tint_bool tint_bool.
-  
+  Qed.
   Global Instance int_bool_ne_impl
       : HyperBinaryImpl One tint_bool tint_bool tint_bool := {
     Hbinary_cond f f' := True;
     Hbinary_ocond := otrue2;
     Hbinary := xorb
   }.
-  Global Instance int_bool_ne
+  Global Program Instance int_bool_ne
       : HyperBinaryOp One tint_bool tint_bool tint_bool := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Global Instance int_bool_ne_passthrough
       : HyperBinaryPassthrough One tint_bool tint_bool tint_bool.
-  
+  Qed.
   
 End HYPER_TYPE_BOOL.
 Section HYPER_TYPE_INT.
@@ -295,52 +310,72 @@ Section BOUNDED.
     Hbinary_ocond := oprop2 (fun f f' => f + f' < bound);
     Hbinary := Z.add
   }.
-  Instance int_Z_bounded_add
+  Program Instance int_Z_bounded_add
       : HyperBinaryOp Oadd tint_Z_bounded tint_Z_bounded tint_Z_bounded := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_Z_bounded_add_passthrough
       : HyperBinaryPassthrough Oadd tint_Z_bounded tint_Z_bounded tint_Z_bounded.
-  
+  Qed.
   Instance int_Z_bounded_sub_impl
       : HyperBinaryImpl Osub tint_Z_bounded tint_Z_bounded tint_Z_bounded := {
     Hbinary_cond f f' := f >= f';
     Hbinary_ocond := oprop2 (fun f f' => f >= f');
     Hbinary := Z.sub
   }.
-  Instance int_Z_bounded_sub
+  Program Instance int_Z_bounded_sub
       : HyperBinaryOp Osub tint_Z_bounded tint_Z_bounded tint_Z_bounded := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_Z_bounded_sub_passthrough
       : HyperBinaryPassthrough Osub tint_Z_bounded tint_Z_bounded tint_Z_bounded.
-  
+  Qed.
   Instance int_Z_bounded_mul_impl
       : HyperBinaryImpl Omul tint_Z_bounded tint_Z_bounded tint_Z_bounded := {
     Hbinary_cond f f' := f * f' < bound;
     Hbinary_ocond := oprop2 (fun f f' => f * f' < bound);
     Hbinary := Z.mul
   }.
-  Instance int_Z_bounded_mul
+  Program Instance int_Z_bounded_mul
       : HyperBinaryOp Omul tint_Z_bounded tint_Z_bounded tint_Z_bounded := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_Z_bounded_mul_passthrough
       : HyperBinaryPassthrough Omul tint_Z_bounded tint_Z_bounded tint_Z_bounded.
-  
+  Qed.
   Instance int_Z_bounded_mod_impl
       : HyperBinaryImpl Omod tint_Z_bounded tint_Z_bounded tint_Z_bounded := {
     Hbinary_cond f f' := f' <> 0;
     Hbinary_ocond := oprop2 (fun f f' => f' <> 0);
     Hbinary := Z.modulo
   }.
-  Instance int_Z_bounded_mod
+  Program Instance int_Z_bounded_mod
       : HyperBinaryOp Omod tint_Z_bounded tint_Z_bounded tint_Z_bounded := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_Z_bounded_mod_passthrough
       : HyperBinaryPassthrough Omod tint_Z_bounded tint_Z_bounded tint_Z_bounded.
-  
+  Qed.
   
   Instance int_Z_bounded_div_impl
       : HyperBinaryImpl Odiv tint_Z_bounded tint_Z_bounded tint_Z_bounded := {
@@ -348,94 +383,117 @@ Section BOUNDED.
     Hbinary_ocond := oprop2 (fun f f' => f' <> 0);
     Hbinary := Z.div
   }.
-  Instance int_Z_bounded_div
+  Program Instance int_Z_bounded_div
       : HyperBinaryOp Odiv tint_Z_bounded tint_Z_bounded tint_Z_bounded := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_Z_bounded_div_passthrough
       : HyperBinaryPassthrough Odiv tint_Z_bounded tint_Z_bounded tint_Z_bounded.
-  
+  Qed.  
   Instance int_Z_bounded_eq_impl
       : HyperBinaryImpl Oeq tint_Z_bounded tint_Z_bounded tint_bool := {
     Hbinary_cond f f' := True;
     Hbinary_ocond := otrue2;
     Hbinary := Z.eqb
   }.
-  Instance int_Z_bounded_eq
+  Program Instance int_Z_bounded_eq
       : HyperBinaryOp Oeq tint_Z_bounded tint_Z_bounded tint_bool := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_Z_bounded_eq_passthrough
       : HyperBinaryPassthrough Oeq tint_Z_bounded tint_Z_bounded tint_bool.
-  
+  Qed.  
   Instance int_Z_bounded_ne_impl
       : HyperBinaryImpl One tint_Z_bounded tint_Z_bounded tint_bool := {
     Hbinary_cond f f' := True;
     Hbinary_ocond := otrue2;
     Hbinary f f' := negb (Z.eqb f f')
   }.
-  Instance int_Z_bounded_ne
+  Program Instance int_Z_bounded_ne
       : HyperBinaryOp One tint_Z_bounded tint_Z_bounded tint_bool := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_Z_bounded_ne_passthrough
       : HyperBinaryPassthrough One tint_Z_bounded tint_Z_bounded tint_bool.
-  
+  Qed.
   Instance int_Z_bounded_lt_impl
       : HyperBinaryImpl Olt tint_Z_bounded tint_Z_bounded tint_bool := {
     Hbinary_cond f f' := True;
     Hbinary_ocond := otrue2;
     Hbinary := Z.ltb
   }.
-  Instance int_Z_bounded_lt
+  Program Instance int_Z_bounded_lt
       : HyperBinaryOp Olt tint_Z_bounded tint_Z_bounded tint_bool := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_Z_bounded_lt_passthrough
       : HyperBinaryPassthrough Olt tint_Z_bounded tint_Z_bounded tint_bool.
-  
+  Qed.
   Instance int_Z_bounded_gt_impl
       : HyperBinaryImpl Ogt tint_Z_bounded tint_Z_bounded tint_bool := {
     Hbinary_cond f f' := True;
     Hbinary_ocond := otrue2;
     Hbinary := Z.gtb
   }.
-  Instance int_Z_bounded_gt
+  Program Instance int_Z_bounded_gt
       : HyperBinaryOp Ogt tint_Z_bounded tint_Z_bounded tint_bool := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_Z_bounded_gt_passthrough
       : HyperBinaryPassthrough Ogt tint_Z_bounded tint_Z_bounded tint_bool.
-  
+  Qed.
   Instance int_Z_bounded_le_impl
       : HyperBinaryImpl Ole tint_Z_bounded tint_Z_bounded tint_bool := {
     Hbinary_cond f f' := True;
     Hbinary_ocond := otrue2;
     Hbinary := Z.leb
   }.
-  Instance int_Z_bounded_le
+  Program Instance int_Z_bounded_le
       : HyperBinaryOp Ole tint_Z_bounded tint_Z_bounded tint_bool := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_Z_bounded_le_passthrough
       : HyperBinaryPassthrough Ole tint_Z_bounded tint_Z_bounded tint_bool.
-  
+  Qed.
   Instance int_Z_bounded_ge_impl
       : HyperBinaryImpl Oge tint_Z_bounded tint_Z_bounded tint_bool := {
     Hbinary_cond f f' := True;
     Hbinary_ocond := otrue2;
     Hbinary := Z.geb
   }.
-  Instance int_Z_bounded_ge
+  Program Instance int_Z_bounded_ge
       : HyperBinaryOp Oge tint_Z_bounded tint_Z_bounded tint_bool := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_Z_bounded_ge_passthrough
       : HyperBinaryPassthrough Oge tint_Z_bounded tint_Z_bounded tint_bool.
-  
+  Qed.
 End BOUNDED.
   Global Instance modulus_bound : IntegerBound Int256.modulus := {
-    integer_bound_within_modulus := Z.le_ge _ _ (Zle_refl Int256.modulus);
+    integer_bound_within_modulus := Z.le_ge _ _ (Z.le_refl Int256.modulus);
     integer_bound_positive := Z.gt_lt _ _ (Int256.modulus_pos)
   }.
   Definition tint_Z32 := tint_Z_bounded Int256.modulus.
@@ -529,12 +587,15 @@ Section HYPER_TYPE_UNSIGNED.
       Hbinary_ocond := otrue2;
       Hbinary x y := Int256.add x y
     }.
-  Instance int_U_add : HyperBinaryOp Oadd tint_U tint_U tint_U :=
+  Program Instance int_U_add : HyperBinaryOp Oadd tint_U tint_U tint_U :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_add_passthrough : HyperBinaryPassthrough Oadd tint_U tint_U tint_U.
-  
+  Qed.
   
   Instance int_U_sub_impl : HyperBinaryImpl Osub tint_U tint_U tint_U :=
     {
@@ -542,12 +603,15 @@ Section HYPER_TYPE_UNSIGNED.
       Hbinary_ocond := otrue2;
       Hbinary x y := Int256.sub x y
     }.
-  Instance int_U_sub : HyperBinaryOp Osub tint_U tint_U tint_U :=
+  Program Instance int_U_sub : HyperBinaryOp Osub tint_U tint_U tint_U :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_sub_passthrough : HyperBinaryPassthrough Osub tint_U tint_U tint_U.
-  
+  Qed.
   
   Instance int_U_mul_impl : HyperBinaryImpl Omul tint_U tint_U tint_U :=
     {
@@ -555,12 +619,15 @@ Section HYPER_TYPE_UNSIGNED.
       Hbinary_ocond := otrue2;
       Hbinary x y := Int256.mul x y
     }.
-  Instance int_U_mul : HyperBinaryOp Omul tint_U tint_U tint_U :=
+  Program Instance int_U_mul : HyperBinaryOp Omul tint_U tint_U tint_U :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_mul_passthrough : HyperBinaryPassthrough Omul tint_U tint_U tint_U.
-  
+  Qed.
   
   Instance int_U_mod_impl : HyperBinaryImpl Omod tint_U tint_U tint_U :=
     {
@@ -569,12 +636,15 @@ Section HYPER_TYPE_UNSIGNED.
       Hbinary := Int256.modu
     }.
     
-  Instance int_U_mod : HyperBinaryOp Omod tint_U tint_U tint_U :=
+  Program Instance int_U_mod : HyperBinaryOp Omod tint_U tint_U tint_U :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_mod_passthrough : HyperBinaryPassthrough Omod tint_U tint_U tint_U.
-  
+  Qed.
   
   Instance int_U_div_impl : HyperBinaryImpl Odiv tint_U tint_U tint_U :=
     {
@@ -582,12 +652,15 @@ Section HYPER_TYPE_UNSIGNED.
       Hbinary_ocond := oprop2 (fun f f' => f' <> Int256.zero);
       Hbinary := Int256.divu
     }.
-  Instance int_U_div : HyperBinaryOp Odiv tint_U tint_U tint_U :=
+  Program Instance int_U_div : HyperBinaryOp Odiv tint_U tint_U tint_U :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_div_passthrough : HyperBinaryPassthrough Odiv tint_U tint_U tint_U.
-  
+  Qed.
   
   Instance int_U_eq_impl : HyperBinaryImpl Oeq tint_U tint_U tint_bool :=
     {
@@ -597,12 +670,15 @@ Section HYPER_TYPE_UNSIGNED.
     }.
   Opaque val_eq_dec.
   
-  Instance int_U_eq : HyperBinaryOp Oeq tint_U tint_U tint_bool :=
+  Program Instance int_U_eq : HyperBinaryOp Oeq tint_U tint_U tint_bool :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_eq_passthrough : HyperBinaryPassthrough Oeq tint_U tint_U tint_bool .
-  
+  Qed.
   
   Instance int_U_ne_impl : HyperBinaryImpl One tint_U tint_U tint_bool :=
     {
@@ -610,12 +686,15 @@ Section HYPER_TYPE_UNSIGNED.
       Hbinary_ocond := otrue2;
       Hbinary := Int256.cmpu Cne
     }.
-  Instance int_U_ne : HyperBinaryOp One tint_U tint_U tint_bool :=
+  Program Instance int_U_ne : HyperBinaryOp One tint_U tint_U tint_bool :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_ne_passthrough : HyperBinaryPassthrough One tint_U tint_U tint_bool.
-  
+  Qed.
   
   
   Instance int_U_lt_impl : HyperBinaryImpl Olt tint_U tint_U tint_bool :=
@@ -624,12 +703,15 @@ Section HYPER_TYPE_UNSIGNED.
       Hbinary_ocond := otrue2;
       Hbinary := Int256.cmpu Clt
     }.
-  Instance int_U_lt : HyperBinaryOp Olt tint_U tint_U tint_bool :=
+  Program Instance int_U_lt : HyperBinaryOp Olt tint_U tint_U tint_bool :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_lt_passthrough : HyperBinaryPassthrough Olt tint_U tint_U tint_bool.
-  
+  Qed.
   
   Instance int_U_gt_impl : HyperBinaryImpl Ogt tint_U tint_U tint_bool :=
     {
@@ -637,12 +719,15 @@ Section HYPER_TYPE_UNSIGNED.
       Hbinary_ocond := otrue2;
       Hbinary := Int256.cmpu Cgt
     }.
-  Instance int_U_gt : HyperBinaryOp Ogt tint_U tint_U tint_bool :=
+  Program Instance int_U_gt : HyperBinaryOp Ogt tint_U tint_U tint_bool :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_gt_passthrough : HyperBinaryPassthrough Ogt tint_U tint_U tint_bool.
-  
+  Qed.  
   
   Instance int_U_le_impl : HyperBinaryImpl Ole tint_U tint_U tint_bool :=
     {
@@ -650,12 +735,15 @@ Section HYPER_TYPE_UNSIGNED.
       Hbinary_ocond := otrue2;
       Hbinary := Int256.cmpu Cle
     }.
-  Instance int_U_le : HyperBinaryOp Ole tint_U tint_U tint_bool :=
+  Program Instance int_U_le : HyperBinaryOp Ole tint_U tint_U tint_bool :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_le_passthrough : HyperBinaryPassthrough Ole tint_U tint_U tint_bool.
-  
+  Qed.
   
   Instance int_U_ge_impl : HyperBinaryImpl Oge tint_U tint_U tint_bool :=
     {
@@ -663,12 +751,15 @@ Section HYPER_TYPE_UNSIGNED.
       Hbinary_ocond := otrue2;
       Hbinary := Int256.cmpu Cge
     }.
-  Instance int_U_ge : HyperBinaryOp Oge tint_U tint_U tint_bool :=
+  Program Instance int_U_ge : HyperBinaryOp Oge tint_U tint_U tint_bool :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_ge_passthrough : HyperBinaryPassthrough Oge tint_U tint_U tint_bool.
-  
+  Qed.
   
   Instance int_U_notint_impl : HyperUnaryImpl Onotint tint_U tint_U :=
     {
@@ -676,10 +767,13 @@ Section HYPER_TYPE_UNSIGNED.
       Hunary_ocond := otrue1;
       Hunary := Int256.not
     }.
-  Instance int_U_notint : HyperUnaryOp Onotint tint_U tint_U.
-  Proof. Admitted.
+  Program Instance int_U_notint : HyperUnaryOp Onotint tint_U tint_U.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_notint_passthrough : HyperUnaryPassthrough Onotint tint_U tint_U.
-  
+  Qed.
   
   Instance int_U_and_impl : HyperBinaryImpl Oand tint_U tint_U tint_U :=
     {
@@ -687,12 +781,15 @@ Section HYPER_TYPE_UNSIGNED.
       Hbinary_ocond := otrue2;
       Hbinary := Int256.and
     }.
-  Instance int_U_and : HyperBinaryOp Oand tint_U tint_U tint_U :=
+  Program Instance int_U_and : HyperBinaryOp Oand tint_U tint_U tint_U :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_and_passthrough : HyperBinaryPassthrough Oand tint_U tint_U tint_U.
-  
+  Qed.
   
   
   Instance int_U_or_impl : HyperBinaryImpl Oor tint_U tint_U tint_U :=
@@ -701,12 +798,15 @@ Section HYPER_TYPE_UNSIGNED.
       Hbinary_ocond := otrue2;
       Hbinary := Int256.or
     }.
-  Instance int_U_or : HyperBinaryOp Oor tint_U tint_U tint_U :=
+  Program Instance int_U_or : HyperBinaryOp Oor tint_U tint_U tint_U :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_or_passthrough : HyperBinaryPassthrough Oor tint_U tint_U tint_U.
-  
+  Qed.
   
   Instance int_U_shl_impl : HyperBinaryImpl Oshl tint_U tint_Z32 tint_U :=
     {
@@ -720,12 +820,15 @@ Section HYPER_TYPE_UNSIGNED.
       Int256.ltu (Int256.repr f) Int256.iwordsize = true.
   Proof. Admitted.
   
-  Instance int_U_shl : HyperBinaryOp Oshl tint_U tint_Z32 tint_U :=
+  Program Instance int_U_shl : HyperBinaryOp Oshl tint_U tint_Z32 tint_U :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_shl_passthrough : HyperBinaryPassthrough Oshl tint_U tint_Z32 tint_U.
-  
+  Qed.
   
   Instance int_U_shr_impl : HyperBinaryImpl Oshr tint_U tint_Z32 tint_U :=
     {
@@ -733,12 +836,15 @@ Section HYPER_TYPE_UNSIGNED.
       Hbinary_ocond := oprop2 (fun f f' => f' < Int256.zwordsize);
       Hbinary x y := Int256.shru x (Int256.repr y)
     }.
-  Instance int_U_shr : HyperBinaryOp Oshr tint_U tint_Z32 tint_U :=
+  Program Instance int_U_shr : HyperBinaryOp Oshr tint_U tint_Z32 tint_U :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_shr_passthrough : HyperBinaryPassthrough Oshr tint_U tint_Z32 tint_U.
-  
+  Qed.
   
   Instance int_U_xor_impl : HyperBinaryImpl Oxor tint_U tint_U tint_U :=
     {
@@ -746,12 +852,15 @@ Section HYPER_TYPE_UNSIGNED.
       Hbinary_ocond := otrue2;
       Hbinary := Int256.xor
     }.
-  Instance int_U_xor : HyperBinaryOp Oxor tint_U tint_U tint_U :=
+  Program Instance int_U_xor : HyperBinaryOp Oxor tint_U tint_U tint_U :=
     {
     }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Instance int_U_xor_passthrough : HyperBinaryPassthrough Oxor tint_U tint_U tint_U.
-  
+  Qed.
   
   (**[int_U_cast_int_Z32]******************************************)
   Global Instance int_U_cast_int_Z32_impl : HyperUnaryImpl Oidentity tint_U tint_Z32 :=
@@ -958,6 +1067,7 @@ Global Instance int_hashvalue_hash1_impl
 Global Instance int_hashvalue_hash1 : HyperUnaryOp Osha_1 tint_hashvalue tint_hashvalue.
 Proof. Admitted.
 Global Instance int_hashvalue_hash1_passthrough : HyperUnaryPassthrough  Osha_1 tint_hashvalue tint_hashvalue.
+Qed.
 Global Instance int_hashvalue_hash1_U_impl
   : HyperUnaryImpl Osha_1 tint_U tint_hashvalue := {
  Hunary_cond ft := True;
@@ -968,16 +1078,21 @@ Global Instance int_hashvalue_hash1_U_impl
 Global Instance int_hashvalue_hash1_U : HyperUnaryOp Osha_1 tint_U tint_hashvalue.
 Proof. Admitted.
 Global Instance int_hashvalue_hash1_U_passthrough : HyperUnaryPassthrough Osha_1 tint_U tint_hashvalue.
+Qed.
 Global Instance int_hashvalue_hash2_impl :
   HyperBinaryImpl Osha_2 tint_hashvalue tint_hashvalue tint_hashvalue := {
     Hbinary_cond f f' := True;
     Hbinary_ocond := otrue2;
     Hbinary := hashval_hash2
   }.
-  Global Instance int_hashvalue_hash2 
+  
+  Global Program Instance int_hashvalue_hash2 
      : HyperBinaryOp Osha_2 tint_hashvalue tint_hashvalue tint_hashvalue := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   
   Global Instance int_hashvalue_hash2_passthrough
      : HyperBinaryPassthrough Osha_2 tint_hashvalue tint_hashvalue tint_hashvalue := {
@@ -989,10 +1104,13 @@ Global Instance int_hashvalue_hash2_U1impl :
     Hbinary_ocond := otrue2;
     Hbinary x y := hashval_hash2 (hashval_int256 x) y
   }.
-  Global Instance int_hashvalue_hash2_U1 
+  Global Program Instance int_hashvalue_hash2_U1 
      : HyperBinaryOp Osha_2 tint_U tint_hashvalue tint_hashvalue := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   
   Global Instance int_hashvalue_hash2_U1_passthrough
      : HyperBinaryPassthrough Osha_2 tint_U tint_hashvalue tint_hashvalue := {
@@ -1004,10 +1122,13 @@ Global Instance int_hashvalue_hash2_U2_impl :
     Hbinary_ocond := otrue2;
     Hbinary x y := hashval_hash2 x (hashval_int256 y)
   }.
-  Global Instance int_hashvalue_hash2_U2
+  Global Program Instance int_hashvalue_hash2_U2
      : HyperBinaryOp Osha_2 tint_hashvalue tint_U tint_hashvalue := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   
   Global Instance int_hashvalue_hash2_U2_passthrough
      : HyperBinaryPassthrough Osha_2 tint_hashvalue tint_U tint_hashvalue := {
@@ -1019,10 +1140,13 @@ Global Instance int_hashvalue_hash2_U12_impl :
     Hbinary_ocond := otrue2;
     Hbinary x y := hashval_hash2 (hashval_int256 x) (hashval_int256 y)
   }.
-  Global Instance int_hashvalue_hash2_U12
+  Global Program Instance int_hashvalue_hash2_U12
      : HyperBinaryOp Osha_2 tint_U tint_U tint_hashvalue := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   
   Global Instance int_hashvalue_hash2_U12_passthrough
      : HyperBinaryPassthrough Osha_2 tint_U tint_U tint_hashvalue := {
@@ -1042,23 +1166,29 @@ Global Instance int_hashvalue_hash2_U12_impl :
     Hbinary_ocond := otrue2;
     Hbinary f f' := hashvalue_eqb f f'
   }.
-  Global Instance hashvalue_bool_eq
+  Global Program Instance hashvalue_bool_eq
       : HyperBinaryOp Oeq tint_hashvalue tint_hashvalue tint_bool := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Global Instance hashvalue_bool_eq_passthrough
       : HyperBinaryPassthrough Oeq tint_hashvalue tint_hashvalue tint_bool.
-  
+  Qed.
   Global Instance hashvalue_bool_ne_impl
       : HyperBinaryImpl One tint_hashvalue tint_hashvalue tint_bool := {
     Hbinary_cond f f' := True;
     Hbinary_ocond := otrue2;
     Hbinary f f' := negb (hashvalue_eqb f f')
   }.
-  Global Instance hashvalue_bool_ne
+  Global Program Instance hashvalue_bool_ne
       : HyperBinaryOp One tint_hashvalue tint_hashvalue tint_bool := {
   }.
-  Proof. Admitted.
+  Next Obligation.
+  Admitted.
+  Next Obligation.
+  Admitted.
   Global Instance int_hashvalue_ne_passthrough
       : HyperBinaryPassthrough One tint_hashvalue tint_hashvalue tint_bool.
-  
+  Qed.

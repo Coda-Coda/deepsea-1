@@ -133,7 +133,7 @@ Actually this should never matter, because everything is hashed *)
 
 Fixpoint sizeof_words (t: type) : Z :=
   match t with
-  | Tarray t' n  => (sizeof_words t') * (Zmax 0 n)
+  | Tarray t' n  => (sizeof_words t') * (Z.max 0 n)
   | Tstruct _ fld => sizeof_struct_words fld 0
   | _ => 1 (* most things are one word *)
   end

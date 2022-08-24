@@ -54,6 +54,7 @@ Class Lens {S V} π `{lens_ops: LensOps S V π} := {
 
 Instance lens_get_measure {S V} `{LensOps S V}:
   Measure (π).
+Qed.
 
 (** ** The [modify] operation *)
 

@@ -213,7 +213,7 @@ Module AList <: ALIST.
       unfold get.
       simpl.
       destruct (i =? j) eqn:Heq.
-      * rewrite Peqb_eq in Heq.
+      * rewrite Pos.eqb_eq in Heq.
         subst.
         reflexivity.
       * unfold get in IHm.
@@ -235,7 +235,7 @@ Module AList <: ALIST.
       unfold get.
       simpl.
       destruct (i =? j)%positive eqn:Heq.
-      * rewrite Peqb_eq in Heq.
+      * rewrite Pos.eqb_eq in Heq.
         subst.
         reflexivity.
       * unfold get in IHm.
@@ -268,7 +268,7 @@ Module AList <: ALIST.
       simpl.
       intros.
       destruct (i =? j)%positive eqn:Heq.
-      * rewrite Peqb_eq in Heq.
+      * rewrite Pos.eqb_eq in Heq.
         subst.
         left.
         congruence.

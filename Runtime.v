@@ -247,6 +247,7 @@ Section ZMAP_BASED_ARRAY.
 
   Local Instance ZMap_based_array_hyper_index_passthrough :
       HyperIndexPassthrough arr_tp tp.
+  Qed.
 (*  Proof. esplit; simpl.
     - intros j a b.
       exact (fun x => x).

@@ -8,6 +8,8 @@ has more information about the DeepSEA project, and there are blog posts [An Int
 
 Please let us know what you think! Feedback can be sent to deepsea@certik.org or for feedback specific to this fork, feel free to [raise an issue](https://github.com/Coda-Coda/deepsea-1/issues/new). 
 
+## This branch: main-coq-8-10
+This (unofficial) branch is compatible with Coq 8.10 (rather than the main branch which uses Coq 8.9). The purpose of this branch is primarily for use with `coq-psv` ([Coq Proof Script Visualiser](https://www.cs.uni-potsdam.de/~mafrank/projects/coq-pst/coq-psv.html)).
 
 -----
 

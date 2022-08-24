@@ -383,7 +383,7 @@ Program Definition add_global (ge: t) (idg: ident * option (globdef F V)) : t :=
     ge.(genv_public)
     (PTree.set idg#1 ge.(genv_next) ge.(genv_symb))
     (match idg#2 with Some g => PTree.set ge.(genv_next) g ge.(genv_defs) | _ => ge.(genv_defs) end)
-    (Psucc ge.(genv_next))
+    (Pos.succ ge.(genv_next))
     _ _ _.
 Next Obligation.
   destruct ge; simpl in *.
@@ -790,7 +790,7 @@ Proof.
 Qed.
 
 Definition advance_next (gl: list (ident * option (globdef F V))) (x: positive) :=
-  List.fold_left (fun n g => Psucc n) gl x.
+  List.fold_left (fun n g => Pos.succ n) gl x.
 
 Remark genv_next_add_globals:
   forall gl ge,
@@ -956,7 +956,7 @@ Qed.
 Remark alloc_global_nextblock:
   forall g m m',
   alloc_global m g = Some m' ->
-  Mem.nextblock m' = Psucc(Mem.nextblock m).
+  Mem.nextblock m' = Pos.succ(Mem.nextblock m).
 Proof.
   unfold alloc_global. intros.
   destruct g as [id [[f|v]|]].
@@ -1298,7 +1298,7 @@ Fixpoint load_store_init_data (m: mem) (b: block) (p: Z) (il: list init_data) {s
       /\ load_store_init_data m b (p + size_chunk Mptr) il'
   | Init_space n :: il' =>
       read_as_zero m b p n
-      /\ load_store_init_data m b (p + Zmax n 0) il'
+      /\ load_store_init_data m b (p + Z.max n 0) il'
   end.
 
 Lemma store_init_data_list_charact:
@@ -1820,7 +1820,7 @@ Remark advance_next_le: forall gl x, Ple x (advance_next (F:=F) (V:=V) gl x).
 Proof.
   induction gl; simpl; intros.
   apply Ple_refl.
-  apply Ple_trans with (Psucc x). apply Ple_succ. eauto.
+  apply Ple_trans with (Pos.succ x). apply Ple_succ. eauto.
 Qed.
 
 Lemma alloc_globals_neutral:
@@ -1835,7 +1835,7 @@ Proof.
   exploit alloc_globals_nextblock; eauto. intros EQ.
   simpl in *. destruct (alloc_global ge m a) as [m1|] eqn:E; try discriminate.
   exploit alloc_global_neutral; eauto.
-  assert (Ple (Psucc (Mem.nextblock m)) (Mem.nextblock m')).
+  assert (Ple (Pos.succ (Mem.nextblock m)) (Mem.nextblock m')).
   { rewrite EQ. apply advance_next_le. }
   unfold Plt, Ple in *; zify; omega.
 Qed.
