@@ -5177,7 +5177,7 @@ Context (call_context : CallContext).
   Context {memModelOps : MemoryModelOps mem}.
 
 Context
-  (address_accepts_funds : global_abstract_data_type -> addr -> addr -> wei -> bool).
+  (address_accepts_funds : option global_abstract_data_type -> addr -> addr -> wei -> bool).
 
 Delimit Scope int256_scope with int256.
 Infix \"+\" := Int256.add : int256_scope.
@@ -5214,7 +5214,7 @@ Definition make_machine_env : machine_env global_abstract_data_type
         me_blockhash := (blockhash blockchain_state);
         me_transfer recipient amount d := 
           if (noOverflowOrUnderflowInTransfer contract_address recipient amount balances_during_call)
-             && (address_accepts_funds d contract_address recipient amount)
+             && (address_accepts_funds (Some d) contract_address recipient amount)
           then (Int256.one, update_Outgoing_transfer_recipient_and_amount (Some (recipient, amount)) d)
           else (Int256.zero, d);
         me_callmethod _ _ _ _ _ _ _ _ _ _ := False;
