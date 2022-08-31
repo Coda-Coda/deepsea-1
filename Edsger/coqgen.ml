@@ -5139,7 +5139,8 @@ This file defines a function `contract_model` that can be used to build machine 
     "Require Import backend.MachineModel.\n" ^
     "Require Import core.MemoryModel.\n" ^ 
     "Require Import DeepSpec.lib.Monad.RunStateTInv.\n" ^
-    "Require Import Lia.\n"
+    "Require Import Lia.\n" ^
+    "Require Import Coq.Bool.Bool.\n"
   );
   List.iter (function 
     | i, ADlayer l -> output_string stream ("Require Import " ^ env.project_name ^ ".Layer" ^ i ^ ".\n")
@@ -5174,6 +5175,9 @@ Context (call_context : CallContext).
 
   Context {HmemOps: MemoryModelOps mem}.
   Context {memModelOps : MemoryModelOps mem}.
+
+Context
+  (address_accepts_funds : global_abstract_data_type -> addr -> addr -> wei -> bool).
 
 Delimit Scope int256_scope with int256.
 Infix \"+\" := Int256.add : int256_scope.
@@ -5210,6 +5214,7 @@ Definition make_machine_env : machine_env global_abstract_data_type
         me_blockhash := (blockhash blockchain_state);
         me_transfer recipient amount d := 
           if (noOverflowOrUnderflowInTransfer contract_address recipient amount balances_during_call)
+             && (address_accepts_funds d contract_address recipient amount)
           then (Int256.one, update_Outgoing_transfer_recipient_and_amount (Some (recipient, amount)) d)
           else (Int256.zero, d);
         me_callmethod _ _ _ _ _ _ _ _ _ _ := False;
