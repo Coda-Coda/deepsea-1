@@ -559,7 +559,7 @@ Existing Instances int_Z32_eq_passthrough int_Z32_ne_passthrough
                    int_Z32_le_passthrough int_Z32_ge_passthrough.
 Require Import Omega.
 Section HYPER_TYPE_UNSIGNED.
-  
+  Open Scope Z.
   Definition tint_U := Tpair int256 tint.
   Instance int_U_iso_impl : HyperTypeIsoImpl tint_U :=
     {
@@ -915,6 +915,7 @@ Section HYPER_TYPE_UNSIGNED.
   Lemma int_U_ty_cond z :
     ht_ty_cond tint_U (CVval (HighValues.Vint z)).
   Proof. Admitted.
+  Close Scope Z.
 End HYPER_TYPE_UNSIGNED.
 Existing Instances int_U_impl int_U .
 Existing Instances

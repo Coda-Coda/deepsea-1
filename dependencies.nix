@@ -13,7 +13,7 @@ let pkgs = import (
     (pkgs.writeShellScriptBin "gsed" "exec -a $0 ${gnused}/bin/sed $@")
   ]);
   proving = (with pkgs; [
-    coq_8_10
+    coq_8_11
   ]);
   dsc = (with pkgs; [
     # For dsc/Edsger

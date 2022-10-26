@@ -1,9 +1,12 @@
 *.vo
+*.vok
+*.vos
 *.glob
 *.aux
 .coqdeps.d
 core.make
 core.make.conf
+.core.make.d
 *_build
 *.merlin
 Edsger/parser.ml

@@ -2430,6 +2430,7 @@ Module Tree_Properties(T: TREE).
 
   Section sum.
     Require Import ZArith.
+    Open Scope Z.
     Definition sum (m : T.t Z) := T.fold1 Z.add m 0.
 
     Lemma plus_comm : forall x y a : Z, a + x + y = a + y + x.
@@ -2758,7 +2759,7 @@ Module Tree_Properties(T: TREE).
             (repeat first [rewrite T.gss| rewrite T.grs| rewrite T.gro by auto|rewrite T.gso by auto ];
              auto).
     Qed.
-
+  Close Scope Z.
   End sum.
 End Tree_Properties.
 
