@@ -1,8 +1,8 @@
 let pkgs = import (
   builtins.fetchTarball {
   name = "nixpkgs-21.05-pinned";
-  url = "https://github.com/nixos/nixpkgs/archive/b199038e38f8b97239d1e80dc373fa9b0fd3194d.tar.gz";
-  sha256 = "00iiypj3l8gc295syv00m1f21n8m1hw9rvgxjwjnpdnr1nnwjq5d";
+  url = "https://github.com/nixos/nixpkgs/archive/f540aeda6f677354f1e7144ab04352f61aaa0118.tar.gz";
+  sha256 = "111x41crq2kyx62a5mrqfk3f0r3m4i4p6dmj4jbpfjn5cdsgbxsr";
 }) {}; in
 
 {
@@ -13,7 +13,7 @@ let pkgs = import (
     (pkgs.writeShellScriptBin "gsed" "exec -a $0 ${gnused}/bin/sed $@")
   ]);
   proving = (with pkgs; [
-    coq_8_11
+    coq_8_14
   ]);
   dsc = (with pkgs; [
     # For dsc/Edsger
