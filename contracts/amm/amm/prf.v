@@ -245,7 +245,7 @@ Section step.
      Lemma add_sub_inv : forall (i j : Z32), (i + j - i)%Z = j.
      Proof.
        intros.
-       omega.
+       lia.
      Qed.
    End DeepSEAGenericProof.
 

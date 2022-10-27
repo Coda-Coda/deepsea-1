@@ -67,7 +67,7 @@ Proof.
   apply natlike_rec2.
   right.
   intros.
-  omega.
+  lia.
 
   intros z HR HT.
   destruct HT.
@@ -75,14 +75,14 @@ Proof.
   destruct s as [n[HT HM]].
   exists n.
   split; trivial.
-  omega.
+  lia.
 
   specialize (H (lo + z)).
   destruct H.
   left.
   exists (lo + z).
   split; auto.
-  omega.
+  lia.
 
   right.
   intros.
@@ -90,10 +90,10 @@ Proof.
   subst.
   trivial.
   apply n.
-  omega.
+  lia.
 
   destruct (zlt lo hi).
-  replace hi with (lo + (hi - lo)) by omega. apply HP. omega.
+  replace hi with (lo + (hi - lo)) by lia. apply HP. lia.
   right; intros. omegaContradiction.
 
 Qed.

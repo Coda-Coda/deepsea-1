@@ -66,7 +66,7 @@ Proof.
     unfold balances_nonnegative in H1.
     eauto.
   + unfold balances_sum in H2.
-    omega.
+    lia.
 Qed.
 
 Lemma FixedSupplyToken_totalSupply_oblg me d :
@@ -128,7 +128,7 @@ Proof.
 
     assert (Hbound: Int256Tree_Properties.sum (balances g0) <= 100000).
     { unfold balances_sum in H11.
-      omega.
+      lia.
     }
 
     assert (Hnonnegative : forall k v, Int256Tree.get k (balances g0) = Some v -> v >= 0).
@@ -136,16 +136,16 @@ Proof.
       unfold balances_nonnegative in H6.
       intros k v Hlookup.
       specialize (H6 k v Hlookup).
-      omega.
+      lia.
     }
 
     assert (l := Int256Tree_Properties.sum_bound2 H8 Hnonnegative Hbound).    
     apply Z.le_lt_trans with (Int256Tree.get_default 0 a0 (balances g0) + Int256Tree.get_default 0 (MachineModel.me_caller me) (balances g0)).
-    omega.
+    lia.
     apply Z.le_lt_trans with 100000.
     rewrite Zplus_comm.
     exact l.
-    omega.
+    lia.
 Qed.
 
 Lemma FixedSupplyToken_transfer_oblg a0 a1 me d :
@@ -212,7 +212,7 @@ Proof.
 
     assert (Hbound: Int256Tree_Properties.sum (balances g0) <= 100000).
     { unfold balances_sum in H15.
-      omega.
+      lia.
     }
 
     assert (Hnonnegative : forall k v, Int256Tree.get k (balances g0) = Some v -> v >= 0).
@@ -220,16 +220,16 @@ Proof.
       unfold balances_nonnegative in H10.
       intros k v Hlookup.
       specialize (H10 k v Hlookup).
-      omega.
+      lia.
     }
     assert (l := Int256Tree_Properties.sum_bound2 H12 Hnonnegative Hbound).
 
 
     apply Z.le_lt_trans with (Int256Tree.get_default 0 a0 (balances g0) + Int256Tree.get_default 0 a1 (balances g0)).
-    omega.
+    lia.
     apply Z.le_lt_trans with 100000.
     exact l.
-    omega.
+    lia.
 Qed.
 
 Lemma FixedSupplyToken_transferFrom_oblg a0 a1 a2 me d :

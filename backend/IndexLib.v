@@ -58,7 +58,7 @@ Qed.
 
 Lemma measure_plus_one: forall x, pos_measure x + 1 = S (pos_measure x).
 Proof.
-intro. omega.
+intro. lia.
 Qed.
 
 Lemma delay_matters: forall x y, delay_sparse x = sparse_positive y -> False.

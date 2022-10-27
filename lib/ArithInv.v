@@ -63,7 +63,7 @@ Qed.
 Lemma geb_ge: forall n m : Z, (n >=? m) = true -> n >= m.
 Proof.
   intros.
-  rewrite Z.geb_le in H. omega.
+  rewrite Z.geb_le in H. lia.
 Qed.
 
 Lemma ngeb_lt: forall n m : Z, (n >=? m) = false -> n < m.

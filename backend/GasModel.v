@@ -9,8 +9,8 @@ Require Import Environments.Globalenvs.
 
 Local Open Scope nat_scope.
 
-Ltac REORDER order := assert order as NEWORDER by (intros; omega); rewrite NEWORDER; clear NEWORDER.
-Ltac REORDERIN order hyp := assert order as NEWORDER by (intros; omega); rewrite NEWORDER in hyp; clear NEWORDER.
+Ltac REORDER order := assert order as NEWORDER by (intros; lia); rewrite NEWORDER; clear NEWORDER.
+Ltac REORDERIN order hyp := assert order as NEWORDER by (intros; lia); rewrite NEWORDER in hyp; clear NEWORDER.
 
 Opaque Peano.plus.
 
@@ -67,7 +67,7 @@ Fixpoint gas_branches (count: nat) : nat :=
 Lemma gas_branches_split: forall b1 b2,
   gas_branches (b1 + b2) = gas_branches b1 + gas_branches b2.
 Proof. induction b1; simpl; intros; repeat rewrite Nat.add_0_l.
-auto. rewrite Nat.add_succ_l. simpl. rewrite IHb1. omega.
+auto. rewrite Nat.add_succ_l. simpl. rewrite IHb1. lia.
 Qed.
 
 Definition gas_eval_builtin0 (b: builtin0) : nat :=
@@ -222,7 +222,7 @@ Definition gas_return_done (deref: bool) (rv: option positive) (garbage: nat) (b
   gas_return_done d r g (b1 + b2) = gas_done g b1 + gas_return d r b2.
 Proof.
 intros. unfold gas_return_done. unfold gas_done. unfold gas_return.
-rewrite gas_branches_split. simpl. omega.
+rewrite gas_branches_split. simpl. lia.
 Qed.*)
 
 Definition gas_callmethod_stacked (rv_count: nat) (args: nat) : nat :=
@@ -262,9 +262,9 @@ Definition gas_arg : nat := gas_arg_constr.
 Definition gas_args (args: nat) : nat := gas_arg * args.
 
 Remark gas_arg_bound_method: gas_arg >= gas_arg_method.
-Proof. compute. omega. Qed.
+Proof. compute. lia. Qed.
 Remark gas_arg_bound_constr: gas_arg >= gas_arg_constr.
-Proof. compute. omega. Qed.
+Proof. compute. lia. Qed.
 
 Definition gas_intro (temps: nat) (args: nat) : nat :=
   gas_temps temps + gas_args args.
@@ -318,7 +318,7 @@ gas_branching_auto gas_saveretval'. Qed.
 Lemma succ_pred: forall x, 0 < x -> S (Nat.pred x) = x.
 Proof.
 destruct x; intros.
-omega.
+lia.
 simpl. reflexivity.
 Qed.
 
@@ -334,7 +334,7 @@ destruct (IHc (S g) g' H) as (g_0 & g_0_eq & g_0_lt).
 exists (pred g_0).
 assert (S (Init.Nat.pred g_0) = g_0).
 { rewrite succ_pred; auto. unfold lt.
-  apply Nat.le_trans with (S g); auto. omega. }
+  apply Nat.le_trans with (S g); auto. lia. }
 split.
 
 rewrite Nat.add_comm. rewrite Nat.add_succ_l.
@@ -346,8 +346,8 @@ Qed.
 Lemma le_add: forall g c,
   g <= g + c.
 Proof. induction c; intros.
-omega. apply Nat.le_trans with (g + c); auto.
-rewrite Nat.add_succ_r. omega.
+lia. apply Nat.le_trans with (g + c); auto.
+rewrite Nat.add_succ_r. lia.
 Qed.
 
 Lemma le_pad: forall g c c',
@@ -427,14 +427,14 @@ Proof.
 unfold gas_branching. intros. assert (A := H 2).
 rewrite A.
 simpl.
-omega.
+lia.
 Qed.
 
 Lemma gas_extract_branch: forall g f,
   gas_branching f ->
   g + f 1 = g + f 0 + gas_branch.
 Proof. unfold gas_branching. intros. assert (A := H 1).
-rewrite A; simpl; omega.
+rewrite A; simpl; lia.
 Qed.
 
 Ltac gas_use_2 GAS g' g_0 :=

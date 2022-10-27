@@ -956,14 +956,14 @@ Lemma has_placed_bid_preserved : forall p n_i i n_o o,
             causes overpay *)
         (* since by definition in o' we have a bid pw > p.(valuation), and since 
             there is also this pw bid in o, then winning bid in o > pw, then according to
-            selfish_greedy_utility, the utility is negative, omega *)
+            selfish_greedy_utility, the utility is negative, lia *)
 
         (*  *)
 
         admit.
       - (* "fail-fail":
           trivial, 0 leq 0 *)
-        omega.
+        lia.
     Admitted.
     
   End equilibrium_proof.

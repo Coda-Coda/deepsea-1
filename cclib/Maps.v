@@ -198,8 +198,8 @@ Module PTree <: TREE.
     | Leaf : tree A
     | Node : tree A -> option A -> tree A -> tree A.
 
-  Arguments Leaf [A].
-  Arguments Node [A].
+  Arguments Leaf {A}.
+  Arguments Node {A}.
   Scheme tree_ind := Induction for tree Sort Prop.
 
   Definition t := tree.
@@ -1677,7 +1677,7 @@ Definition index_inv p :=
     destruct x.
     + reflexivity.
     + rewrite Int256.P_mod_two_p_eq.
-      rewrite Zmod_small by (unfold Int256.modulus in H; omega).
+      rewrite Zmod_small by (unfold Int256.modulus in H; lia).
       reflexivity.
     + destruct H.
       unfold Z.lt in H.
@@ -1840,7 +1840,7 @@ Module Tree_Properties(T: TREE).
   Proof.
     unfold cardinal; intros.
     exploit T.elements_remove; eauto. intros (l1 & l2 & P & Q).
-    rewrite P, Q. rewrite ! app_length. simpl. omega.
+    rewrite P, Q. rewrite ! app_length. simpl. lia.
   Qed.
 
   Theorem cardinal_set:
@@ -2434,7 +2434,7 @@ Module Tree_Properties(T: TREE).
     Definition sum (m : T.t Z) := T.fold1 Z.add m 0.
 
     Lemma plus_comm : forall x y a : Z, a + x + y = a + y + x.
-    intros; omega.
+    intros; lia.
     Qed.
 
     Theorem constant_sum : forall (m : T.t Z) k v k' v' i,
@@ -2460,7 +2460,7 @@ Module Tree_Properties(T: TREE).
                    (T.remove k (T.remove k' m))
                    (0 + (v' + i) + (v - i))).
       + f_equal.
-        omega.
+        lia.
       + apply fold1_extensional.
         - apply plus_comm.
         - intros k0.
@@ -2498,7 +2498,7 @@ Module Tree_Properties(T: TREE).
         + rewrite Z.eqb_eq in Heqb.
           simpl.
           intros init.
-          replace (init + snd a) with init by omega.
+          replace (init + snd a) with init by lia.
           apply IHl.
         + intros init.
           simpl.
@@ -2556,7 +2556,7 @@ Module Tree_Properties(T: TREE).
       rewrite ?T.fold1_spec.
       rewrite <- ?sum_fold_left_nonzero.
       apply fold1_permutation.
-      - intros; omega.
+      - intros; lia.
       - apply nonzero_elements_extensional.
         auto.
     Qed.
@@ -2604,7 +2604,7 @@ Module Tree_Properties(T: TREE).
       replace (T.fold1 Z.add m init)
         with  (T.fold1 Z.add (T.set k v m) init).
         + apply fold1_set.
-          intros; omega.
+          intros; lia.
         + apply sum_extensional.
           intros k0.
           destruct (T.elt_eq k0 k); subst.
@@ -2636,9 +2636,9 @@ Module Tree_Properties(T: TREE).
                    (T.remove k (T.remove k' m))
                    (0 + (v' + i) + (v - i))).
       + f_equal.
-        omega.
+        lia.
       + apply fold1_extensional.
-        - intros; omega.
+        - intros; lia.
         - intros k0.
           destruct (T.elt_eq k0 k); destruct (T.elt_eq k0 k'); subst;
           (repeat first [rewrite T.grs| rewrite T.gro by auto|rewrite T.gso by auto ]);
@@ -2660,13 +2660,13 @@ Module Tree_Properties(T: TREE).
       clear H.
       revert init H'.
       induction (T.elements m); intros; simpl in *.
-      - omega.
+      - lia.
       - apply Zge_trans with (init + snd a).
         apply IHl.
         + intros; apply H' with k. auto.        
         + assert (snd a >= 0).
           { destruct a as [k v]. apply H' with k. left. reflexivity. }
-          omega.
+          lia.
     Qed.
     
     Lemma sum_nonnegative : forall (m : T.t Z),
@@ -2675,7 +2675,7 @@ Module Tree_Properties(T: TREE).
     Proof.
       intros.
       unfold sum.
-      apply sum_nonnegative'; auto; omega.
+      apply sum_nonnegative'; auto; lia.
     Qed.
 
     Lemma sum_bound1 : forall (m : T.t Z) k1 B,
@@ -2687,7 +2687,7 @@ Module Tree_Properties(T: TREE).
       assert (B >= 0).
       {
         pose (sum_nonnegative H).
-        omega.
+        lia.
       }
 
       unfold sum in H0.
@@ -2704,7 +2704,7 @@ Module Tree_Properties(T: TREE).
       assert (H4 := @sum_nonnegative' (T.remove k1 m)
                                       (0 + T.get_default 0 k1 m)
                                       H2).
-      omega.
+      lia.
     Qed.
     
     Lemma sum_bound2 : forall (m : T.t Z) k1 k2 B,
@@ -2717,7 +2717,7 @@ Module Tree_Properties(T: TREE).
       assert (B >= 0).
       {
         pose (sum_nonnegative H0).
-        omega.
+        lia.
       }
 
       unfold sum in H1.
@@ -2741,7 +2741,7 @@ Module Tree_Properties(T: TREE).
                          (0 + T.get_default 0 k1 m + T.get_default 0 k2 (T.remove k1 m))) as blah.
       clear Heqblah.
       rewrite get_default_ro in H4 by congruence.
-      omega.
+      lia.
     Qed.
     
     Lemma sum_swap : forall (m : T.t Z) k v k' v',
@@ -2752,7 +2752,7 @@ Module Tree_Properties(T: TREE).
       intros.
       unfold sum.
       apply fold1_extensional.
-      - intros; omega.
+      - intros; lia.
       - intros k0.
         destruct (T.elt_eq k0 k); destruct (T.elt_eq k0 k'); subst;
           try congruence;

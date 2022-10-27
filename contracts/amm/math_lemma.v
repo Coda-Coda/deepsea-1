@@ -195,7 +195,7 @@ Proof. intros.
       apply mul_sub_distr.
     pose (H17 := H16 (i * j) ((i + k) * (j - k * 997 * j / (i * 1000 + k * 997))) (i * 1000 + k * 997)); clearbody H17.
     *)
-    assert (0 < (i * 1000 + k * 997)). omega.
+    assert (0 < (i * 1000 + k * 997)). lia.
     (* multiplied both sides by the denominator of the divisor and needed to use comparisons between "(W / V) * V" and W *)
     pose (Zmult_nc:=(Zmult_lt_compat_r (i * j) ((i + k) * (j - k * 997 * j / (i * 1000 + k * 997))) (i * 1000 + k * 997) H2)); clearbody Zmult_nc.
   Admitted.*)

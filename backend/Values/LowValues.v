@@ -92,9 +92,9 @@ Lemma ident_ext_extends_longer : forall i j,
     (ident_ext_length i <= ident_ext_length j)%nat.
 Proof.
   induction 1.
-  - omega.
+  - lia.
   - simpl.
-    omega.
+    lia.
  Qed.
 
 Lemma ident_ext_extends_disjoint : forall o1 o2,
@@ -111,10 +111,10 @@ Proof.
     + congruence.
     + apply ident_ext_extends_longer in H6.
       simpl in H6.
-      omega.
+      lia.
     + apply ident_ext_extends_longer in H3.
       simpl in H3.
-      omega.
+      lia.
     + unfold not in IHi'; eapply IHi'; eassumption.
 Qed.
  *)

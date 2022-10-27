@@ -280,13 +280,13 @@ Section DeepSEAGenericProof.
   Lemma add_sub_inv : forall (i j : Z32), (i + j - i)%Z = j.
   Proof.
     intros.
-    omega.
+    lia.
   Qed.
 
   (* Lemmas on Inequalities over Z *)
   Lemma ZInEq_ladd : (forall (i j k : Z32), (i > j + k <-> i - k > j)%Z).
   Proof.
-  intros. omega.
+  intros. lia.
   Qed.
   Hint Rewrite ZInEq_ladd : ZInEq.
 
@@ -316,7 +316,7 @@ Section DeepSEAGenericProof.
       apply mul_sub_distr.
     pose (H17 := H16 (i * j) ((i + k) * (j - k * 997 * j / (i * 1000 + k * 997))) (i * 1000 + k * 997)); clearbody H17.
     *)
-    assert (0 < (i * 1000 + k * 997)). omega.
+    assert (0 < (i * 1000 + k * 997)). lia.
     (* multiplied both sides by the denominator of the divisor and needed to use comparisons between "(W / V) * V" and W *)
     pose (Zmult_nc:=(Zmult_lt_compat_r (i * j) ((i + k) * (j - k * 997 * j / (i * 1000 + k * 997))) (i * 1000 + k * 997) H2)); clearbody Zmult_nc.
   Admitted.
@@ -569,7 +569,7 @@ Proof.
   rewrite !add_sub_inv. (* need inequality rewriting rules *)
 
   assert (d * 997 * R1 / (R0 * 1000 + d * 997) > d * 997 * R1 / (R0 * 1000 + d * 997 + d' * 997))%Z.
-  assert (d' * 997 > 0)%Z. omega.
+  assert (d' * 997 > 0)%Z. lia.
   match goal with
   | [ |- context[Z.gt (Z.div ?A ?B) (Z.div ?A (Z.add ?B ?C))]] => pose (HZInEq_denadd := ZInEq_denadd A B C H31); clearbody HZInEq_denadd
   end.
