@@ -557,7 +557,7 @@ Existing Instances int_Z32_eq int_Z32_ne int_Z32_lt int_Z32_gt
 Existing Instances int_Z32_eq_passthrough int_Z32_ne_passthrough
                    int_Z32_lt_passthrough int_Z32_gt_passthrough
                    int_Z32_le_passthrough int_Z32_ge_passthrough.
-Require Import Omega.
+Require Import Lia.
 Section HYPER_TYPE_UNSIGNED.
   Open Scope Z.
   Definition tint_U := Tpair int256 tint.

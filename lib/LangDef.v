@@ -24,7 +24,7 @@
 
 (* Standard library modules *)
 Require Import BinInt.
-Require        Omega.
+Require        Lia.
 
 (* CompCert modules *)
 (*Require Import compcert.common.Events.*)

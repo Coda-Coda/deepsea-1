@@ -201,7 +201,7 @@ Section EXPR_FUNC.
       (0 <= y < Int256.modulus)%Z ->
       (Int256.lt (Int256.repr x) (Int256.repr y) = true) <-> (x < y)%Z.
   Admitted.
-Require Import Omega.  
+Require Import Lia.  
   
   Theorem synth_expr_spec_correct {tmp}`{HyperType} e :
     forall wf se le, expr_constr_prf e ->
