@@ -33,7 +33,7 @@ let pkgs = import (
   documentation = (with pkgs; 
     [ mkdocs ]);
   unittests = (with pkgs; [
-    nodejs
+    nodejs-16_x-openssl_1_1
   ]);
   conflux-unittests = (with pkgs; [
     # For conflux tests for the ANT blockchain
