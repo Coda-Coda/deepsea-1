@@ -1,5 +1,5 @@
 site_name: ""
-site_url: "127.0.0.1:8000/"
+site_url: "http://127.0.0.1:8000/"
 theme:
   name: readthedocs
   highlightjs: true
