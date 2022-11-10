@@ -24,18 +24,18 @@ let pkgsOldForMenhir = import (
   ]);
   dsc = (with pkgs; [
     # For dsc/Edsger
-    ocaml-ng.ocamlPackages_4_09.core
-    ocaml-ng.ocamlPackages_4_09.dune_2
-    ocaml-ng.ocamlPackages_4_09.ocaml
-    ocaml-ng.ocamlPackages_4_09.findlib
-    ocaml-ng.ocamlPackages_4_09.utop
-    ocaml-ng.ocamlPackages_4_09.cryptokit
-    ocaml-ng.ocamlPackages_4_09.ocamlbuild
-    ocaml-ng.ocamlPackages_4_09.cppo
-    ocaml-ng.ocamlPackages_4_09.ocaml_extlib
-    ocaml-ng.ocamlPackages_4_09.yojson
-    pkgsOldForMenhir.ocaml-ng.ocamlPackages_4_09.menhir
-    ocaml-ng.ocamlPackages_4_09.zarith
+    ocaml-ng.ocamlPackages_4_12.core
+    ocaml-ng.ocamlPackages_4_12.dune_2
+    ocaml-ng.ocamlPackages_4_12.ocaml
+    ocaml-ng.ocamlPackages_4_12.findlib
+    ocaml-ng.ocamlPackages_4_12.utop
+    ocaml-ng.ocamlPackages_4_12.cryptokit
+    ocaml-ng.ocamlPackages_4_12.ocamlbuild
+    ocaml-ng.ocamlPackages_4_12.cppo
+    ocaml-ng.ocamlPackages_4_12.ocaml_extlib
+    ocaml-ng.ocamlPackages_4_12.yojson
+    pkgsOldForMenhir.ocaml-ng.ocamlPackages_4_12.menhir
+    ocaml-ng.ocamlPackages_4_12.zarith
     ]);
   documentation = (with pkgs; 
     [ mkdocs ]);
