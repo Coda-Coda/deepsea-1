@@ -5,6 +5,13 @@ let pkgs = import (
   sha256 = "05rjb4xx2m2qqp94x39k8mv447njvyqv1zk6kshkg0j9q4hcq8lf";
 }) {}; in
 
+let pkgsForNodeJS = import (
+  builtins.fetchTarball {
+  name = "nixpkgs-21.05-pinned";
+  url = "https://github.com/nixos/nixpkgs/archive/f540aeda6f677354f1e7144ab04352f61aaa0118.tar.gz";
+  sha256 = "111x41crq2kyx62a5mrqfk3f0r3m4i4p6dmj4jbpfjn5cdsgbxsr";
+}) {}; in
+
 let pkgsOldForMenhir = import (
   builtins.fetchTarball {
   name = "nixpkgs-21.05-pinned";
@@ -40,7 +47,7 @@ let pkgsOldForMenhir = import (
   documentation = (with pkgs; 
     [ mkdocs ]);
   unittests = (with pkgs; [
-    nodejs-16_x-openssl_1_1
+    pkgsForNodeJS.nodejs-16_x-openssl_1_1
   ]);
   conflux-unittests = (with pkgs; [
     # For conflux tests for the ANT blockchain
