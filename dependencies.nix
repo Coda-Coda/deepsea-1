@@ -5,6 +5,13 @@ let pkgs = import (
   sha256 = "111x41crq2kyx62a5mrqfk3f0r3m4i4p6dmj4jbpfjn5cdsgbxsr";
 }) {}; in
 
+let pkgsOldForMenhir = import (
+  builtins.fetchTarball {
+  name = "nixpkgs-21.05-pinned";
+  url = "https://github.com/nixos/nixpkgs/archive/b199038e38f8b97239d1e80dc373fa9b0fd3194d.tar.gz";
+  sha256 = "00iiypj3l8gc295syv00m1f21n8m1hw9rvgxjwjnpdnr1nnwjq5d";
+}) {}; in
+
 {
   other = (with pkgs; [
     gnumake
@@ -27,7 +34,7 @@ let pkgs = import (
     ocaml-ng.ocamlPackages_4_09.cppo
     ocaml-ng.ocamlPackages_4_09.ocaml_extlib
     ocaml-ng.ocamlPackages_4_09.yojson
-    ocaml-ng.ocamlPackages_4_09.menhir
+    pkgsOldForMenhir.ocaml-ng.ocamlPackages_4_09.menhir
     ocaml-ng.ocamlPackages_4_09.zarith
     ]);
   documentation = (with pkgs; 
