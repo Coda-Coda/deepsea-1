@@ -5139,7 +5139,8 @@ This file defines a function `contract_model` that can be used to build machine 
     "Require Import backend.MachineModel.\n" ^
     "Require Import core.MemoryModel.\n" ^ 
     "Require Import DeepSpec.lib.Monad.RunStateTInv.\n" ^
-    "Require Import Lia.\n"
+    "Require Import Lia.\n" ^
+    "Require Import Coq.Bool.Bool.\n"
   );
   List.iter (function 
     | i, ADlayer l -> output_string stream ("Require Import " ^ env.project_name ^ ".Layer" ^ i ^ ".\n")
@@ -5175,6 +5176,9 @@ Context (call_context : CallContext).
   Context {HmemOps: MemoryModelOps mem}.
   Context {memModelOps : MemoryModelOps mem}.
 
+Context
+  (address_accepts_funds : option global_abstract_data_type -> addr -> addr -> wei -> bool).
+
 Delimit Scope int256_scope with int256.
 Infix \"+\" := Int256.add : int256_scope.
 Infix \"-\" := Int256.sub : int256_scope.
@@ -5190,6 +5194,10 @@ Definition update_balances sender recipient amount balances : (addr -> wei) :=
       else balances a.
 Close Scope int256.
 
+Definition noOverflowOrUnderflowInTransfer (sender recipient : addr) (amount : wei) (balances : addr -> wei) : bool := 
+  ((Int256.intval (balances sender)) - (Int256.intval amount) >=? 0)%Z
+  && ((Int256.intval (balances recipient)) + (Int256.intval amount) <=? Int256.max_unsigned)%Z.
+
 Definition make_machine_env : machine_env global_abstract_data_type
   := 
      let balances_during_call := (update_balances (caller call_context) contract_address (callvalue call_context) (balance blockchain_state)) in
@@ -5204,7 +5212,11 @@ Definition make_machine_env : machine_env global_abstract_data_type
         me_balance := balances_during_call;
         me_selfbalance := balances_during_call contract_address;
         me_blockhash := (blockhash blockchain_state);
-        me_transfer recipient amount d := (Int256.one, update_Outgoing_transfer_recipient_and_amount (Some (recipient, amount)) d);
+        me_transfer recipient amount d := 
+          if (noOverflowOrUnderflowInTransfer contract_address recipient amount balances_during_call)
+             && (address_accepts_funds (Some d) contract_address recipient amount)
+          then (Int256.one, update_Outgoing_transfer_recipient_and_amount (Some (recipient, amount)) d)
+          else (Int256.zero, d);
         me_callmethod _ _ _ _ _ _ _ _ _ _ := False;
         me_log _ _ d := d; (* TODO-Daniel what is the purpose of me_log? Is this a sufficient definition for now? *)
         me_chainid := (chainid call_context);
