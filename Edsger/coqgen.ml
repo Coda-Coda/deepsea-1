@@ -5178,9 +5178,13 @@ Context
   (address_accepts_funds : option global_abstract_data_type -> addr -> addr -> wei -> bool).
 Context (callvalue_bounded_prf : (0 <= callvalue call_context < Int256.modulus)%Z).
 Context (balances_bounded_prf : forall a, (0 <= (balance blockchain_state) a < Int256.modulus)%Z).
+Open Scope Z.
 Definition noOverflowOrUnderflowInTransfer (sender recipient : addr) (amount : wei) (balances : addr -> wei) : bool := 
-  ((balances sender) - amount >=? 0)%Z
-  && ((balances recipient) + amount <? Int256.modulus)%Z.
+  (0 <=? amount)
+  && (amount <? Int256.modulus)
+  && ((balances sender) - amount >=? 0)
+  && ((balances recipient) + amount <? Int256.modulus).
+Close Scope Z.
 Context (callvalue_transfer_condition_prf : noOverflowOrUnderflowInTransfer (caller call_context) contract_address (callvalue call_context) (balance blockchain_state) = true).
 
   Context {HmemOps: MemoryModelOps mem}.
@@ -5237,7 +5241,9 @@ split.
    split.
    apply andb_prop in callvalue_transfer_condition_prf.
    destruct callvalue_transfer_condition_prf.
-   apply Z.geb_le in H. lia.
+   apply andb_prop in H. destruct H.
+   apply andb_prop in H. destruct H.
+   apply Z.geb_le in H1. lia.
    pose proof (balances_bounded_prf (caller call_context)). lia.
 
    destruct (a =? contract_address)%int256.
