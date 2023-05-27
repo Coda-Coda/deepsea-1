@@ -4597,7 +4597,7 @@ destruct me; simpl. destruct me_valid as [[]]. auto.
 Defined.\n";
 
     output_string out "Record global_abstract_data_type : Type := {";
-    output_string out "\n  Outgoing_transfer_recipient_and_amount : option (int256 * int256)";
+    output_string out "\n  Outgoing_transfer_recipient_and_amount : option (int256 * Z)";
     iter_fields (fun _o f ->
         (* XXX: option for name mangling.
            Currently, if two object fields have the same name (anywhere in the entire system)
@@ -5216,8 +5216,8 @@ Program Definition make_machine_env : machine_env global_abstract_data_type
         me_balance := balances_during_call;
         me_blockhash := (blockhash blockchain_state);
         me_transfer recipient amount d := 
-          if (noOverflowOrUnderflowInTransfer contract_address recipient (Int256.unsigned amount) balances_during_call)
-             && (address_accepts_funds (Some d) contract_address recipient (Int256.unsigned amount))
+          if (noOverflowOrUnderflowInTransfer contract_address recipient amount balances_during_call)
+             && (address_accepts_funds (Some d) contract_address recipient amount)
           then (Int256.one, update_Outgoing_transfer_recipient_and_amount (Some (recipient, amount)) d)
           else (Int256.zero, d);
         me_callmethod _ _ _ _ _ _ _ _ _ _ := False;

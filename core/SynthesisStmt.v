@@ -1541,7 +1541,7 @@ Proof. Admitted.
       ht_list_valid_ft_cond (map2_synth_expr_spec args se wf) ->
       synth_stmt_RC dest tmp se m (@CCcall _ argts r prim args) wf
   
-  | RCtransfer: forall (e1 e2: @expr_constr _ tint_U _) wf,
+  | RCtransfer: forall (e1: @expr_constr _ tint_U _) (e2: @expr_constr _ tint_Z32 _) wf,
       synth_stmt_RC dest tmp se m (CCtransfer e1 e2) wf
                     
   | RCyield: forall tp hti e wf,
