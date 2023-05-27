@@ -544,11 +544,7 @@ Fixpoint contains_balance_read
   | ECconst_int _ _ _ _ => false
   | ECconst_int256 _ _ _ _ => false
   | ECtempvar _ _ _ => false
-  | ECbuiltin0 _ _ possibly_balance_read =>
-    match (@Hbuiltin0 LayerSpec _ possibly_balance_read) with
-      | Bselfbalance => true
-      | _ => false
-    end
+  | ECbuiltin0 _ _ _ => false
   | ECbuiltin1 _ _ _ _ possibly_balance_read e' => 
     match (@Hbuiltin1 LayerSpec _ _ possibly_balance_read) with
       | Bbalance => true

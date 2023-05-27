@@ -28,8 +28,7 @@ Inductive builtin0: Type :=
 | Bcoinbase: builtin0
 | Btimestamp: builtin0
 | Bnumber: builtin0
-| Bchainid: builtin0
-| Bselfbalance: builtin0.
+| Bchainid: builtin0.
 
 Inductive builtin1: Type :=
 | Bbalance: builtin1
@@ -63,13 +62,12 @@ Record machine_env  : Type := mkmachine {
   me_address : int256;  (* Todo: make it int160. *)
   me_origin : int256;   (* Todo: make it int160. *)                     
   me_caller : int256;
-  me_callvalue : int256;
+  me_callvalue : Z; (* Todo-Daniel: Further consider implications of using Z for this. *)
   me_coinbase : int256;
   me_timestamp : int256;
   me_number : int256;
   me_chainid : int256;
-  me_selfbalance : int256;
-  me_balance : int256 -> int256;   (* Todo: make it int160. *)
+  me_balance : int256 -> Z;   (* Todo: make it int160. *)
   me_blockhash : int256 -> int256;
 
   (* todo: this is bad because it doesn't deal with potential reentrancy. *)
@@ -77,7 +75,9 @@ Record machine_env  : Type := mkmachine {
   me_transfer : forall (addr value: int256)(d: adata), (int256 * adata);
   (* addr, sig, value, args, prev_data, prev_storage, new_data, new_storage, success, retvals *)
   me_callmethod : val -> int -> val -> list val -> adata -> ext_env -> adata -> ext_env -> int256 -> list val -> Prop;
-  me_log : forall (topics : list val) (args : list val), adata -> adata
+  me_log : forall (topics : list val) (args : list val), adata -> adata;
+  me_valid :    0 <= me_callvalue < Int256.modulus
+             /\ (forall a, 0 <= me_balance a < Int256.modulus)
 }.
 
 Definition me_query (me : machine_env) (q: state_query) : val :=
@@ -85,13 +85,12 @@ Definition me_query (me : machine_env) (q: state_query) : val :=
   | Qcall0 Baddress => Vint (me_address me)
   | Qcall0 Borigin => Vint (me_origin me)
   | Qcall0 Bcaller => Vint (me_caller me)
-  | Qcall0 Bcallvalue => Vint (me_callvalue me)
+  | Qcall0 Bcallvalue => Vint (Int256.repr (me_callvalue me))
   | Qcall0 Bcoinbase => Vint (me_coinbase me)
   | Qcall0 Btimestamp => Vint (me_timestamp me)
   | Qcall0 Bnumber => Vint (me_number me)
   | Qcall0 Bchainid => Vint (me_chainid me)
-  | Qcall0 Bselfbalance => Vint (me_selfbalance me)
-  | Qcall1 Bbalance (Vint addr) => Vint (me_balance me addr)
+  | Qcall1 Bbalance (Vint addr) => Vint (Int256.repr (me_balance me addr))
   | Qcall1 Bbalance _ => Vunit (* ill-typed query. *)
   | Qcall1 Bblockhash (Vint n) => Vint (me_blockhash me n)
   | Qcall1 Bblockhash _ => Vunit (* ill-typed query. *)
@@ -175,7 +174,6 @@ Arguments  me_coinbase {adata}.
 Arguments  me_timestamp {adata}.
 Arguments  me_number {adata}.
 Arguments  me_chainid {adata}.
-Arguments  me_selfbalance {adata}.
 Arguments  me_balance {adata}.
 Arguments  me_blockhash {adata}.
 Arguments  me_transfer {adata}.

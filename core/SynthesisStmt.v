@@ -760,7 +760,7 @@ Ltac dest_first_eqn H :=
     let first_eq := fresh "first_eq" in
     destruct X as [(n & n_range & Pn & n_least) | no_n] eqn:first_eq
   end.
-Definition ext_call_me (ext_contract : int256) := {|
+Program Definition ext_call_me (ext_contract : int256) := {|
   me_address := ext_contract;
   me_origin := me_origin me;
   me_caller := me_address me;
@@ -769,13 +769,15 @@ Definition ext_call_me (ext_contract : int256) := {|
   me_timestamp := me_timestamp me;
   me_number := me_number me;
   me_chainid := me_chainid me;
-  me_selfbalance := me_selfbalance me;
   me_balance := me_balance me;
   me_blockhash := me_blockhash me;
   me_transfer := me_transfer me;
   me_callmethod := me_callmethod me;
   me_log := me_log me;
 |}.
+Next Obligation.
+destruct me; simpl. destruct me_valid as [[]]. auto.
+Defined.
 Fixpoint synth_stmt_spec_opt {returns}(c : cmd_constr returns) dest tmp :
   synth_stmt_wellformed c dest tmp -> spec_env_t tmp -> DS (tp_ft returns) :=
   match c with

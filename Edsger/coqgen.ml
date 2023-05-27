@@ -4577,7 +4577,7 @@ let gen_global_abstract_data_type env final_layer fileDeclarations = function
     | _, _ -> ()
     ) fileDeclarations;
 
-    output_string out "Definition ext_call_me {adata: Type} (me : machine_env adata) (ext_contract : int256) := {|
+    output_string out "Program Definition ext_call_me {adata: Type} (me : machine_env adata) (ext_contract : int256) := {|
   me_address := ext_contract;
   me_origin := me_origin me;
   me_caller := me_address me;
@@ -4586,13 +4586,15 @@ let gen_global_abstract_data_type env final_layer fileDeclarations = function
   me_timestamp := me_timestamp me;
   me_number := me_number me;
   me_chainid := me_chainid me;
-  me_selfbalance := me_selfbalance me;
   me_balance := me_balance me;
   me_blockhash := me_blockhash me;
   me_transfer := me_transfer me;
   me_callmethod := me_callmethod me;
   me_log := me_log me;
-|}.\n";
+|}.
+Next Obligation.
+destruct me; simpl. destruct me_valid as [[]]. auto.
+Defined.\n";
 
     output_string out "Record global_abstract_data_type : Type := {";
     output_string out "\n  Outgoing_transfer_recipient_and_amount : option (int256 * int256)";
@@ -5149,7 +5151,7 @@ This file defines a function `contract_model` that can be used to build machine 
 
   output_string stream ("\nModule ContractModel.\n\n
 
-Definition wei := int256.
+Definition wei := Z.
 Definition addr := int256.
 
 Section Contract_Call_Context.
@@ -5172,12 +5174,17 @@ Record CallContext := mkCallContext
 (* 'Forall function calls: '*)
 Context (blockchain_state : BlockchainState).
 Context (call_context : CallContext).
+Context
+  (address_accepts_funds : option global_abstract_data_type -> addr -> addr -> wei -> bool).
+Context (callvalue_bounded_prf : (0 <= callvalue call_context < Int256.modulus)%Z).
+Context (balances_bounded_prf : forall a, (0 <= (balance blockchain_state) a < Int256.modulus)%Z).
+Definition noOverflowOrUnderflowInTransfer (sender recipient : addr) (amount : wei) (balances : addr -> wei) : bool := 
+  ((balances sender) - amount >=? 0)%Z
+  && ((balances recipient) + amount <? Int256.modulus)%Z.
+Context (callvalue_transfer_condition_prf : noOverflowOrUnderflowInTransfer (caller call_context) contract_address (callvalue call_context) (balance blockchain_state) = true).
 
   Context {HmemOps: MemoryModelOps mem}.
   Context {memModelOps : MemoryModelOps mem}.
-
-Context
-  (address_accepts_funds : option global_abstract_data_type -> addr -> addr -> wei -> bool).
 
 Delimit Scope int256_scope with int256.
 Infix \"+\" := Int256.add : int256_scope.
@@ -5189,16 +5196,13 @@ Definition update_balances sender recipient amount balances : (addr -> wei) :=
   (* Here the balances are updated without checking for overflows. Overflow checks must be done elsewhere. *)
   fun a => 
   if sender =? recipient then balances a else
-    if a =? sender then (balances sender) - amount else
-     if a =? recipient then (balances recipient) + amount
+    if a =? sender then ((balances sender) - amount)%Z else
+     if a =? recipient then ((balances recipient) + amount)%Z
       else balances a.
 Close Scope int256.
 
-Definition noOverflowOrUnderflowInTransfer (sender recipient : addr) (amount : wei) (balances : addr -> wei) : bool := 
-  ((Int256.intval (balances sender)) - (Int256.intval amount) >=? 0)%Z
-  && ((Int256.intval (balances recipient)) + (Int256.intval amount) <=? Int256.max_unsigned)%Z.
-
-Definition make_machine_env : machine_env global_abstract_data_type
+Local Obligation Tactic := idtac.
+Program Definition make_machine_env : machine_env global_abstract_data_type
   := 
      let balances_during_call := (update_balances (caller call_context) contract_address (callvalue call_context) (balance blockchain_state)) in
      {| me_address := contract_address;
@@ -5208,19 +5212,44 @@ Definition make_machine_env : machine_env global_abstract_data_type
         me_coinbase := (coinbase call_context); 
         me_timestamp := (timestamp blockchain_state);
         me_number := (block_number blockchain_state);
-        (* For me_balance and me_selfbalance, the assumption here is that the Checks-Effects-Interaction pattern is followed, so there are no balance reads after a transfer has occured. *)
+        (* For me_balance, the assumption here is that the Checks-Effects-Interaction pattern is followed, so there are no balance reads after a transfer has occured. *)
         me_balance := balances_during_call;
-        me_selfbalance := balances_during_call contract_address;
         me_blockhash := (blockhash blockchain_state);
         me_transfer recipient amount d := 
-          if (noOverflowOrUnderflowInTransfer contract_address recipient amount balances_during_call)
-             && (address_accepts_funds (Some d) contract_address recipient amount)
+          if (noOverflowOrUnderflowInTransfer contract_address recipient (Int256.unsigned amount) balances_during_call)
+             && (address_accepts_funds (Some d) contract_address recipient (Int256.unsigned amount))
           then (Int256.one, update_Outgoing_transfer_recipient_and_amount (Some (recipient, amount)) d)
           else (Int256.zero, d);
         me_callmethod _ _ _ _ _ _ _ _ _ _ := False;
         me_log _ _ d := d; (* TODO-Daniel what is the purpose of me_log? Is this a sufficient definition for now? *)
         me_chainid := (chainid call_context);
+        me_valid := _
       |}.
+Next Obligation.
+split.
+ - assumption.
+ - unfold update_balances.
+   intros.
+   unfold noOverflowOrUnderflowInTransfer in *.
+   destruct ((caller call_context =? contract_address)%int256).
+   apply balances_bounded_prf.
+   destruct (a =? caller call_context)%int256.
+   split.
+   apply andb_prop in callvalue_transfer_condition_prf.
+   destruct callvalue_transfer_condition_prf.
+   apply Z.geb_le in H. lia.
+   pose proof (balances_bounded_prf (caller call_context)). lia.
+
+   destruct (a =? contract_address)%int256.
+   apply andb_prop in callvalue_transfer_condition_prf.
+   destruct callvalue_transfer_condition_prf.
+   split.
+   pose proof (balances_bounded_prf contract_address). lia.
+   apply Z.ltb_lt in H0. lia.
+
+   apply balances_bounded_prf.
+Defined.
+
 
 End Contract_Call_Context.
 

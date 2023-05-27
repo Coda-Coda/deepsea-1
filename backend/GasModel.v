@@ -80,7 +80,6 @@ Definition gas_eval_builtin0 (b: builtin0) : nat :=
   | Btimestamp => g_base
   | Bnumber => g_base
   | Bchainid => g_base
-  | Bselfbalance => g_low
   end.
 
 Definition gas_eval_builtin1 (b: builtin1) : nat :=

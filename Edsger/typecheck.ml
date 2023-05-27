@@ -753,7 +753,7 @@ let typecheck parsed filename =
                     "msg_sender",
                     ([], { aRexprDesc = AEbuiltin ("caller", []); aRexprType = builtin_type_a_type Taddress });
                     "msg_value",
-                    ([], { aRexprDesc = AEbuiltin ("callvalue", []) ; aRexprType = builtin_type_a_type Tuint });
+                    ([], { aRexprDesc = AEbuiltin ("callvalue", []) ; aRexprType = builtin_type_a_type Tint });
                     "block_coinbase",
                     ([], { aRexprDesc = AEbuiltin ("coinbase", []); aRexprType = builtin_type_a_type Tuint });
                     "block_timestamp",
@@ -765,7 +765,7 @@ let typecheck parsed filename =
                     "self_balance",
                     ([],{ aRexprDesc = AEbuiltin ("selfbalance", []); aRexprType = builtin_type_a_type Tuint });
                     "balance",
-                    ([builtin_type_a_type Taddress],{ aRexprDesc = AEbuiltin ("balance", []); aRexprType = builtin_type_a_type Tuint });
+                    ([builtin_type_a_type Taddress],{ aRexprDesc = AEbuiltin ("balance", []); aRexprType = builtin_type_a_type Tint });
                     "blockhash",
                     ([builtin_type_a_type Tuint],{ aRexprDesc = AEbuiltin ("blockhash", []); aRexprType = builtin_type_a_type Tuint });
           
