@@ -1,3 +1,6 @@
+## About this fork
+The main branch of this (unofficial) fork includes various improvements not yet merged upstream. For example, this version is compatible with Coq 8.14 (rather than the original repository which uses Coq 8.9). Please feel free to examine the git history to see the other changes since the repositories diverged at [commit 603866](https://github.com/shentufoundation/deepsea/commit/60386608f23e5e316196ac73db417007783240d8).
+
 # The DeepSEA Language
 
 This codebase **may only be used for educational, research or evaluation purposes, and not for commercial use**.
@@ -7,9 +10,6 @@ This is because the DeepSEA compiler includes files taken and modified from Comp
 has more information about the DeepSEA project, and there are blog posts [An Introduction to DeepSEA](https://certik.io/blog/technology/an-introduction-to-deepsea) and [How DeepSEA Works](https://certik.io/blog/technology/how-deepsea-works-with-an-example-token-contact/).
 
 Please let us know what you think! Feedback can be sent to deepsea@certik.org or for feedback specific to this fork, feel free to [raise an issue](https://github.com/Coda-Coda/deepsea-1/issues/new). 
-
-## This branch: main-coq-8-10
-This (unofficial) branch is compatible with Coq 8.10 (rather than the main branch which uses Coq 8.9). The purpose of this branch is primarily for use with `coq-psv` ([Coq Proof Script Visualiser](https://www.cs.uni-potsdam.de/~mafrank/projects/coq-pst/coq-psv.html)).
 
 -----
 
